@@ -8,6 +8,10 @@ e-ink phone (MuditaOS-K, AOSP, **no Google Services**). It overlays
 vector map (country borders + cities), centered on your current GPS position,
 with a ~2 hour animated history and +/- zoom.
 
+<img src="docs/Screenshot.png" width="280" alt="kRadar running on the Mudita Kompakt" />
+
+*Running on the Mudita Kompakt (800×480 e-ink).*
+
 ## What it does
 
 - Centers on your location using AOSP `LocationManager` (GPS, then network) —
