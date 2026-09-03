@@ -6,9 +6,6 @@ e-ink phone (MuditaOS-K, AOSP, **no Google Services**). It overlays
 vector map (country borders + cities), centered on your current GPS position,
 with a ~2 hour animated history and +/- zoom.
 
-Sibling app to **kSync** — same conventions (Kotlin + Compose + Mudita Mindful
-Design, MVVM + StateFlow, OkHttp + `org.json`, no Play Services).
-
 ## What it does
 
 - Centers on your location using AOSP `LocationManager` (GPS, then network) —
