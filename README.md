@@ -1,5 +1,7 @@
 # kRadar
 
+<img src="docs/icon.png" width="96" align="right" alt="kRadar icon" />
+
 A single-screen **precipitation radar** for the [Mudita Kompakt](https://mudita.com/)
 e-ink phone (MuditaOS-K, AOSP, **no Google Services**). It overlays
 [RainViewer](https://www.rainviewer.com/) European radar imagery on a static
