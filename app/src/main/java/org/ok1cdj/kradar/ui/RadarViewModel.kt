@@ -2,6 +2,7 @@ package org.ok1cdj.kradar.ui
 
 import android.app.Application
 import android.graphics.Bitmap
+import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -41,6 +42,9 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
     private var refreshJob: Job? = null
     private var playJob: Job? = null
 
+    /** Monotonic timestamp of the last radar fetch; 0 until the first load. */
+    private var lastRefreshAtMs = 0L
+
     /** Playback tick interval — tune on device. */
     private val playbackIntervalMs = 550L
 
@@ -65,6 +69,34 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
         refresh()
     }
 
+    /**
+     * Called each time the app returns to the foreground (ON_RESUME). Refreshes
+     * at most once per [REFRESH_MIN_INTERVAL_MS]; when it does, it re-reads the
+     * GPS fix so the map re-centers if the user has moved. Location and frames are
+     * updated together so the overlay never drifts out of alignment.
+     */
+    fun onForeground() {
+        val ctx = getApplication<Application>()
+        if (!LocationProvider.hasPermission(ctx)) {
+            _state.update { it.copy(permissionDenied = true) }
+            return
+        }
+        val now = SystemClock.elapsedRealtime()
+        val stale = lastRefreshAtMs == 0L || now - lastRefreshAtMs >= REFRESH_MIN_INTERVAL_MS
+        if (!stale) return // keep the current view; overlay stays aligned
+        val loc = LocationProvider.lastKnown(ctx) ?: savedLocation()
+        if (loc == null) {
+            _state.update {
+                if (it.location == null) it.copy(permissionDenied = false, error = NO_FIX) else it
+            }
+            return
+        }
+        saved[KEY_LAT] = loc.lat
+        saved[KEY_LON] = loc.lon
+        _state.update { it.copy(location = loc, permissionDenied = false, error = null) }
+        refresh(force = true)
+    }
+
     private fun savedLocation(): LatLon? {
         val lat = saved.get<Double>(KEY_LAT) ?: return null
         val lon = saved.get<Double>(KEY_LON) ?: return null
@@ -85,15 +117,18 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
         if (z == cur.zoom || cur.location == null) return
         saved[KEY_ZOOM] = z
         _state.update { it.copy(zoom = z) }
-        refresh()
+        refresh(force = true)
     }
 
     /**
      * Fetch metadata, download + quantize every frame at the current
      * location/zoom, then swap them in. Cancels any in-flight refresh.
      */
-    fun refresh() {
+    fun refresh(force: Boolean = false) {
         val loc = _state.value.location ?: return
+        val now = SystemClock.elapsedRealtime()
+        if (!force && lastRefreshAtMs != 0L && now - lastRefreshAtMs < REFRESH_MIN_INTERVAL_MS) return
+        lastRefreshAtMs = now
         pause()
         refreshJob?.cancel()
         refreshJob = viewModelScope.launch {
@@ -201,5 +236,6 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
         private const val KEY_ZOOM = "zoom"
         private const val KEY_LAT = "lat"
         private const val KEY_LON = "lon"
+        private const val REFRESH_MIN_INTERVAL_MS = 10 * 60 * 1000L
     }
 }
