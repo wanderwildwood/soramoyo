@@ -12,6 +12,8 @@ with a ~2 hour animated history and +/- zoom.
 
 *Running on the Mudita Kompakt (800×480 e-ink).*
 
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/ok1cdj)
+
 ## What it does
 
 - Centers on your location using AOSP `LocationManager` (GPS, then network) —
@@ -22,6 +24,9 @@ with a ~2 hour animated history and +/- zoom.
 - Draws borders + cities as a static vector layer using the **same Web Mercator
   projection** as the tiles, so map and radar stay aligned at every zoom.
 - Shows the mandatory "Weather data by RainViewer" attribution on screen.
+- Auto-refreshes the radar frames and re-reads GPS every time the app returns to
+  the foreground (throttled to once per 10 min); zooming forces an immediate
+  reload.
 
 ## Data source & attribution
 
@@ -93,7 +98,8 @@ All isolated to single constants:
 
 - `render/EinkConverter.kt` — `NUM_LEVELS`, `MASK_THRESHOLD`, alpha ramp
   (`ALPHA_MIN`/`ALPHA_MAX`).
-- `ui/RadarViewModel.kt` — `playbackIntervalMs`.
+- `ui/RadarViewModel.kt` — `playbackIntervalMs`, `REFRESH_MIN_INTERVAL_MS`
+  (on-resume refresh throttle).
 - `ui/RadarUiState.kt` — `DEFAULT_ZOOM`, `MIN_ZOOM`/`MAX_ZOOM`, `TILE_SIZE`.
 
 ## Architecture
