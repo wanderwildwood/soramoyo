@@ -38,6 +38,18 @@ class MapProjection(
         return floatArrayOf(px.toFloat(), py.toFloat())
     }
 
+    /**
+     * Geographic center after panning the view by ([dxPx], [dyPx]) IMAGE-space
+     * pixels (dragging the map right/down moves the center left/up). Returns
+     * [lat, lon]; used by the debug drag-to-pan. Reuses the same Mercator math so
+     * the pan is exact at any latitude.
+     */
+    fun centerAfterPan(dxPx: Double, dyPx: Double): DoubleArray {
+        val nx = centerNx - dxPx / worldPx
+        val ny = centerNy - dyPx / worldPx
+        return doubleArrayOf(invLat(ny), invLon(nx))
+    }
+
     /** Geographic bounding box currently visible in the image, for cheap culling. */
     fun visibleBounds(): Bounds {
         val latN = invLat(centerNy - half / worldPx) // top edge (py = 0)

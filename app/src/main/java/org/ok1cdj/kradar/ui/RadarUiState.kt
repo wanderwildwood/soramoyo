@@ -26,6 +26,12 @@ data class RadarUiState(
     val isPlaying: Boolean = false,
     val loading: Boolean = false,
     val error: String? = null,
+    // Transient dev/test flags — never persisted. [devMode] is toggled by a hidden
+    // long-press and reveals the manual lat/lon panel + drag-to-pan. [manualOverride]
+    // is set once the center comes from the panel or a drag, so GPS refreshes stop
+    // clobbering the explored location.
+    val devMode: Boolean = false,
+    val manualOverride: Boolean = false,
 ) {
     val hasFrames: Boolean get() = frames.isNotEmpty()
     val currentTime: Long? get() = frameTimes.getOrNull(currentIndex)

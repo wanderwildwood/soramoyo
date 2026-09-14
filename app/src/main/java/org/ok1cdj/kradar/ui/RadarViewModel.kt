@@ -41,6 +41,7 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
 
     private var refreshJob: Job? = null
     private var playJob: Job? = null
+    private var panJob: Job? = null
 
     /** Monotonic timestamp of the last radar fetch; 0 until the first load. */
     private var lastRefreshAtMs = 0L
@@ -50,6 +51,7 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
 
     /** Read last-known GPS/network location and (re)load the radar. */
     fun locate() {
+        if (_state.value.manualOverride) return // keep the manually explored view
         val ctx = getApplication<Application>()
         if (!LocationProvider.hasPermission(ctx)) {
             _state.update { it.copy(permissionDenied = true) }
@@ -76,6 +78,7 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
      * updated together so the overlay never drifts out of alignment.
      */
     fun onForeground() {
+        if (_state.value.manualOverride) return // don't yank the view back while exploring
         val ctx = getApplication<Application>()
         if (!LocationProvider.hasPermission(ctx)) {
             _state.update { it.copy(permissionDenied = true) }
@@ -106,6 +109,41 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
     /** Called after the runtime permission dialog resolves. */
     fun onPermissionResult(granted: Boolean) {
         if (granted) locate() else _state.update { it.copy(permissionDenied = true) }
+    }
+
+    // --- dev mode (hidden long-press; session-only, never persisted) -------
+
+    /** Toggle the hidden dev overlay (manual lat/lon panel + drag-to-pan). */
+    fun toggleDevMode() = _state.update { it.copy(devMode = !it.devMode) }
+
+    /** Jump to a manually entered location. Bypasses GPS; not persisted. */
+    fun setManualLocation(lat: Double, lon: Double) {
+        panJob?.cancel()
+        _state.update {
+            it.copy(location = LatLon(lat, lon), manualOverride = true, permissionDenied = false, error = null)
+        }
+        refresh(force = true)
+    }
+
+    /** Discard any manual override and return to real GPS centering. */
+    fun useGps() {
+        panJob?.cancel()
+        _state.update { it.copy(manualOverride = false) }
+        locate()
+    }
+
+    /**
+     * Re-center after a drag-to-pan. The center updates immediately so the vector
+     * layer reprojects, but the network tile reload is debounced so a flurry of
+     * drags doesn't hammer RainViewer or thrash the e-ink redraw.
+     */
+    fun setCenter(lat: Double, lon: Double) {
+        _state.update { it.copy(location = LatLon(lat, lon), manualOverride = true, error = null) }
+        panJob?.cancel()
+        panJob = viewModelScope.launch {
+            delay(PAN_DEBOUNCE_MS)
+            refresh(force = true)
+        }
     }
 
     fun zoomIn() = changeZoom(+1)
@@ -237,5 +275,6 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
         private const val KEY_LAT = "lat"
         private const val KEY_LON = "lon"
         private const val REFRESH_MIN_INTERVAL_MS = 10 * 60 * 1000L
+        private const val PAN_DEBOUNCE_MS = 350L
     }
 }

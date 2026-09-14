@@ -3,9 +3,13 @@ package org.ok1cdj.kradar.ui
 import android.graphics.Paint
 import android.graphics.Rect
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,9 +37,12 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,6 +56,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MeteoRadarScreen(
     vm: RadarViewModel,
@@ -70,18 +78,24 @@ fun MeteoRadarScreen(
             Box(modifier = Modifier.align(Alignment.Center)) {
                 TextMMD(text = headerText(state), fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
-            Box(modifier = Modifier.align(Alignment.CenterEnd)) {
-                ButtonMMD(
-                    onClick = { showAbout = true },
-                    modifier = Modifier.size(52.dp).border(1.dp, Color.Black, CircleShape),
-                    shape = CircleShape,
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_info),
-                        contentDescription = stringRes(R.string.about),
-                        modifier = Modifier.size(38.dp),
-                    )
-                }
+            // Tap opens About; a hidden long-press toggles the dev overlay
+            // (manual lat/lon + drag-to-pan). Styled to match the other round buttons.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(52.dp)
+                    .border(1.dp, Color.Black, CircleShape)
+                    .combinedClickable(
+                        onClick = { showAbout = true },
+                        onLongClick = { vm.toggleDevMode() },
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_info),
+                    contentDescription = stringRes(R.string.about),
+                    modifier = Modifier.size(38.dp),
+                )
             }
         }
 
@@ -95,7 +109,7 @@ fun MeteoRadarScreen(
             when {
                 state.permissionDenied -> LocationPrompt(onRequestLocationPermission)
                 state.location == null -> TextMMD(text = stringRes(R.string.locating), fontSize = 14.sp)
-                else -> RadarMap(state)
+                else -> RadarMap(vm, state)
             }
 
             if (state.loading) {
@@ -106,6 +120,8 @@ fun MeteoRadarScreen(
         state.error?.let {
             TextMMD(text = stringRes(R.string.error_generic, it), fontSize = 12.sp)
         }
+
+        if (state.devMode) DevPanel(vm, state)
 
         Controls(vm, state)
 
@@ -142,13 +158,85 @@ private fun LocationPrompt(onRequest: () -> Unit) {
  * and radar never drift), and a center "you are here" marker on top.
  */
 @Composable
-private fun RadarMap(state: RadarUiState) {
+private fun RadarMap(vm: RadarViewModel, state: RadarUiState) {
     val loc = state.location ?: return
-    Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
-        VectorLayer(lat = loc.lat, lon = loc.lon, zoom = state.zoom, tileSize = state.tileSize)
-        // Only overlay the raster while it matches the live zoom/center.
-        OverlayLayer(if (state.overlayAligned) state.frames.getOrNull(state.currentIndex) else null)
+    // Live finger offset (image is square, so px are isotropic). In dev mode the
+    // map layers follow the finger; on release the center is recomputed and the
+    // tile reload is debounced. The center marker stays fixed = the future center.
+    var drag by remember { mutableStateOf(Offset.Zero) }
+    val dragMod = if (state.devMode) {
+        Modifier.pointerInput(loc, state.zoom, state.tileSize) {
+            detectDragGestures(
+                onDrag = { change, delta -> change.consume(); drag += delta },
+                onDragEnd = {
+                    val side = size.width.toFloat()
+                    if (side > 0f) {
+                        val scale = side / state.tileSize
+                        val proj = MapProjection(loc.lat, loc.lon, state.zoom, state.tileSize)
+                        val c = proj.centerAfterPan((drag.x / scale).toDouble(), (drag.y / scale).toDouble())
+                        vm.setCenter(c[0], c[1])
+                    }
+                    drag = Offset.Zero
+                },
+            )
+        }
+    } else {
+        Modifier
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(Color.White).then(dragMod)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { translationX = drag.x; translationY = drag.y },
+        ) {
+            VectorLayer(lat = loc.lat, lon = loc.lon, zoom = state.zoom, tileSize = state.tileSize)
+            // Only overlay the raster while it matches the live zoom/center.
+            OverlayLayer(if (state.overlayAligned) state.frames.getOrNull(state.currentIndex) else null)
+        }
         CenterMarker()
+    }
+}
+
+/** Hidden dev overlay: type exact coordinates or return to GPS. Session-only. */
+@Composable
+private fun DevPanel(vm: RadarViewModel, state: RadarUiState) {
+    var lat by remember(state.location) { mutableStateOf(state.location?.lat?.toString() ?: "") }
+    var lon by remember(state.location) { mutableStateOf(state.location?.lon?.toString() ?: "") }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        DevField("lat", lat, Modifier.weight(1f)) { lat = it }
+        DevField("lon", lon, Modifier.weight(1f)) { lon = it }
+        ButtonMMD(onClick = {
+            val la = lat.trim().toDoubleOrNull()
+            val lo = lon.trim().toDoubleOrNull()
+            if (la != null && lo != null) vm.setManualLocation(la, lo)
+        }, shape = RoundedCornerShape(8.dp)) {
+            TextMMD(text = "Go", fontSize = 14.sp)
+        }
+        ButtonMMD(onClick = { vm.useGps() }, shape = RoundedCornerShape(8.dp)) {
+            TextMMD(text = "GPS", fontSize = 14.sp)
+        }
+    }
+}
+
+@Composable
+private fun DevField(label: String, value: String, modifier: Modifier, onChange: (String) -> Unit) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        TextMMD(text = "$label ", fontSize = 12.sp)
+        BasicTextField(
+            value = value,
+            onValueChange = onChange,
+            singleLine = true,
+            textStyle = TextStyle(fontSize = 13.sp, color = Color.Black),
+            modifier = Modifier
+                .weight(1f)
+                .border(1.dp, Color.Black, RoundedCornerShape(4.dp))
+                .padding(horizontal = 4.dp, vertical = 3.dp),
+        )
     }
 }
 
@@ -192,12 +280,15 @@ private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
             style = Stroke(width = 1.2f, cap = StrokeCap.Round, join = StrokeJoin.Round),
         )
 
-        // --- cities: dots always; labels hybrid (full name for tier 1, abbr for
-        //     smaller) with greedy collision-avoidance so text stays readable ---
-        val maxTier = when {
-            zoom >= 7 -> 3
-            zoom == 6 -> 2
-            else -> 1
+        // --- cities: reveal more as you zoom in (minZoom gate); dots for every
+        //     visible place, labels hybrid (full name for important cities, abbr
+        //     for the rest) with greedy collision-avoidance so text stays readable.
+        //     The label budget grows with zoom since there's more room per area. ---
+        val labelBudget = when (zoom) {
+            4 -> 22
+            5 -> 30
+            6 -> 45
+            else -> 60
         }
         val labelPaint = Paint().apply {
             color = android.graphics.Color.BLACK
@@ -208,7 +299,7 @@ private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
         val placed = ArrayList<Rect>()
         val candidate = Rect()
         var labelCount = 0
-        val cities = MapData.cities(context).filter { it.tier <= maxTier }.sortedBy { it.tier }
+        val cities = MapData.cities(context).filter { it.minZoom <= zoom }.sortedBy { it.minZoom }
         for (c in cities) {
             if (!bounds.contains(c.lat, c.lon)) continue
             val p = proj.project(c.lat, c.lon)
@@ -217,8 +308,8 @@ private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
             if (x < 0f || y < 0f || x > side || y > side) continue
             drawCircle(color = Color.Black, radius = 2.2f, center = Offset(x, y))
 
-            if (labelCount >= MAX_LABELS) continue
-            val text = if (c.tier == 1) c.name else c.abbr
+            if (labelCount >= labelBudget) continue
+            val text = if (c.minZoom <= 5) c.name else c.abbr
             val w = labelPaint.measureText(text)
             val lx = x + 4f
             val ly = y - 4f
@@ -306,8 +397,6 @@ private fun IconRoundButton(iconRes: Int, desc: String, onClick: () -> Unit) {
         )
     }
 }
-
-private const val MAX_LABELS = 40
 
 private val timeFmt = SimpleDateFormat("HH:mm", Locale.getDefault())
 private val updateFmt = SimpleDateFormat("d. M. HH:mm", Locale.getDefault())

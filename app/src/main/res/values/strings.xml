@@ -30,7 +30,7 @@
     <string name="about_author">by Ondřej Koloničný, OK1CDJ</string>
     <string name="about_desc">Precipitation radar for the Mudita Kompakt. Overlays RainViewer radar on a vector map centered on your location.</string>
     <string name="about_license">License: GPL-3.0</string>
-    <string name="about_credits">Weather data by RainViewer. Country borders © Natural Earth (public domain). Cities © GeoNames (CC BY 4.0).</string>
+    <string name="about_credits">Weather data by RainViewer. Borders &amp; cities © Natural Earth (public domain).</string>
     <string name="about_coffee">Buy me a coffee</string>
     <string name="about_github">GitHub</string>
     <string name="close">Close</string>

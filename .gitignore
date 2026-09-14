@@ -16,3 +16,6 @@ kradar-*.apk
 *.iml
 .DS_Store
 *.log
+
+# Natural Earth GeoJSON download cache for tools/convert_mapdata.py
+tools/.ne_cache/
