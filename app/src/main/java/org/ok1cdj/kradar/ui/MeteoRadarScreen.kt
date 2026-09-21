@@ -406,10 +406,11 @@ private fun headerText(state: RadarUiState): String {
     val t = state.currentTime ?: return "kRadar"
     if (t <= 0L) return "kRadar"
     val time = timeFmt.format(Date(t * 1000L))
-    // Latest past frame shows the "now" tag; nowcast frames get a leading marker.
+    // Latest past frame shows the "now" tag; nowcast frames get a solid ▲ glyph
+    // right beside the time so a forecast reads as distinct from real radar.
     val isLatestPast = !state.currentIsNowcast && state.currentIndex == lastPastIndex(state)
     return when {
-        state.currentIsNowcast -> "+$time"
+        state.currentIsNowcast -> "▲ +$time"
         isLatestPast -> "$time (${stringRes(R.string.now)})"
         else -> time
     }

@@ -182,6 +182,9 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
                     return@launch
                 }
                 val old = _state.value.frames
+                // "now" = the latest PAST frame; frames run past-then-nowcast, so
+                // bitmaps.lastIndex is the furthest forecast, not the current state.
+                val nowIndex = nowcast.indexOfLast { !it }.let { if (it >= 0) it else bitmaps.lastIndex }
                 _state.update {
                     it.copy(
                         frames = bitmaps,
@@ -189,7 +192,7 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
                         frameNowcast = nowcast,
                         framesZoom = zoom,       // tag so the overlay only shows when aligned
                         framesCenter = loc,
-                        currentIndex = bitmaps.lastIndex, // start on the latest ("now")
+                        currentIndex = nowIndex, // start on the latest past frame ("now")
                         loading = false,
                         error = null,
                     )

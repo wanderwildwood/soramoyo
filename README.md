@@ -22,6 +22,10 @@ RainViewer's radar network spans 80+ countries and the vector base map is global
 - Downloads RainViewer's "widget" tiles (Web Mercator, centered on lat/lon) for
   every past frame at once, quantizes each to discrete grey intensity levels for
   e-ink, then animates them in memory (no network during playback).
+- Appends RainViewer's 30-minute **nowcast** forecast frames after the live
+  radar. The app opens on the current frame ("now"), and forecast frames are
+  marked with a solid ▲ next to the time so a prediction reads as distinct from
+  real radar.
 - Draws borders + cities as a static vector layer using the **same Web Mercator
   projection** as the tiles, so map and radar stay aligned at every zoom. Cities
   are revealed progressively — only major cities at low zoom, more towns as you
