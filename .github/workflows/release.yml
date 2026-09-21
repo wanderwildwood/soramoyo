@@ -31,6 +31,12 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The action's default package set includes the legacy `tools` package,
+          # which Google removed from the SDK repo — installing it now fails the
+          # step. Only platform-tools is needed; AGP fetches the platform and
+          # build-tools it needs during the Gradle build.
+          packages: platform-tools
 
       - name: Decode signing keystore
         env:
