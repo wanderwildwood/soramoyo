@@ -2,6 +2,7 @@ package org.ok1cdj.kradar.ui
 
 import android.graphics.Bitmap
 import org.ok1cdj.kradar.location.LatLon
+import org.ok1cdj.kradar.motion.CloudMotion
 
 /**
  * Single immutable snapshot of the radar screen. [frames] and [frameTimes] are
@@ -17,6 +18,11 @@ data class RadarUiState(
     val frames: List<Bitmap> = emptyList(),
     val frameTimes: List<Long> = emptyList(),
     val frameNowcast: List<Boolean> = emptyList(),
+    // Marks frames we synthesized locally by advection (see [CloudMotion]), as
+    // opposed to real API nowcast frames. Parallel to [frames]. [motion] is the
+    // estimated cloud-motion vector behind them (null when none could be trusted).
+    val frameEstimated: List<Boolean> = emptyList(),
+    val motion: CloudMotion.Vector? = null,
     // The projection params the current [frames] were captured at. The overlay is
     // only drawn when these match the live zoom/location, so map and radar never
     // drift apart during a reload or after a failed fetch.
@@ -36,13 +42,18 @@ data class RadarUiState(
     val hasFrames: Boolean get() = frames.isNotEmpty()
     val currentTime: Long? get() = frameTimes.getOrNull(currentIndex)
     val currentIsNowcast: Boolean get() = frameNowcast.getOrNull(currentIndex) ?: false
+    val currentIsEstimated: Boolean get() = frameEstimated.getOrNull(currentIndex) ?: false
 
     /** True when the loaded frames match the current projection (safe to overlay). */
     val overlayAligned: Boolean
         get() = framesZoom == zoom && framesCenter == location
 
-    /** Newest frame's unix time (seconds) — the "last update" of the radar data. */
-    val lastUpdate: Long? get() = frameTimes.maxOrNull()
+    /**
+     * Newest PAST frame's unix time (seconds) — the "last update" of real radar
+     * data. Estimated/nowcast frames carry future timestamps, so they're excluded.
+     */
+    val lastUpdate: Long?
+        get() = frameTimes.filterIndexed { i, _ -> !(frameNowcast.getOrNull(i) ?: false) }.maxOrNull()
 
     companion object {
         const val DEFAULT_ZOOM = 6

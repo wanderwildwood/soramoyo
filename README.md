@@ -6,8 +6,9 @@ A single-screen **precipitation radar** for the [Mudita Kompakt](https://mudita.
 e-ink phone (MuditaOS-K, AOSP, **no Google Services**). It overlays
 [RainViewer](https://www.rainviewer.com/) radar imagery on a static
 vector map (country borders + cities), centered on your current GPS position,
-with a ~2 hour animated history and +/- zoom. Coverage is **worldwide** —
-RainViewer's radar network spans 80+ countries and the vector base map is global.
+with a ~2 hour animated history, a locally-computed ~30-minute forecast, and
++/- zoom. Coverage is **worldwide** — RainViewer's radar network spans 80+
+countries and the vector base map is global.
 
 <img src="docs/Screenshot.png" width="280" alt="kRadar running on the Mudita Kompakt" />
 
@@ -22,10 +23,17 @@ RainViewer's radar network spans 80+ countries and the vector base map is global
 - Downloads RainViewer's "widget" tiles (Web Mercator, centered on lat/lon) for
   every past frame at once, quantizes each to discrete grey intensity levels for
   e-ink, then animates them in memory (no network during playback).
-- Appends RainViewer's 30-minute **nowcast** forecast frames after the live
-  radar. The app opens on the current frame ("now"), and forecast frames are
-  marked with a solid ▲ next to the time so a prediction reads as distinct from
-  real radar.
+- Computes a **local ~30-minute forecast**. RainViewer's free API serves no
+  forecast frames, so the app estimates a single cloud-motion vector by
+  cross-correlating the last few past frames, then advects (shifts) the latest
+  frame forward in 10-minute steps. The app opens on the current frame ("now");
+  forecast frames are appended after it, marked with a `≈` next to the time, and
+  the estimated drift is shown below the header (e.g. `≈ NE ~40 km/h`, or "no
+  motion"). It's pure advection — it moves existing rain, it can't predict rain
+  forming or decaying — so it only appears when there's enough rain and a
+  confident motion estimate, and is best trusted for short horizons. (If a keyed
+  RainViewer plan ever returns real nowcast frames, those are used instead and
+  marked `▲`.)
 - Draws borders + cities as a static vector layer using the **same Web Mercator
   projection** as the tiles, so map and radar stay aligned at every zoom. Cities
   are revealed progressively — only major cities at low zoom, more towns as you
@@ -131,8 +139,12 @@ All isolated to single constants:
 
 - `render/EinkConverter.kt` — `NUM_LEVELS`, `MASK_THRESHOLD`, alpha ramp
   (`ALPHA_MIN`/`ALPHA_MAX`).
+- `motion/CloudMotion.kt` — forecast sensitivity: `MIN_CONFIDENCE` (how sure the
+  motion estimate must be to show a forecast), `SEARCH_R`/`CORR` (correlation
+  window + resolution), `MAX_PAIRS`, `STEP_SECONDS`.
 - `ui/RadarViewModel.kt` — `playbackIntervalMs`, `REFRESH_MIN_INTERVAL_MS`
-  (on-resume refresh throttle), `PAN_DEBOUNCE_MS` (drag-to-pan reload delay).
+  (on-resume refresh throttle), `PAN_DEBOUNCE_MS` (drag-to-pan reload delay),
+  `FORECAST_STEPS` (number of 10-min forecast frames, default 3 → 30 min).
 - `ui/RadarUiState.kt` — `DEFAULT_ZOOM`, `MIN_ZOOM`/`MAX_ZOOM`, `TILE_SIZE`.
 - `ui/MeteoRadarScreen.kt` — `labelBudget` (max city labels per zoom).
 - `tools/convert_mapdata.py` — `BORDERS_SRC`/`CITIES_SRC` (Natural Earth
@@ -142,11 +154,13 @@ All isolated to single constants:
 
 ```
 net/RainViewerClient.kt   metadata (weather-maps.json) + tile download (OkHttp)
-render/EinkConverter.kt   PNG -> quantized grey overlay (intensity from colour)
-map/MapProjection.kt      Web Mercator, matches RainViewer tiles
+render/EinkConverter.kt   PNG -> quantized grey overlay + raw intensity field (from alpha)
+motion/CloudMotion.kt     local forecast: cloud-motion estimate + advection extrapolation
+motion/IntensityField.kt  continuous per-frame intensity the motion search runs on
+map/MapProjection.kt      Web Mercator, matches RainViewer tiles; ground-scale authority
 map/MapData.kt            loads borders/cities from JSON assets
 location/LocationProvider AOSP LocationManager (no Play Services)
-ui/RadarViewModel.kt      prefetch, in-memory bitmap cache, playback state machine
+ui/RadarViewModel.kt      prefetch, forecast synthesis, in-memory cache, playback state
 ui/MeteoRadarScreen.kt    static vector layer + dynamic overlay + MMD controls
 ```
 

@@ -14,6 +14,19 @@
     <string name="attribution">Data počasí: RainViewer — rainviewer.com</string>
     <string name="updated">Aktualizováno %1$s</string>
 
+    <string name="motion_estimate">≈ %1$s ~%2$d km/h</string>
+    <string name="motion_stationary">≈ na místě</string>
+    <string-array name="compass_points">
+        <item>S</item>
+        <item>SV</item>
+        <item>V</item>
+        <item>JV</item>
+        <item>J</item>
+        <item>JZ</item>
+        <item>Z</item>
+        <item>SZ</item>
+    </string-array>
+
     <string name="about">O aplikaci</string>
     <string name="about_version">Verze %1$s</string>
     <string name="about_author">od Ondřeje Koloničného, OK1CDJ</string>

@@ -23,6 +23,20 @@
     <string name="attribution">Weather data by RainViewer — rainviewer.com</string>
     <string name="updated">Updated %1$s</string>
 
+    <!-- Locally-estimated cloud motion (≈ forecast). Compass is 8-point, N first, clockwise. -->
+    <string name="motion_estimate">≈ %1$s ~%2$d km/h</string>
+    <string name="motion_stationary">≈ stationary</string>
+    <string-array name="compass_points">
+        <item>N</item>
+        <item>NE</item>
+        <item>E</item>
+        <item>SE</item>
+        <item>S</item>
+        <item>SW</item>
+        <item>W</item>
+        <item>NW</item>
+    </string-array>
+
     <!-- About dialog -->
     <string name="about">About</string>
     <string name="about_title">kRadar</string>

@@ -19,6 +19,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.ok1cdj.kradar.location.LatLon
 import org.ok1cdj.kradar.location.LocationProvider
+import org.ok1cdj.kradar.motion.CloudMotion
+import org.ok1cdj.kradar.motion.IntensityField
+import org.ok1cdj.kradar.net.RadarFrame
 import org.ok1cdj.kradar.net.RainViewerClient
 import org.ok1cdj.kradar.render.EinkConverter
 
@@ -174,22 +177,23 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
             try {
                 val zoom = _state.value.zoom
                 val size = _state.value.tileSize
-                val (bitmaps, times, nowcast) = withContext(Dispatchers.IO) {
-                    downloadFrames(loc, zoom, size)
-                }
-                if (bitmaps.isEmpty()) {
+                val result = downloadFrames(loc, zoom, size)
+                if (result.bitmaps.isEmpty()) {
                     _state.update { it.copy(loading = false, error = NO_DATA) }
                     return@launch
                 }
                 val old = _state.value.frames
-                // "now" = the latest PAST frame; frames run past-then-nowcast, so
+                // "now" = the latest PAST frame; frames run past-then-forecast, so
                 // bitmaps.lastIndex is the furthest forecast, not the current state.
-                val nowIndex = nowcast.indexOfLast { !it }.let { if (it >= 0) it else bitmaps.lastIndex }
+                val nowIndex = result.nowcast.indexOfLast { !it }
+                    .let { if (it >= 0) it else result.bitmaps.lastIndex }
                 _state.update {
                     it.copy(
-                        frames = bitmaps,
-                        frameTimes = times,
-                        frameNowcast = nowcast,
+                        frames = result.bitmaps,
+                        frameTimes = result.times,
+                        frameNowcast = result.nowcast,
+                        frameEstimated = result.estimated,
+                        motion = result.motion,
                         framesZoom = zoom,       // tag so the overlay only shows when aligned
                         framesCenter = loc,
                         currentIndex = nowIndex, // start on the latest past frame ("now")
@@ -206,26 +210,70 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
         }
     }
 
+    /** Result of a full radar load: parallel frame lists plus the motion estimate. */
+    private data class FrameSet(
+        val bitmaps: List<Bitmap>,
+        val times: List<Long>,
+        val nowcast: List<Boolean>,
+        val estimated: List<Boolean>,
+        val motion: CloudMotion.Vector?,
+    )
+
     private suspend fun downloadFrames(
         loc: LatLon,
         zoom: Int,
         size: Int,
-    ): Triple<List<Bitmap>, List<Long>, List<Boolean>> = withContext(Dispatchers.IO) {
-        val frames = RainViewerClient.fetchFrames()
-        // Fetch + quantize all tiles concurrently; keep frame order.
-        val deferred: List<Deferred<Pair<Bitmap, org.ok1cdj.kradar.net.RadarFrame>?>> =
-            frames.map { f ->
-                async {
-                    try {
-                        val png = RainViewerClient.fetchTile(f, loc.lat, loc.lon, zoom, size)
-                        EinkConverter.toEink(png)?.let { it to f }
-                    } catch (_: Exception) {
-                        null // skip a bad frame rather than failing the whole set
+    ): FrameSet {
+        // Network + decode: fan out on the IO pool.
+        val ok = withContext(Dispatchers.IO) {
+            val frames = RainViewerClient.fetchFrames()
+            val deferred: List<Deferred<Triple<Bitmap, IntensityField, RadarFrame>?>> =
+                frames.map { f ->
+                    async {
+                        try {
+                            val png = RainViewerClient.fetchTile(f, loc.lat, loc.lon, zoom, size)
+                            EinkConverter.decode(png)?.let { (bmp, field) -> Triple(bmp, field, f) }
+                        } catch (_: Exception) {
+                            null // skip a bad frame rather than failing the whole set
+                        }
                     }
                 }
+            deferred.awaitAll().filterNotNull()
+        }
+
+        val bitmaps = ok.mapTo(ArrayList()) { it.first }
+        val times = ok.mapTo(ArrayList()) { it.third.timeSec }
+        val nowcast = ok.mapTo(ArrayList()) { it.third.nowcast }
+        val estimated = MutableList(ok.size) { false }
+        var motion: CloudMotion.Vector? = null
+
+        // RainViewer's free API serves no forecast frames. When there are none,
+        // synthesize our own by advecting the latest past frame (see CloudMotion).
+        // This is CPU-bound (correlation + bitmap synthesis), so run it on Default.
+        val past = ok.filterNot { it.third.nowcast }
+        if (nowcast.none { it } && past.isNotEmpty()) {
+            val synth = withContext(Dispatchers.Default) {
+                CloudMotion.estimate(past.map { it.second }, past.map { it.third.timeSec })
+                    ?.let { m ->
+                        val lastTime = past.last().third.timeSec
+                        m to CloudMotion.extrapolate(past.last().second, m, FORECAST_STEPS)
+                            .mapIndexed { k, field ->
+                                EinkConverter.renderField(field) to
+                                    lastTime + (k + 1) * CloudMotion.STEP_SECONDS
+                            }
+                    }
             }
-        val ok = deferred.awaitAll().filterNotNull()
-        Triple(ok.map { it.first }, ok.map { it.second.timeSec }, ok.map { it.second.nowcast })
+            if (synth != null) {
+                motion = synth.first
+                synth.second.forEach { (bmp, t) ->
+                    bitmaps.add(bmp)
+                    times.add(t)
+                    nowcast.add(true)
+                    estimated.add(true)
+                }
+            }
+        }
+        return FrameSet(bitmaps, times, nowcast, estimated, motion)
     }
 
     // --- playback ---------------------------------------------------------
@@ -279,5 +327,8 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
         private const val KEY_LON = "lon"
         private const val REFRESH_MIN_INTERVAL_MS = 10 * 60 * 1000L
         private const val PAN_DEBOUNCE_MS = 350L
+
+        /** Locally-synthesized forecast frames (10-min steps) → 30 min ahead. */
+        private const val FORECAST_STEPS = 3
     }
 }

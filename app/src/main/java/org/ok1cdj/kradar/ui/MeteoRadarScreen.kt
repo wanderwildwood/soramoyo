@@ -55,6 +55,7 @@ import org.ok1cdj.kradar.map.MapProjection
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -76,7 +77,19 @@ fun MeteoRadarScreen(
         // Top bar: frame time centered, About (info) button on the right.
         Box(modifier = Modifier.fillMaxWidth()) {
             Box(modifier = Modifier.align(Alignment.Center)) {
-                TextMMD(text = headerText(state), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    TextMMD(text = headerText(state), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    // Locally-estimated cloud motion behind the ≈ forecast frames.
+                    state.motion?.let { m ->
+                        state.framesCenter?.let { c ->
+                            val kmh = m.speedKmh(c.lat, state.framesZoom).roundToInt()
+                            // Bearing is meaningless at ~0 speed — don't imply a direction.
+                            val label = if (kmh == 0) stringRes(R.string.motion_stationary)
+                            else stringRes(R.string.motion_estimate, compass(m.bearingDeg()), kmh)
+                            TextMMD(text = label, fontSize = 12.sp)
+                        }
+                    }
+                }
             }
             // Tap opens About; a hidden long-press toggles the dev overlay
             // (manual lat/lon + drag-to-pan). Styled to match the other round buttons.
@@ -406,10 +419,12 @@ private fun headerText(state: RadarUiState): String {
     val t = state.currentTime ?: return "kRadar"
     if (t <= 0L) return "kRadar"
     val time = timeFmt.format(Date(t * 1000L))
-    // Latest past frame shows the "now" tag; nowcast frames get a solid ▲ glyph
-    // right beside the time so a forecast reads as distinct from real radar.
+    // Latest past frame shows the "now" tag. Forecast frames get a glyph beside the
+    // time so they read as distinct from real radar: ≈ for our local estimate,
+    // ▲ for a real API nowcast (should we ever get a keyed plan).
     val isLatestPast = !state.currentIsNowcast && state.currentIndex == lastPastIndex(state)
     return when {
+        state.currentIsEstimated -> "≈ +$time"
         state.currentIsNowcast -> "▲ +$time"
         isLatestPast -> "$time (${stringRes(R.string.now)})"
         else -> time
@@ -422,8 +437,15 @@ private fun lastPastIndex(state: RadarUiState): Int {
     return idx
 }
 
+/** Localized 8-point compass abbreviation for a bearing in degrees (clockwise from N). */
+@Composable
+private fun compass(bearingDeg: Double): String {
+    val dirs = androidx.compose.ui.res.stringArrayResource(R.array.compass_points)
+    return dirs[(Math.round(bearingDeg / 45.0).toInt()) % 8]
+}
+
 @Composable
 private fun stringRes(id: Int): String = androidx.compose.ui.res.stringResource(id)
 
 @Composable
-private fun stringRes(id: Int, arg: Any): String = androidx.compose.ui.res.stringResource(id, arg)
+private fun stringRes(id: Int, vararg args: Any): String = androidx.compose.ui.res.stringResource(id, *args)

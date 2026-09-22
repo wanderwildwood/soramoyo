@@ -2,6 +2,7 @@ package org.ok1cdj.kradar.map
 
 import kotlin.math.PI
 import kotlin.math.atan
+import kotlin.math.cos
 import kotlin.math.ln
 import kotlin.math.sinh
 import kotlin.math.tan
@@ -26,7 +27,7 @@ class MapProjection(
     val sizePx: Int,
 ) {
     // Width of the whole world in pixels at this zoom (256 px per tile).
-    private val worldPx: Double = 256.0 * (1 shl zoom)
+    private val worldPx: Double = TILE_BASE_PX * (1 shl zoom)
     private val half: Double = sizePx / 2.0
     private val centerNx = normX(centerLon)
     private val centerNy = normY(centerLat)
@@ -71,6 +72,22 @@ class MapProjection(
     private fun invLat(ny: Double): Double {
         val r = atan(sinh(PI * (1.0 - 2.0 * ny)))
         return r * 180.0 / PI
+    }
+
+    companion object {
+        /** Web-Mercator tile edge in pixels; the whole world is [TILE_BASE_PX]·2^zoom px wide. */
+        const val TILE_BASE_PX = 256.0
+
+        /** Earth's equatorial circumference in metres (EPSG:3857 world width). */
+        const val EARTH_CIRCUMFERENCE_M = 40075016.686
+
+        /**
+         * Ground resolution — metres per image pixel — at [lat] and slippy [zoom].
+         * The single authority for radar-pixel ↔ ground scale; callers (e.g. cloud
+         * motion → km/h) must use this rather than re-deriving the constants.
+         */
+        fun metersPerPixel(lat: Double, zoom: Int): Double =
+            EARTH_CIRCUMFERENCE_M * cos(lat * PI / 180.0) / (TILE_BASE_PX * (1 shl zoom))
     }
 }
 

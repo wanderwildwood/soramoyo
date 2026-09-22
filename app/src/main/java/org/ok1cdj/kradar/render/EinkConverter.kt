@@ -2,6 +2,7 @@ package org.ok1cdj.kradar.render
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import org.ok1cdj.kradar.motion.IntensityField
 
 /**
  * Converts a RainViewer PNG tile into a quantized greyscale overlay for e-ink.
@@ -43,8 +44,21 @@ object EinkConverter {
 
     private const val SPAN = (INPUT_ALPHA_MAX - MASK_THRESHOLD).toFloat()
 
-    /** Decode [png] and return a quantized greyscale overlay bitmap (ARGB_8888). */
-    fun toEink(png: ByteArray): Bitmap? {
+    /** Map one raw alpha (0..255) to its quantized black-with-alpha pixel (0 = no rain). */
+    private fun quantize(alpha: Int): Int {
+        if (alpha < MASK_THRESHOLD) return 0
+        // Intensity straight from alpha: more opaque = heavier rain.
+        val intensity = ((alpha - MASK_THRESHOLD) / SPAN).coerceIn(0f, 1f)
+        var level = (intensity * NUM_LEVELS).toInt()
+        if (level >= NUM_LEVELS) level = NUM_LEVELS - 1
+        return levelColors[level]
+    }
+
+    /**
+     * Decode [png] once into both the quantized e-ink overlay and the continuous
+     * [IntensityField] (raw alpha) the motion estimator needs. Null on decode failure.
+     */
+    fun decode(png: ByteArray): Pair<Bitmap, IntensityField>? {
         val src = BitmapFactory.decodeByteArray(png, 0, png.size) ?: return null
         val w = src.width
         val h = src.height
@@ -52,19 +66,20 @@ object EinkConverter {
         src.getPixels(pixels, 0, w, 0, 0, w, h)
         src.recycle()
 
+        val alpha = ByteArray(w * h)
         for (i in pixels.indices) {
-            val alpha = (pixels[i] ushr 24) and 0xFF
-            if (alpha < MASK_THRESHOLD) {
-                pixels[i] = 0 // transparent: no rain
-                continue
-            }
-            // Intensity straight from alpha: more opaque = heavier rain.
-            val intensity = ((alpha - MASK_THRESHOLD) / SPAN).coerceIn(0f, 1f)
-            var level = (intensity * NUM_LEVELS).toInt()
-            if (level >= NUM_LEVELS) level = NUM_LEVELS - 1
-            pixels[i] = levelColors[level]
+            val a = (pixels[i] ushr 24) and 0xFF
+            alpha[i] = a.toByte()
+            pixels[i] = quantize(a)
         }
+        val bmp = Bitmap.createBitmap(pixels, w, h, Bitmap.Config.ARGB_8888)
+        return bmp to IntensityField(w, h, alpha)
+    }
 
-        return Bitmap.createBitmap(pixels, w, h, Bitmap.Config.ARGB_8888)
+    /** Render a (possibly synthesized) [field] to an e-ink overlay via the same quantization. */
+    fun renderField(field: IntensityField): Bitmap {
+        val pixels = IntArray(field.w * field.h)
+        for (i in pixels.indices) pixels[i] = quantize(field.alpha[i].toInt() and 0xFF)
+        return Bitmap.createBitmap(pixels, field.w, field.h, Bitmap.Config.ARGB_8888)
     }
 }
