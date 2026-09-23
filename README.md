@@ -1,6 +1,6 @@
 # 空模様 soramoyō — Sky
 
-What your own weather station is reading, the days ahead, and the rain radar, on an
+The days ahead, the rain radar, and your own weather station if you have one, on an
 E Ink phone. Built for the [Mudita Kompakt](https://mudita.com/products/kompakt/), and it
 will install on any Android 12 device.
 
@@ -20,12 +20,28 @@ the station and the forecast are added here.
 
 Three tabs: **Today**, **Forecast** and **Radar**. Today opens.
 
-**The station.** Temperature, what it feels like, wind and gusts, rain today and whether it
-is falling now, humidity, dew point, pressure, UV, and soil moisture if you have a probe.
-Read straight from an Ecowitt gateway on your own network, through the same local page the
-gateway's own app uses. There is no account, no cloud and no API key. It has been tried on
-a GW3000 with a WS90; the GW1100, GW2000 and WH2650 are said to serve the same page, but
-nobody here has one to check. Each reading is shown in the units the gateway is set to.
+**The station, if you have one.** Temperature, what it feels like, wind and gusts, rain today
+and whether it is falling now, humidity, dew point, pressure and UV, from one of four kinds:
+
+- **An Ecowitt gateway** (and the stations sold under other names that use one), read on your
+  own network through the same local page its app uses. No account and no key. Tried on a
+  GW3000 with a WS90, and shown in the units the gateway is set to. Soil moisture too, if you
+  have a probe.
+- **Weather Underground**, for any station that uploads there, which is most makes. Read back
+  through Weather Underground's servers, a minute or two behind, with the free API key it
+  gives station owners (wunderground.com, your devices, then API keys). ⚠ Those keys expire
+  and need renewing on the same page. Tried against a live station.
+- **A WeatherFlow Tempest**, heard on your own network: its hub broadcasts a reading about once
+  a minute. A Tempest sends no total for the day's rain and no feels-like, so those two are
+  not shown for one. **Written from WeatherFlow's published format and not yet tried on a
+  real Tempest.**
+- **A Davis WeatherLink Live**, read on your own network through its local API. **Written from
+  Davis's published format and not yet tried on a real one.**
+
+Tempest and Davis readings are shown in the phone's own units. If you have one and it works,
+or does not, an issue here is the way to say so.
+
+Without a station, Today leads with the day's forecast instead.
 
 **The forecast.** Today's high and low and chance of rain sit under the station reading,
 with sunrise and sunset; the Forecast tab has the five days after it. From
@@ -44,23 +60,24 @@ forecast and the radar can be given a place by name instead — "Portland, Maine
 with the state after a comma to pick one town out of several. While a place is set, the
 phone's position is not read.
 
-Without a station the forecast and the radar still work. Away from home the gateway cannot
-be reached — it only answers on its own network — and the screen says so, keeping the last
-reading and the time it was taken.
+Away from home a station on your own network cannot be reached, and the screen says so,
+keeping the last reading and the time it was taken.
 
 ## What it does not do
 
 No history, no charts, no alerts and no widget. It shows what the station reads when you
-open it. For a record, the gateway can already upload to Weather Underground, Ecowitt and
+open it. For a record, most stations can already upload to Weather Underground, Ecowitt and
 others.
 
-## Where your position goes
+## What leaves the phone
+
+An Ecowitt, Tempest or Davis station is read on your own network, and nothing it says leaves
+the phone. A Weather Underground station is read from Weather Underground, with your key.
 
 The radar and the forecast both need to know roughly where the phone is, or the place you
 chose. Either is rounded to two decimal places — about a kilometre — before it leaves the
 phone, and it goes to Open-Meteo for the forecast and to RainViewer for the radar tiles. A
-place you search for is sent, as typed, to Open-Meteo's place search. The station is read
-on your own network and nothing it says leaves the phone.
+place you search for is sent, as typed, to Open-Meteo's place search.
 
 With no place set, if the phone's cached position is more than fifteen minutes old, a fresh
 one is asked for before either is fetched, rather than showing the weather for wherever the
