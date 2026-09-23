@@ -1,6 +1,6 @@
 # 空模様 soramoyō — Sky
 
-What your own weather station is reading, the next three days, and the rain radar, on an
+What your own weather station is reading, the days ahead, and the rain radar, on an
 E Ink phone. Built for the [Mudita Kompakt](https://mudita.com/products/kompakt/), and it
 will install on any Android 12 device.
 
@@ -13,10 +13,12 @@ the station and the forecast are added here.
 
 | | |
 |---|---|
-| ![What the station reads](screenshots/1-station.png) | ![Three days ahead](screenshots/2-forecast.png) |
+| ![What the station reads](screenshots/1-station.png) | ![The days ahead](screenshots/2-forecast.png) |
 | ![The radar](screenshots/3-radar.png) | ![Where your position goes](screenshots/4-about.png) |
 
 ## What it shows
+
+Three tabs: **Today**, **Forecast** and **Radar**. Today opens.
 
 **The station.** Temperature, what it feels like, wind and gusts, rain today and whether it
 is falling now, humidity, dew point, pressure, UV, and soil moisture if you have a probe.
@@ -25,9 +27,10 @@ gateway's own app uses. There is no account, no cloud and no API key. It has bee
 a GW3000 with a WS90; the GW1100, GW2000 and WH2650 are said to serve the same page, but
 nobody here has one to check. Each reading is shown in the units the gateway is set to.
 
-**The forecast.** Three days, high and low, the chance of rain, sunrise and sunset, from
-[Open-Meteo](https://open-meteo.com/) for wherever the phone is, or for a place you choose. Fahrenheit if your station
-reads Fahrenheit, Celsius if it reads Celsius.
+**The forecast.** Today's high and low and chance of rain sit under the station reading,
+with sunrise and sunset; the Forecast tab has the five days after it. From
+[Open-Meteo](https://open-meteo.com/), for wherever the phone is or for a place you
+choose. Fahrenheit if your station reads Fahrenheit, Celsius if it reads Celsius.
 
 **The radar.** kRadar's radar, unchanged at heart: the last two hours of
 [RainViewer](https://www.rainviewer.com/) radar over a vector map centred on the phone, a
