@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  # Also startable by hand: a tag push can take a long time to produce a run, long enough
+  # to look like the push did nothing, and this gives a way to retry one that failed
+  # halfway without deleting and re-pushing the tag.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # This repo has no checked-in fallback key, so without the secret the build would
+      # produce an unsigned release rather than a wrongly-signed one. Fail either way.
+      - name: Restore signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::SIGNING_KEYSTORE_BASE64 is not set - refusing to build an unsigned release."
+            exit 1
+          fi
+          mkdir -p signing
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > signing/signing.keystore
+          {
+            echo "STORE_PASSWORD=$STORE_PASSWORD"
+            echo "KEY_ALIAS=$KEY_ALIAS"
+            echo "KEY_PASSWORD=$KEY_PASSWORD"
+          } > signing/signing.properties
+
+      - name: Test
+        run: ./gradlew :app:testDebugUnitTest
+
+      - name: Build release APK
+        run: ./gradlew :app:assembleRelease
+
+      # Signed with the wrong key is not something that can be taken back once people have
+      # installed it, so this asserts positively that the APK carries the one expected
+      # certificate. A check of the form "it is not <some known wrong key>" passes for
+      # every other wrong key and for an unsigned build, which is why it is not used here.
+      - name: Verify the signing certificate
+        env:
+          EXPECTED: 64478d370bbe9fc6effa240fcdc04b5f3976d4c80c94d18c80f9059b3b7c29dc
+        run: |
+          apk=$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk')
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          certs=$("$apksigner" verify --print-certs "$apk")
+          echo "$certs"
+          digest=$(echo "$certs" | grep -m1 -oE 'certificate SHA-256 digest: [0-9a-f]+' | awk '{print $NF}')
+          if [ -z "$digest" ]; then
+            echo "::error::Could not read a signing certificate - refusing to release unchecked."
+            exit 1
+          fi
+          if [ "$digest" != "$EXPECTED" ]; then
+            echo "::error::APK is signed with $digest, expected $EXPECTED."
+            exit 1
+          fi
+
+      - name: Check the version matches the tag
+        run: |
+          version=$(grep -m1 'versionName = ' app/build.gradle.kts | cut -d'"' -f2)
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$version" != "$tag" ]; then
+            echo "::error::versionName is $version but the tag says $tag."
+            exit 1
+          fi
+
+      # Two copies of the same APK go up. The versioned name is what people end up with in
+      # their downloads folder and what a checksum in a forum post refers to; the
+      # unversioned one exists so that
+      #   .../releases/latest/download/soramoyo.apk
+      # is a link that keeps working after the next release, which a versioned link does
+      # not. Both are byte-identical - only the file name differs.
+      - name: Rename APK and generate checksum
+        run: |
+          apk_name="soramoyo-${GITHUB_REF_NAME}.apk"
+          apk_path=$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk')
+          cp "$apk_path" "$apk_name"
+          sha256sum "$apk_name" > "${apk_name}.sha256"
+          cp "$apk_path" soramoyo.apk
+          sha256sum soramoyo.apk > soramoyo.apk.sha256
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          # soramoyo-*.apk does not match soramoyo.apk, so the fixed-name pair is listed.
+          files: |
+            soramoyo-*.apk
+            soramoyo-*.apk.sha256
+            soramoyo.apk
+            soramoyo.apk.sha256
+          # No body_path: the standing description of the app lives in the README, and
+          # stamping it over every release body buries the news under it. What CI writes
+          # is the changelog; the note itself is written by hand.
+          generate_release_notes: true
