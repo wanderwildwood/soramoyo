@@ -11,6 +11,11 @@ knows.
 A fork of [kRadar](https://github.com/ok1cdj/kRadar) by Ondřej Koloničný. The radar is his;
 the station and the forecast are added here.
 
+| | |
+|---|---|
+| ![What the station reads](screenshots/1-station.png) | ![Three days ahead](screenshots/2-forecast.png) |
+| ![The radar](screenshots/3-radar.png) | ![Where your position goes](screenshots/4-about.png) |
+
 ## What it shows
 
 **The station.** Temperature, what it feels like, wind and gusts, rain today and whether it
