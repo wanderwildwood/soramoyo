@@ -1,28 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">kRadar</string>
+    <string name="app_name">Sky</string>
 
-    <!-- Status / states -->
+    <!-- The first screen: the station now, and three days of forecast -->
+    <string name="sky_cd_radar">Radar</string>
+    <string name="sky_cd_settings">Settings</string>
+    <string name="sky_no_station">No station is set. Sky reads an Ecowitt gateway on your own network; give it the gateway\'s address and its readings appear here.</string>
+    <string name="sky_set_station">Set the station</string>
+    <string name="sky_asking">Asking the station…</string>
+    <!-- %1$s is the address from settings -->
+    <string name="sky_not_answering">The station at %1$s is not answering. It can only be reached from its own network.</string>
+    <!-- %1$d is a temperature with no unit -->
+    <string name="sky_feels_like">Feels like %1$d°</string>
+    <!-- %1$s is a time of day -->
+    <string name="sky_read_at">Read at %1$s</string>
+    <string name="sky_last_read">Not answering. Last read at %1$s</string>
+    <string name="sky_wind">Wind</string>
+    <string name="sky_gusts">Gusts</string>
+    <string name="sky_rain_today">Rain today</string>
+    <string name="sky_rain_falling">Falling now</string>
+    <!-- %1$s is a number, %2$s its unit as the gateway gives it, e.g. in/Hr -->
+    <string name="sky_rain_falling_at">Falling now, %1$s %2$s</string>
+    <string name="sky_humidity">Humidity</string>
+    <string name="sky_dew_point">Dew point</string>
+    <string name="sky_pressure">Pressure</string>
+    <string name="sky_uv">UV index</string>
+    <string name="sky_soil">Soil moisture</string>
+
+    <string name="sky_forecast">Forecast</string>
+    <string name="sky_forecast_no_permission">The forecast is for wherever the phone is, and needs its location to know where that is.</string>
+    <string name="sky_forecast_no_location">The phone has not worked out where it is yet. The forecast will follow when it has.</string>
+    <string name="sky_forecast_no_answer">The forecast could not be fetched. It will be asked for again next time Sky is opened.</string>
+    <string name="sky_today">Today</string>
+    <string name="sky_tomorrow">Tomorrow</string>
+    <!-- %1$s is a condition such as "Light rain", %2$d a percentage -->
+    <string name="sky_condition_with_rain">%1$s, %2$d%% chance of rain</string>
+    <!-- High and low temperatures for a day -->
+    <string name="sky_high_low">%1$d° / %2$d°</string>
+    <string name="sky_sunrise">Sunrise</string>
+    <string name="sky_sunset">Sunset</string>
+    <string name="sky_forecast_credit">Forecast by Open-Meteo, CC BY 4.0</string>
+
+    <string name="allow_location">Allow location</string>
+
+    <!-- Wind directions, 16 points, north first, clockwise -->
+    <string-array name="compass_16">
+        <item>N</item>
+        <item>NNE</item>
+        <item>NE</item>
+        <item>ENE</item>
+        <item>E</item>
+        <item>ESE</item>
+        <item>SE</item>
+        <item>SSE</item>
+        <item>S</item>
+        <item>SSW</item>
+        <item>SW</item>
+        <item>WSW</item>
+        <item>W</item>
+        <item>WNW</item>
+        <item>NW</item>
+        <item>NNW</item>
+    </string-array>
+
+    <!-- WMO weather codes, as Open-Meteo reports them -->
+    <string name="wmo_clear">Clear</string>
+    <string name="wmo_mostly_clear">Mostly clear</string>
+    <string name="wmo_partly_cloudy">Partly cloudy</string>
+    <string name="wmo_overcast">Overcast</string>
+    <string name="wmo_fog">Fog</string>
+    <string name="wmo_drizzle">Drizzle</string>
+    <string name="wmo_freezing_drizzle">Freezing drizzle</string>
+    <string name="wmo_light_rain">Light rain</string>
+    <string name="wmo_rain">Rain</string>
+    <string name="wmo_heavy_rain">Heavy rain</string>
+    <string name="wmo_freezing_rain">Freezing rain</string>
+    <string name="wmo_light_snow">Light snow</string>
+    <string name="wmo_snow">Snow</string>
+    <string name="wmo_heavy_snow">Heavy snow</string>
+    <string name="wmo_snow_grains">Snow grains</string>
+    <string name="wmo_showers">Showers</string>
+    <string name="wmo_heavy_showers">Heavy showers</string>
+    <string name="wmo_snow_showers">Snow showers</string>
+    <string name="wmo_thunderstorm">Thunderstorms</string>
+    <string name="wmo_thunderstorm_hail">Thunderstorms with hail</string>
+    <string name="wmo_unknown">No description</string>
+
+    <!-- The radar screen -->
+    <string name="radar_title">Radar</string>
+    <string name="radar_cd_back">Back</string>
     <string name="loading">Loading radar…</string>
-    <string name="locating">Getting location…</string>
-    <string name="need_location">Location permission is required to center the radar.</string>
-    <string name="grant_permission">Grant permission</string>
-    <string name="no_location">No location fix available.</string>
-    <string name="error_generic">Error: %1$s</string>
+    <string name="locating">Finding where the phone is…</string>
+    <string name="need_location">The radar is centred on the phone, and needs its location to know where that is.</string>
+    <string name="radar_no_data">RainViewer has no radar for here.</string>
+    <string name="radar_no_fix">The phone has not worked out where it is yet. Try again in a moment.</string>
+    <string name="radar_no_answer">The radar could not be fetched.</string>
     <string name="now">now</string>
-
-    <!-- Controls -->
     <string name="play">Play</string>
     <string name="pause">Pause</string>
     <string name="step_back">Previous frame</string>
     <string name="step_fwd">Next frame</string>
-    <string name="zoom_in">+</string>
-    <string name="zoom_out">−</string>
-
-    <!-- Mandatory RainViewer attribution -->
+    <string name="zoom_in">Zoom in</string>
+    <string name="zoom_out">Zoom out</string>
+    <!-- RainViewer's attribution is a condition of using its data -->
     <string name="attribution">Weather data by RainViewer — rainviewer.com</string>
     <string name="updated">Updated %1$s</string>
-
     <!-- Locally-estimated cloud motion (≈ forecast). Compass is 8-point, N first, clockwise. -->
     <string name="motion_estimate">≈ %1$s ~%2$d km/h</string>
     <string name="motion_stationary">≈ stationary</string>
@@ -37,15 +119,26 @@
         <item>NW</item>
     </string-array>
 
-    <!-- About dialog -->
-    <string name="about">About</string>
-    <string name="about_title">kRadar</string>
-    <string name="about_version">Version %1$s</string>
-    <string name="about_author">by Ondřej Koloničný, OK1CDJ</string>
-    <string name="about_desc">Precipitation radar for the Mudita Kompakt. Overlays RainViewer radar on a vector map centered on your location.</string>
-    <string name="about_license">License: GPL-3.0</string>
-    <string name="about_credits">Weather data by RainViewer. Borders &amp; cities © Natural Earth (public domain).</string>
-    <string name="about_coffee">Buy me a coffee</string>
-    <string name="about_github">GitHub</string>
-    <string name="close">Close</string>
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_cd_close">Close</string>
+    <string name="settings_cd_about">About</string>
+    <string name="settings_station">Station address</string>
+    <string name="settings_not_set">Not set</string>
+    <string name="settings_station_where">The Ecowitt gateway\'s address on your network, such as 192.168.1.50. Its own app, WS View, shows it under the device, and so does your router.</string>
+    <string name="settings_cancel">Cancel</string>
+    <string name="settings_save">Save</string>
+
+    <!-- About -->
+    <!-- %1$s is the version -->
+    <string name="about_title">Sky %1$s</string>
+    <string name="about_privacy">The station is read on your own network. The phone\'s position, to about a kilometre, goes to Open-Meteo for the forecast and to RainViewer for the radar. Nothing else leaves the phone.</string>
+    <string name="about_licence">GNU General Public License v3</string>
+    <string name="about_after">The radar and its map are kRadar\'s, by Ondřej Koloničný, GPL 3.</string>
+    <string name="about_data">Radar by RainViewer. Forecast by Open-Meteo, CC BY 4.0. Borders and cities from Natural Earth, public domain.</string>
+    <string name="about_icons">Icons from Material Symbols, Apache 2.0</string>
+    <string name="about_feed_the_llamas">Feed the llamas</string>
+    <!-- Shown in place of the llama row when nothing on the phone opens web pages; %1$s is the address -->
+    <string name="about_no_browser">Nothing here opens web pages — %1$s</string>
+    <string name="about_close">Close</string>
 </resources>

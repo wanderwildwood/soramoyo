@@ -1,0 +1,55 @@
+{
+ "latitude": 50.08,
+ "longitude": 14.419998,
+ "generationtime_ms": 0.9837150573730469,
+ "utc_offset_seconds": 7200,
+ "timezone": "Europe/Prague",
+ "timezone_abbreviation": "GMT+2",
+ "elevation": 208.0,
+ "daily_units": {
+  "time": "iso8601",
+  "weather_code": "wmo code",
+  "temperature_2m_max": "\u00b0C",
+  "temperature_2m_min": "\u00b0C",
+  "precipitation_probability_max": "%",
+  "sunrise": "iso8601",
+  "sunset": "iso8601"
+ },
+ "daily": {
+  "time": [
+   "2026-09-23",
+   "2026-09-24",
+   "2026-09-25"
+  ],
+  "weather_code": [
+   3,
+   80,
+   3
+  ],
+  "temperature_2m_max": [
+   18.0,
+   15.0,
+   16.6
+  ],
+  "temperature_2m_min": [
+   8.8,
+   12.1,
+   11.1
+  ],
+  "precipitation_probability_max": [
+   0,
+   78,
+   5
+  ],
+  "sunrise": [
+   "2026-09-23T06:49",
+   "2026-09-24T06:51",
+   "2026-09-25T06:52"
+  ],
+  "sunset": [
+   "2026-09-23T18:58",
+   "2026-09-24T18:56",
+   "2026-09-25T18:54"
+  ]
+ }
+}

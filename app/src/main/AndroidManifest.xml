@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- The station on the local network, the forecast, and the radar tiles. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- GPS/network location via AOSP LocationManager (no Play Services). -->
+    <!-- Where to centre the radar and whose forecast to fetch, read from AOSP's
+         LocationManager: the Kompakt has no Play Services. Asked for on first use, not at
+         install, and the station screen works without it. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
-    <!-- Open the Buy Me a Coffee link in a browser (Android 11+ package visibility). -->
+    <!-- What this app means to look for on the phone. Without it, asking whether anything
+         can open a web address quietly answers no from Android 11 onwards, however many
+         browsers are installed. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
@@ -17,23 +22,30 @@
         </intent>
     </queries>
 
+    <!--
+        usesCleartextTraffic: an Ecowitt gateway serves plain HTTP and nothing else, at an
+        address only its owner knows, so it cannot be named in a network security config
+        ahead of time. The two services on the internet are asked over HTTPS regardless;
+        their addresses are written into the app that way.
+    -->
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.KRadar">
+        android:supportsRtl="false"
+        android:usesCleartextTraffic="true"
+        android:theme="@style/Theme.App">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:theme="@style/Theme.KRadar">
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
+
 </manifest>

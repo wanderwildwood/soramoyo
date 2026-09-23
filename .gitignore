@@ -1,21 +1,13 @@
-# Secrets & signing — NEVER commit
+*.iml
+.gradle/
+.idea/
+build/
 local.properties
-keystore/
+
+signing/signing.properties
+signing/signing.keystore
 *.jks
 *.keystore
 
-# Build output
-.gradle/
-build/
-app/build/
-captures/
-kradar-*.apk
-
-# Android Studio / IntelliJ
-.idea/
-*.iml
-.DS_Store
-*.log
-
-# Natural Earth GeoJSON download cache for tools/convert_mapdata.py
+# Natural Earth downloads, fetched by tools/convert_mapdata.py on first run.
 tools/.ne_cache/
