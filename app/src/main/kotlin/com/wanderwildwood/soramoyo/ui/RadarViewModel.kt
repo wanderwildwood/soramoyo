@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 import com.wanderwildwood.soramoyo.R
 import com.wanderwildwood.soramoyo.location.LatLon
 import com.wanderwildwood.soramoyo.location.LocationProvider
+import com.wanderwildwood.soramoyo.location.Places
 import com.wanderwildwood.soramoyo.motion.CloudMotion
 import com.wanderwildwood.soramoyo.motion.IntensityField
 import com.wanderwildwood.soramoyo.net.RadarFrame
@@ -55,7 +56,7 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
     /** Find where the phone is and (re)load the radar. */
     fun locate() {
         val ctx = getApplication<Application>()
-        if (!LocationProvider.hasPermission(ctx)) {
+        if (Places.needsPosition(ctx) && !LocationProvider.hasPermission(ctx)) {
             _state.update { it.copy(permissionDenied = true) }
             return
         }
@@ -70,7 +71,7 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
      */
     fun onForeground() {
         val ctx = getApplication<Application>()
-        if (!LocationProvider.hasPermission(ctx)) {
+        if (Places.needsPosition(ctx) && !LocationProvider.hasPermission(ctx)) {
             _state.update { it.copy(permissionDenied = true) }
             return
         }
@@ -80,9 +81,15 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
         viewModelScope.launch { centre(force = true) }
     }
 
+    /** The place in settings changed: the next time the radar is shown, it is centred afresh. */
+    fun placeChanged() {
+        lastRefreshAtMs = 0L
+        _state.update { it.copy(permissionDenied = false) }
+    }
+
     private suspend fun centre(force: Boolean) {
         _state.update { it.copy(permissionDenied = false) }
-        val loc = LocationProvider.here(getApplication()) ?: savedLocation()
+        val loc = Places.where(getApplication()) ?: savedLocation()
         if (loc == null) {
             // Permission granted but no fix to be had yet.
             _state.update {

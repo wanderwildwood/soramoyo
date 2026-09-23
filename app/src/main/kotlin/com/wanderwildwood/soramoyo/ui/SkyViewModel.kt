@@ -9,6 +9,8 @@ import com.wanderwildwood.soramoyo.forecast.Day
 import com.wanderwildwood.soramoyo.forecast.Forecast
 import com.wanderwildwood.soramoyo.location.LatLon
 import com.wanderwildwood.soramoyo.location.LocationProvider
+import com.wanderwildwood.soramoyo.location.Place
+import com.wanderwildwood.soramoyo.location.Places
 import com.wanderwildwood.soramoyo.station.StationClient
 import com.wanderwildwood.soramoyo.station.StationReading
 import kotlinx.coroutines.Job
@@ -34,6 +36,8 @@ data class SkyState(
     val asking: Boolean = false,
     val days: List<Day> = emptyList(),
     val forecastTrouble: ForecastTrouble = ForecastTrouble.NONE,
+    /** Where the forecast and radar are for, when a place has been chosen rather than the phone's position. */
+    val place: Place? = null,
 )
 
 /**
@@ -48,7 +52,9 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
 
     private val prefs = app.getSharedPreferences("sky", Context.MODE_PRIVATE)
 
-    private val _state = MutableStateFlow(SkyState(address = prefs.getString(KEY_ADDRESS, "").orEmpty()))
+    private val _state = MutableStateFlow(
+        SkyState(address = prefs.getString(KEY_ADDRESS, "").orEmpty(), place = Places.chosen(app)),
+    )
     val state = _state.asStateFlow()
 
     private var stationJob: Job? = null
@@ -66,8 +72,18 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         val trimmed = address.trim()
         prefs.edit().putString(KEY_ADDRESS, trimmed).apply()
         // A different gateway's last reading is not this one's.
-        _state.update { SkyState(address = trimmed, days = it.days, forecastTrouble = it.forecastTrouble) }
+        _state.update {
+            SkyState(address = trimmed, days = it.days, forecastTrouble = it.forecastTrouble, place = it.place)
+        }
         readStation()
+    }
+
+    /** A place for the forecast and radar, or null to go back to the phone's position. */
+    fun setPlace(place: Place?) {
+        Places.choose(getApplication(), place)
+        // The old forecast is for somewhere else now.
+        _state.update { it.copy(place = place, days = emptyList(), forecastTrouble = ForecastTrouble.NONE) }
+        readForecast(force = true)
     }
 
     fun onPermissionResult() = readForecast(force = true)
@@ -108,7 +124,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun readForecast(force: Boolean) {
         val context = getApplication<Application>()
-        if (!LocationProvider.hasPermission(context)) {
+        if (Places.needsPosition(context) && !LocationProvider.hasPermission(context)) {
             _state.update { it.copy(forecastTrouble = ForecastTrouble.NO_PERMISSION) }
             return
         }
@@ -124,7 +140,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         asking = metric
         forecastJob?.cancel()
         forecastJob = viewModelScope.launch {
-            val here = LocationProvider.here(context)
+            val here = Places.where(context)
             if (here == null) {
                 if (_state.value.days.isEmpty()) {
                     _state.update { it.copy(forecastTrouble = ForecastTrouble.NO_LOCATION) }

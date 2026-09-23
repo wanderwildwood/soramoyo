@@ -89,7 +89,11 @@ fun SkyScreen(
 
             item {
                 Spacer(Modifier.height(20.dp))
-                TextMMD(text = stringResource(R.string.sky_forecast), style = MaterialTheme.typography.titleSmall)
+                TextMMD(
+                    text = state.place?.let { stringResource(R.string.sky_forecast_for, it.label.substringBefore(",")) }
+                        ?: stringResource(R.string.sky_forecast),
+                    style = MaterialTheme.typography.titleSmall,
+                )
                 Spacer(Modifier.height(4.dp))
                 ForecastTrouble(state.forecastTrouble, state.days.isEmpty(), onAllowLocation)
             }

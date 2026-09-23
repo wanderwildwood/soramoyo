@@ -28,8 +28,10 @@
     <string name="sky_soil">Soil moisture</string>
 
     <string name="sky_forecast">Forecast</string>
-    <string name="sky_forecast_no_permission">The forecast is for wherever the phone is, and needs its location to know where that is.</string>
-    <string name="sky_forecast_no_location">The phone has not worked out where it is yet. The forecast will follow when it has.</string>
+    <!-- %1$s is the name of the place chosen in settings -->
+    <string name="sky_forecast_for">Forecast for %1$s</string>
+    <string name="sky_forecast_no_permission">The forecast is for wherever the phone is, and needs its location to know where that is. Or choose a place in settings.</string>
+    <string name="sky_forecast_no_location">The phone could not work out where it is — indoors its GPS may not. Choose a place in settings and the forecast will be for there.</string>
     <string name="sky_forecast_no_answer">The forecast could not be fetched. It will be asked for again next time Sky is opened.</string>
     <string name="sky_today">Today</string>
     <string name="sky_tomorrow">Tomorrow</string>
@@ -91,9 +93,9 @@
     <string name="radar_cd_back">Back</string>
     <string name="loading">Loading radar…</string>
     <string name="locating">Finding where the phone is…</string>
-    <string name="need_location">The radar is centred on the phone, and needs its location to know where that is.</string>
+    <string name="need_location">The radar is centred on the phone, and needs its location to know where that is. Or choose a place in settings.</string>
     <string name="radar_no_data">RainViewer has no radar for here.</string>
-    <string name="radar_no_fix">The phone has not worked out where it is yet. Try again in a moment.</string>
+    <string name="radar_no_fix">The phone could not work out where it is — indoors its GPS may not. Choose a place in settings and the radar will centre there.</string>
     <string name="radar_no_answer">The radar could not be fetched.</string>
     <string name="now">now</string>
     <string name="play">Play</string>
@@ -126,13 +128,22 @@
     <string name="settings_station">Station address</string>
     <string name="settings_not_set">Not set</string>
     <string name="settings_station_where">The Ecowitt gateway\'s address on your network, such as 192.168.1.50. Its own app, WS View, shows it under the device, and so does your router.</string>
+    <string name="settings_place">Forecast and radar for</string>
+    <string name="settings_place_phone">Where the phone is</string>
+    <string name="settings_place_why">A place chosen here is used instead of the phone\'s position, which it then never reads. Worth it on a phone with only a GPS, which indoors may not find itself at all.</string>
+    <string name="settings_place_by_name">Or a place by name — add its state or country after a comma if there are several</string>
+    <string name="settings_place_search">Search</string>
+    <string name="settings_place_asking">Looking…</string>
+    <string name="settings_place_failed">The place search could not be reached.</string>
+    <!-- %1$s is what was typed -->
+    <string name="settings_place_none">Nothing found for %1$s.</string>
     <string name="settings_cancel">Cancel</string>
     <string name="settings_save">Save</string>
 
     <!-- About -->
     <!-- %1$s is the version -->
     <string name="about_title">Sky %1$s</string>
-    <string name="about_privacy">The station is read on your own network. The phone\'s position, to about a kilometre, goes to Open-Meteo for the forecast and to RainViewer for the radar. Nothing else leaves the phone.</string>
+    <string name="about_privacy">The station is read on your own network. The phone\'s position, to about a kilometre, or the place you chose, goes to Open-Meteo for the forecast and to RainViewer for the radar; a place you search for goes to Open-Meteo. Nothing else leaves the phone.</string>
     <string name="about_licence">GNU General Public License v3</string>
     <string name="about_after">The radar and its map are kRadar\'s, by Ondřej Koloničný, GPL 3.</string>
     <string name="about_data">Radar by RainViewer. Forecast by Open-Meteo, CC BY 4.0. Borders and cities from Natural Earth, public domain.</string>
