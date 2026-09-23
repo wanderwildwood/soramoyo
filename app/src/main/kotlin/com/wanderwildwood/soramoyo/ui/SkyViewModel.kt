@@ -1,7 +1,6 @@
 package com.wanderwildwood.soramoyo.ui
 
 import android.app.Application
-import android.content.Context
 import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,7 +10,8 @@ import com.wanderwildwood.soramoyo.location.LatLon
 import com.wanderwildwood.soramoyo.location.LocationProvider
 import com.wanderwildwood.soramoyo.location.Place
 import com.wanderwildwood.soramoyo.location.Places
-import com.wanderwildwood.soramoyo.station.StationClient
+import com.wanderwildwood.soramoyo.station.Source
+import com.wanderwildwood.soramoyo.station.Stations
 import com.wanderwildwood.soramoyo.station.StationReading
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +28,7 @@ enum class StationTrouble { NONE, NOT_SET, NO_ANSWER }
 enum class ForecastTrouble { NONE, NO_PERMISSION, NO_LOCATION, NO_ANSWER }
 
 data class SkyState(
-    val address: String = "",
+    val source: Source = Source.None,
     val reading: StationReading? = null,
     /** Wall-clock time of the last reading that arrived, in milliseconds. */
     val readAt: Long = 0L,
@@ -50,11 +50,7 @@ data class SkyState(
  */
 class SkyViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val prefs = app.getSharedPreferences("sky", Context.MODE_PRIVATE)
-
-    private val _state = MutableStateFlow(
-        SkyState(address = prefs.getString(KEY_ADDRESS, "").orEmpty(), place = Places.chosen(app)),
-    )
+    private val _state = MutableStateFlow(SkyState(source = Source.load(app), place = Places.chosen(app)))
     val state = _state.asStateFlow()
 
     private var stationJob: Job? = null
@@ -68,12 +64,11 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         readForecast(force = false)
     }
 
-    fun setAddress(address: String) {
-        val trimmed = address.trim()
-        prefs.edit().putString(KEY_ADDRESS, trimmed).apply()
-        // A different gateway's last reading is not this one's.
+    fun setSource(source: Source) {
+        Source.save(getApplication(), source)
+        // A different station's last reading is not this one's.
         _state.update {
-            SkyState(address = trimmed, days = it.days, forecastTrouble = it.forecastTrouble, place = it.place)
+            SkyState(source = source, days = it.days, forecastTrouble = it.forecastTrouble, place = it.place)
         }
         readStation()
     }
@@ -89,9 +84,9 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
     fun onPermissionResult() = readForecast(force = true)
 
     private fun readStation() {
-        val address = _state.value.address
-        if (address.isEmpty()) {
-            _state.update { it.copy(stationTrouble = StationTrouble.NOT_SET) }
+        val source = _state.value.source
+        if (source == Source.None) {
+            _state.update { it.copy(stationTrouble = StationTrouble.NOT_SET, reading = null) }
             // The forecast's units follow the station, and with no station there is nothing
             // to follow; it falls back to the phone's country, which readForecast handles.
             return
@@ -100,7 +95,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         stationJob = viewModelScope.launch {
             _state.update { it.copy(asking = true) }
             try {
-                val reading = StationClient.read(address)
+                val reading = Stations.read(getApplication(), source)
                 _state.update {
                     it.copy(
                         reading = reading,
@@ -161,7 +156,6 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     companion object {
-        private const val KEY_ADDRESS = "station_address"
         private const val FORECAST_EVERY_MS = 30 * 60 * 1000L
 
         /** The three countries that still count in Fahrenheit. */

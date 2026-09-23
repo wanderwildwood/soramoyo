@@ -37,6 +37,7 @@ import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.soramoyo.R
 import com.wanderwildwood.soramoyo.forecast.Day
+import com.wanderwildwood.soramoyo.station.Source
 import com.wanderwildwood.soramoyo.station.StationReading
 import java.time.Instant
 import java.time.LocalDate
@@ -260,7 +261,13 @@ private fun Now(state: SkyState) {
         when {
             reading == null && state.stationTrouble == StationTrouble.NO_ANSWER -> {
                 TextMMD(
-                    text = stringResource(R.string.sky_not_answering, state.address),
+                    text = when (val source = state.source) {
+                        is Source.Ecowitt -> stringResource(R.string.sky_not_answering, source.address)
+                        is Source.Davis -> stringResource(R.string.sky_not_answering, source.address)
+                        Source.Tempest -> stringResource(R.string.sky_tempest_silent)
+                        is Source.Underground -> stringResource(R.string.sky_wu_silent, source.stationId)
+                        Source.None -> ""
+                    },
                     style = MaterialTheme.typography.bodySmall,
                 )
                 return@Column

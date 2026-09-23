@@ -14,6 +14,9 @@
     <string name="sky_feels_like">Feels like %1$d°</string>
     <!-- %1$s is a time of day -->
     <string name="sky_read_at">Read at %1$s</string>
+    <string name="sky_tempest_silent">No Tempest hub was heard. It broadcasts only on its own network.</string>
+    <!-- %1$s is a Weather Underground station ID -->
+    <string name="sky_wu_silent">Weather Underground had nothing for %1$s. Check the station ID and API key in settings.</string>
     <string name="sky_last_read">Not answering. Last read at %1$s</string>
     <string name="sky_wind">Wind</string>
     <string name="sky_gusts">Gusts</string>
@@ -126,9 +129,24 @@
     <string name="settings_title">Settings</string>
     <string name="settings_cd_close">Close</string>
     <string name="settings_cd_about">About</string>
-    <string name="settings_station">Station address</string>
+    <string name="settings_station">Station</string>
     <string name="settings_not_set">Not set</string>
-    <string name="settings_station_where">The Ecowitt gateway\'s address on your network, such as 192.168.1.50. Its own app, WS View, shows it under the device, and so does your router.</string>
+    <string name="station_none">None</string>
+    <string name="station_ecowitt">Ecowitt gateway</string>
+    <string name="station_wu">Weather Underground</string>
+    <string name="station_tempest">WeatherFlow Tempest</string>
+    <string name="station_davis">Davis WeatherLink Live</string>
+    <!-- %1$s is an address on the local network -->
+    <string name="station_ecowitt_at">Ecowitt gateway, %1$s</string>
+    <string name="station_davis_at">Davis WeatherLink Live, %1$s</string>
+    <!-- %1$s is a Weather Underground station ID -->
+    <string name="station_wu_at">Weather Underground, %1$s</string>
+    <string name="station_ecowitt_note">The gateway\'s address on your network, such as 192.168.1.50. WS View shows it, and so does your router.</string>
+    <string name="station_davis_note">The WeatherLink Live\'s address on your network, such as 192.168.1.60. The WeatherLink app shows it, and so does your router.</string>
+    <string name="station_tempest_note">Sky listens for what the Tempest hub broadcasts on your network, about once a minute. There is nothing to enter.</string>
+    <string name="station_wu_note">Any station that uploads to Weather Underground, read back a few minutes behind. The API key is on wunderground.com under your devices.</string>
+    <string name="station_wu_id">Station ID</string>
+    <string name="station_wu_key">API key</string>
     <string name="settings_place">Forecast and radar for</string>
     <string name="settings_place_phone">Where the phone is</string>
     <string name="settings_place_why">A place chosen here is used instead of the phone\'s position, which it then never reads. Worth it on a phone with only a GPS, which indoors may not find itself at all.</string>
@@ -144,7 +162,7 @@
     <!-- About -->
     <!-- %1$s is the version -->
     <string name="about_title">Sky %1$s</string>
-    <string name="about_privacy">The station is read on your own network. The phone\'s position, to about a kilometre, or the place you chose, goes to Open-Meteo for the forecast and to RainViewer for the radar; a place you search for goes to Open-Meteo. Nothing else leaves the phone.</string>
+    <string name="about_privacy">An Ecowitt, Tempest or Davis station is read on your own network. A Weather Underground station is read from Weather Underground, with your API key. The phone\'s position, to about a kilometre, or the place you chose, goes to Open-Meteo for the forecast and to RainViewer for the radar; a place you search for goes to Open-Meteo. Nothing else leaves the phone.</string>
     <string name="about_licence">GNU General Public License v3</string>
     <string name="about_after">The radar and its map are kRadar\'s, by Ondřej Koloničný, GPL 3.</string>
     <string name="about_data">Radar by RainViewer. Forecast by Open-Meteo, CC BY 4.0. Borders and cities from Natural Earth, public domain.</string>
