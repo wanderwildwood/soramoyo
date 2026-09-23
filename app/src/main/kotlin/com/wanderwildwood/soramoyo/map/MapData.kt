@@ -23,10 +23,17 @@ data class City(val name: String, val abbr: String, val lat: Double, val lon: Do
 object MapData {
     @Volatile private var borders: List<FloatArray>? = null
     @Volatile private var cities: List<City>? = null
+    @Volatile private var states: List<FloatArray>? = null
 
     fun borders(context: Context): List<FloatArray> =
         borders ?: synchronized(this) {
             borders ?: loadBorders(context).also { borders = it }
+        }
+
+    /** State and province lines, where Natural Earth has them at this scale. Added in Sky. */
+    fun states(context: Context): List<FloatArray> =
+        states ?: synchronized(this) {
+            states ?: loadLines(context, "states.json").also { states = it }
         }
 
     fun cities(context: Context): List<City> =
@@ -37,8 +44,10 @@ object MapData {
     private fun readAsset(context: Context, name: String): String =
         context.assets.open(name).use { it.readBytes().toString(StandardCharsets.UTF_8) }
 
-    private fun loadBorders(context: Context): List<FloatArray> {
-        val root = JSONArray(readAsset(context, "borders.json"))
+    private fun loadBorders(context: Context): List<FloatArray> = loadLines(context, "borders.json")
+
+    private fun loadLines(context: Context, name: String): List<FloatArray> {
+        val root = JSONArray(readAsset(context, name))
         val out = ArrayList<FloatArray>(root.length())
         for (r in 0 until root.length()) {
             val ring = root.getJSONArray(r)
