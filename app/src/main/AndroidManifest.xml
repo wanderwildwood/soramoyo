@@ -10,6 +10,11 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
+    <!-- A Tempest hub broadcasts its readings on the home network; Android throws broadcast
+         packets away to save battery unless an app holding this asks to hear them. Only held
+         while Sky is listening for one. -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
     <!-- What this app means to look for on the phone. Without it, asking whether anything
