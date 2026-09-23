@@ -1,173 +1,85 @@
-# kRadar
+# 空模様 soramoyō — Sky
 
-<img src="docs/icon.png" width="96" align="right" alt="kRadar icon" />
+What your own weather station is reading, the next three days, and the rain radar, on an
+E Ink phone. Built for the [Mudita Kompakt](https://mudita.com/products/kompakt/), and it
+will install on any Android 12 device.
 
-A single-screen **precipitation radar** for the [Mudita Kompakt](https://mudita.com/)
-e-ink phone (MuditaOS-K, AOSP, **no Google Services**). It overlays
-[RainViewer](https://www.rainviewer.com/) radar imagery on a static
-vector map (country borders + cities), centered on your current GPS position,
-with a ~2 hour animated history, a locally-computed ~30-minute forecast, and
-+/- zoom. Coverage is **worldwide** — RainViewer's radar network spans 80+
-countries and the vector base map is global.
+*Soramoyō* is 空模様 — the look of the sky, which is how Japanese asks what the weather is
+doing. It covers the station and the radar alike, and says no more than either of them
+knows.
 
-<img src="docs/Screenshot.png" width="280" alt="kRadar running on the Mudita Kompakt" />
+A fork of [kRadar](https://github.com/ok1cdj/kRadar) by Ondřej Koloničný. The radar is his;
+the station and the forecast are added here.
 
-*Running on the Mudita Kompakt (800×480 e-ink).*
+## What it shows
 
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/ok1cdj)
+**The station.** Temperature, what it feels like, wind and gusts, rain today and whether it
+is falling now, humidity, dew point, pressure, UV, and soil moisture if you have a probe.
+Read straight from an Ecowitt gateway on your own network, through the same local page the
+gateway's own app uses. There is no account, no cloud and no API key. It has been tried on
+a GW3000 with a WS90; the GW1100, GW2000 and WH2650 are said to serve the same page, but
+nobody here has one to check. Each reading is shown in the units the gateway is set to.
 
-## What it does
+**The forecast.** Three days, high and low, the chance of rain, sunrise and sunset, from
+[Open-Meteo](https://open-meteo.com/) for wherever the phone is. Fahrenheit if your station
+reads Fahrenheit, Celsius if it reads Celsius.
 
-- Centers on your location using AOSP `LocationManager` (GPS, then network) —
-  **not** FusedLocationProviderClient, which needs Play Services.
-- Downloads RainViewer's "widget" tiles (Web Mercator, centered on lat/lon) for
-  every past frame at once, quantizes each to discrete grey intensity levels for
-  e-ink, then animates them in memory (no network during playback).
-- Computes a **local ~30-minute forecast**. RainViewer's free API serves no
-  forecast frames, so the app estimates a single cloud-motion vector by
-  cross-correlating the last few past frames, then advects (shifts) the latest
-  frame forward in 10-minute steps. The app opens on the current frame ("now");
-  forecast frames are appended after it, marked with a `≈` next to the time, and
-  the estimated drift is shown below the header (e.g. `≈ NE ~40 km/h`, or "no
-  motion"). It's pure advection — it moves existing rain, it can't predict rain
-  forming or decaying — so it only appears when there's enough rain and a
-  confident motion estimate, and is best trusted for short horizons. (If a keyed
-  RainViewer plan ever returns real nowcast frames, those are used instead and
-  marked `▲`.)
-- Draws borders + cities as a static vector layer using the **same Web Mercator
-  projection** as the tiles, so map and radar stay aligned at every zoom. Cities
-  are revealed progressively — only major cities at low zoom, more towns as you
-  zoom in (each carries a `minZoom`).
-- Shows the mandatory "Weather data by RainViewer" attribution on screen.
-- Auto-refreshes the radar frames and re-reads GPS every time the app returns to
-  the foreground (throttled to once per 10 min); zooming forces an immediate
-  reload.
+**The radar.** kRadar's radar, unchanged at heart: the last two hours of
+[RainViewer](https://www.rainviewer.com/) radar over a vector map centred on the phone, a
+locally estimated half hour ahead, marked `≈`, and zoom. Press the radar in the top bar.
 
-## Data source & attribution
+Without a station the forecast and the radar still work. Away from home the gateway cannot
+be reached — it only answers on its own network — and the screen says so, keeping the last
+reading and the time it was taken.
 
-- Radar: **RainViewer Weather Maps API** — free for personal use, no API key.
-  Attribution "Weather data by RainViewer" is displayed in-app (required).
-  <https://www.rainviewer.com/api/weather-maps-api.html>
-- Base map data is **Natural Earth** (public domain): borders from
-  `ne_50m_admin_0_countries`, cities from `ne_10m_populated_places`. An optional
-  curated Czech city overlay comes from the **MeteoPlaneRadar** project.
+## What it does not do
 
-## Map data (regenerating the assets)
+No history, no charts, no alerts and no widget. It shows what the station reads when you
+open it. For a record, the gateway can already upload to Weather Underground, Ecowitt and
+others.
 
-`app/src/main/assets/{borders.json,cities.json}` are generated by
-`tools/convert_mapdata.py`, which downloads the Natural Earth GeoJSON it needs to
-a local cache (`tools/.ne_cache/`, git-ignored) on first run:
+## Where your position goes
 
-```bash
-python3 tools/convert_mapdata.py
-```
+The radar and the forecast both need to know roughly where the phone is. The position is
+rounded to two decimal places — about a kilometre — before it leaves the phone, and it goes
+to Open-Meteo for the forecast and to RainViewer for the radar tiles. The station is read
+on your own network and nothing it says leaves the phone.
 
-If the sibling `MeteoPlaneRadar` checkout is present, its curated Czech city list
-replaces the global cities inside the CZ bounding box (nicer local names/abbrs
-like PHA, OVA, PLZ). It's optional — without it the tool emits global-only cities:
+If the phone's cached position is more than fifteen minutes old, a fresh one is asked for
+before either is fetched, rather than showing the weather for wherever the phone last was.
 
-```bash
-# point at a different checkout (or omit entirely to skip the Czech overlay):
-METEOPLANE_SRC=/path/to/MeteoPlaneRadar/src python3 tools/convert_mapdata.py
-```
-
-- `borders.json` — `[[[lat,lon], ...], ...]` (one array per country ring).
-- `cities.json`  — `[{"name","abbr","lat","lon","minZoom"}, ...]`. `minZoom` is the
-  lowest map zoom (4–7) at which the city appears; it's derived from Natural
-  Earth's `SCALERANK`, with capitals/megacities promoted so they show earlier.
-
-## Build & install
-
-Requires JDK 17+ (the Android Studio JBR works). The Android SDK path goes in
-`local.properties` (copy from `local.properties.example`).
-
-```bash
-export JAVA_HOME=/opt/android-studio/jbr     # or any JDK 17+
-./gradlew assembleDebug                       # app/build/outputs/apk/debug/app-debug.apk
-./gradlew assembleRelease                     # signed release (needs keystore in local.properties)
-```
-
-Sideload the APK via **Mudita Center** (USB-C), WebADB, or `adb install`.
-For release updates, always reuse the same keystore or installs fail with
-"signatures do not match".
-
-### Cutting a release
-
-Locally, `scripts/build-release.sh` builds a signed, minified APK and names it
-`kradar-<versionName>.apk` (≈2 MB) in the project root:
-
-```bash
-./scripts/build-release.sh
-```
-
-In CI, `.github/workflows/release.yml` builds and attaches that APK to a GitHub
-Release when a `v*` tag is pushed:
-
-```bash
-git tag v1.0 && git push origin v1.0
-```
-
-The workflow needs four repository secrets (Settings → Secrets and variables →
-Actions), so the keystore never lives in the repo:
-
-| Secret | Value |
-|--------|-------|
-| `KEYSTORE_BASE64` | `base64 -w0 keystore/kradar.jks` |
-| `KEYSTORE_PASSWORD` | store password |
-| `KEY_ALIAS` | `kradar` |
-| `KEY_PASSWORD` | key password |
-
-## Developer / test mode
-
-There's no MuditaOS emulator, and GPS on the device always returns the real
-location — so to preview how the app looks elsewhere (New York, Miami, …) there's
-a hidden, session-only test mode:
-
-- **Long-press the ⓘ button** to toggle it. Nothing is persisted; a normal tap
-  still opens the About dialog, so release users can't trigger it by accident.
-- A **lat / lon panel** appears below the map: type coordinates + **Go** to jump
-  there, or **GPS** to return to the real location.
-- **Drag the map** to pan freely. The center recenters on release and the radar
-  tiles reload (debounced), so the network isn't hammered mid-drag.
-
-While a manual location or pan is active, on-resume GPS refreshes are suppressed
-so the explored view isn't yanked back.
-
-## Tuning knobs
-
-All isolated to single constants:
-
-- `render/EinkConverter.kt` — `NUM_LEVELS`, `MASK_THRESHOLD`, alpha ramp
-  (`ALPHA_MIN`/`ALPHA_MAX`).
-- `motion/CloudMotion.kt` — forecast sensitivity: `MIN_CONFIDENCE` (how sure the
-  motion estimate must be to show a forecast), `SEARCH_R`/`CORR` (correlation
-  window + resolution), `MAX_PAIRS`, `STEP_SECONDS`.
-- `ui/RadarViewModel.kt` — `playbackIntervalMs`, `REFRESH_MIN_INTERVAL_MS`
-  (on-resume refresh throttle), `PAN_DEBOUNCE_MS` (drag-to-pan reload delay),
-  `FORECAST_STEPS` (number of 10-min forecast frames, default 3 → 30 min).
-- `ui/RadarUiState.kt` — `DEFAULT_ZOOM`, `MIN_ZOOM`/`MAX_ZOOM`, `TILE_SIZE`.
-- `ui/MeteoRadarScreen.kt` — `labelBudget` (max city labels per zoom).
-- `tools/convert_mapdata.py` — `BORDERS_SRC`/`CITIES_SRC` (Natural Earth
-  resolution) and `min_zoom_of` (how fast cities are revealed by zoom).
-
-## Architecture
+## Building
 
 ```
-net/RainViewerClient.kt   metadata (weather-maps.json) + tile download (OkHttp)
-render/EinkConverter.kt   PNG -> quantized grey overlay + raw intensity field (from alpha)
-motion/CloudMotion.kt     local forecast: cloud-motion estimate + advection extrapolation
-motion/IntensityField.kt  continuous per-frame intensity the motion search runs on
-map/MapProjection.kt      Web Mercator, matches RainViewer tiles; ground-scale authority
-map/MapData.kt            loads borders/cities from JSON assets
-location/LocationProvider AOSP LocationManager (no Play Services)
-ui/RadarViewModel.kt      prefetch, forecast synthesis, in-memory cache, playback state
-ui/MeteoRadarScreen.kt    static vector layer + dynamic overlay + MMD controls
+./gradlew assembleRelease
 ```
 
-## License
+A release is signed by a keystore in `signing/`, which is not in this repository. Without
+it the release APK builds **unsigned** and will not install anywhere — there is no
+fallback key by design.
 
-kRadar is licensed under **GPL-3.0** — see [`LICENSE`](LICENSE). The in-app About
-dialog (open it with the ⓘ button, top-right of the screen) shows the version,
-license, data credits, and links to the [GitHub repo](https://github.com/ok1cdj/kRadar)
-and Buy Me a Coffee. Bundled data keeps its own licenses: borders & cities
-© Natural Earth (public domain); radar © RainViewer.
+The base map is Natural Earth, baked into `app/src/main/assets/` by
+`tools/convert_mapdata.py`, which is kRadar's and is kept as it was.
+
+## Credit
+
+The radar — the RainViewer client, the e-ink conversion of its tiles, the cloud-motion
+forecast, the Web Mercator map and its drawing — is
+[kRadar](https://github.com/ok1cdj/kRadar) 1.4 by Ondřej Koloničný (OK1CDJ), GPL v3, and
+its history is kept in this repository's. What changed on that side: the screen now sits
+in the house top bar with a way back, uses the house type and icons, clips its map to the
+square, rounds the position, asks for a fresh fix when the cached one is stale, writes times
+the phone's way, and no longer has the hidden test mode.
+
+Radar data by [RainViewer](https://www.rainviewer.com/api.html). Forecast by
+[Open-Meteo](https://open-meteo.com/), CC BY 4.0. Borders and cities from
+[Natural Earth](https://www.naturalearthdata.com/), public domain. Icons are
+[Material Symbols](https://fonts.google.com/icons), Apache License 2.0. The interface is
+[MMD](https://github.com/mudita/MMD), Mudita's E Ink component library.
+
+## Licence
+
+GNU General Public License v3, as kRadar is. See [LICENSE](LICENSE).
+
+The radar is Copyright © Ondřej Koloničný. The station, the forecast and the changes are
+Copyright © wander wildwood.
