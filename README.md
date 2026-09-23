@@ -26,12 +26,18 @@ a GW3000 with a WS90; the GW1100, GW2000 and WH2650 are said to serve the same p
 nobody here has one to check. Each reading is shown in the units the gateway is set to.
 
 **The forecast.** Three days, high and low, the chance of rain, sunrise and sunset, from
-[Open-Meteo](https://open-meteo.com/) for wherever the phone is. Fahrenheit if your station
+[Open-Meteo](https://open-meteo.com/) for wherever the phone is, or for a place you choose. Fahrenheit if your station
 reads Fahrenheit, Celsius if it reads Celsius.
 
 **The radar.** kRadar's radar, unchanged at heart: the last two hours of
 [RainViewer](https://www.rainviewer.com/) radar over a vector map centred on the phone, a
 locally estimated half hour ahead, marked `≈`, and zoom. Press the radar in the top bar.
+
+**Where it is for.** A Kompakt has no network location, only its GPS, and indoors on a
+phone that has never had a fix the GPS may not find itself at all. So in settings the
+forecast and the radar can be given a place by name instead — "Portland, Maine",
+with the state after a comma to pick one town out of several. While a place is set, the
+phone's position is not read.
 
 Without a station the forecast and the radar still work. Away from home the gateway cannot
 be reached — it only answers on its own network — and the screen says so, keeping the last
@@ -45,13 +51,15 @@ others.
 
 ## Where your position goes
 
-The radar and the forecast both need to know roughly where the phone is. The position is
-rounded to two decimal places — about a kilometre — before it leaves the phone, and it goes
-to Open-Meteo for the forecast and to RainViewer for the radar tiles. The station is read
+The radar and the forecast both need to know roughly where the phone is, or the place you
+chose. Either is rounded to two decimal places — about a kilometre — before it leaves the
+phone, and it goes to Open-Meteo for the forecast and to RainViewer for the radar tiles. A
+place you search for is sent, as typed, to Open-Meteo's place search. The station is read
 on your own network and nothing it says leaves the phone.
 
-If the phone's cached position is more than fifteen minutes old, a fresh one is asked for
-before either is fetched, rather than showing the weather for wherever the phone last was.
+With no place set, if the phone's cached position is more than fifteen minutes old, a fresh
+one is asked for before either is fetched, rather than showing the weather for wherever the
+phone last was.
 
 ## Building
 
