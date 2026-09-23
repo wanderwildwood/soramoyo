@@ -20,10 +20,10 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mudita.mmd.ThemeMMD
-import com.wanderwildwood.soramoyo.ui.RadarScreen
 import com.wanderwildwood.soramoyo.ui.RadarViewModel
 import com.wanderwildwood.soramoyo.ui.SettingsScreen
-import com.wanderwildwood.soramoyo.ui.SkyScreen
+import com.wanderwildwood.soramoyo.ui.SkyTabs
+import com.wanderwildwood.soramoyo.ui.Tab
 import com.wanderwildwood.soramoyo.ui.SkyViewModel
 import com.wanderwildwood.soramoyo.ui.monochrome
 
@@ -38,17 +38,18 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/** Which of the three screens is up. */
-private enum class Screen { SKY, RADAR, SETTINGS }
+/** The tabs, or settings over them. */
+private enum class Screen { TABS, SETTINGS }
 
 @Composable
 private fun Sky(sky: SkyViewModel = viewModel()) {
     val state by sky.state.collectAsStateWithLifecycle()
-    var screen by rememberSaveable { mutableStateOf(Screen.SKY) }
+    var screen by rememberSaveable { mutableStateOf(Screen.TABS) }
+    var tab by rememberSaveable { mutableStateOf(Tab.TODAY) }
 
-    // Held here rather than inside the radar screen so that its frames outlive a trip back
-    // to the first screen: going to look at the temperature and coming back should not
-    // download two hours of radar again.
+    // Held here rather than inside the radar tab so that its frames outlive a trip to another
+    // tab: going to look at the temperature and coming back should not download two hours of
+    // radar again.
     val radar: RadarViewModel = viewModel()
 
     val ask = rememberLauncherForActivityResult(
@@ -65,38 +66,37 @@ private fun Sky(sky: SkyViewModel = viewModel()) {
     // sent ON_RESUME at once, so re-adding it on every change of screen would ask the
     // station again each time the reader moved between screens.
     val lifecycleOwner = LocalLifecycleOwner.current
-    val showing by rememberUpdatedState(screen)
+    val showing by rememberUpdatedState(screen to tab)
     DisposableEffect(lifecycleOwner) {
         val watcher = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 sky.onForeground()
-                if (showing == Screen.RADAR) radar.onForeground()
+                if (showing == (Screen.TABS to Tab.RADAR)) radar.onForeground()
             }
         }
         lifecycleOwner.lifecycle.addObserver(watcher)
         onDispose { lifecycleOwner.lifecycle.removeObserver(watcher) }
     }
 
-    BackHandler(enabled = screen != Screen.SKY) { screen = Screen.SKY }
+    // Back leaves settings, then goes to Today, and only from Today leaves the app.
+    BackHandler(enabled = screen != Screen.TABS || tab != Tab.TODAY) {
+        if (screen != Screen.TABS) screen = Screen.TABS else tab = Tab.TODAY
+    }
 
     when (screen) {
-        Screen.SKY -> SkyScreen(
+        Screen.TABS -> SkyTabs(
+            tab = tab,
+            onTab = { tab = it },
             state = state,
-            onRadar = { screen = Screen.RADAR },
+            radar = radar,
             onSettings = { screen = Screen.SETTINGS },
-            onAllowLocation = allowLocation,
-        )
-
-        Screen.RADAR -> RadarScreen(
-            vm = radar,
-            onBack = { screen = Screen.SKY },
             onAllowLocation = allowLocation,
         )
 
         Screen.SETTINGS -> SettingsScreen(
             address = state.address,
             place = state.place,
-            onClose = { screen = Screen.SKY },
+            onClose = { screen = Screen.TABS },
             onAddress = sky::setAddress,
             onPlace = {
                 sky.setPlace(it)

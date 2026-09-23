@@ -19,6 +19,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -29,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import com.mudita.mmd.components.buttons.OutlinedButtonMMD
 import com.mudita.mmd.components.divider.HorizontalDividerMMD
 import com.mudita.mmd.components.lazy.LazyColumnMMD
+import com.mudita.mmd.components.tabs.TabMMD
+import com.mudita.mmd.components.tabs.TabRowMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.soramoyo.R
@@ -43,86 +47,167 @@ import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.roundToInt
 
+/** The three tabs, in the order they sit. */
+enum class Tab { TODAY, FORECAST, RADAR }
+
 /**
- * What the station reads now, and the next three days.
+ * Sky's one screen: a top bar, three tabs, and whichever tab is open beneath them.
  *
- * The temperature is the large figure because it is the one read at a glance; the rest are
- * rows because they are read deliberately or not at all. The radar is a press away in the
- * top bar rather than on this screen, because it wants the whole panel.
+ * Today opens, because it is what the app is opened for. The days ahead and the radar are a
+ * press away, each with the whole panel to itself rather than sharing a long list.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SkyScreen(
+fun SkyTabs(
+    tab: Tab,
+    onTab: (Tab) -> Unit,
     state: SkyState,
-    onRadar: () -> Unit,
+    radar: RadarViewModel,
     onSettings: () -> Unit,
     onAllowLocation: () -> Unit,
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            TopAppBarMMD(
-                title = { TextMMD(text = stringResource(R.string.app_name)) },
-                actions = {
-                    BarButton(Icons.Radar, stringResource(R.string.sky_cd_radar), onRadar)
-                    BarButton(Icons.Settings, stringResource(R.string.sky_cd_settings), onSettings)
-                },
-            )
+            Column {
+                TopAppBarMMD(
+                    title = { TextMMD(text = stringResource(R.string.app_name)) },
+                    actions = { BarButton(Icons.Settings, stringResource(R.string.sky_cd_settings), onSettings) },
+                )
+                // MMD's plain tab row, which does not slide between tabs. Its own underline is
+                // left out: in this row it measures to the row's full height and draws a black
+                // block over the tabs beside the chosen one. The chosen tab is its label in
+                // bold with a rule under it instead, drawn by the tab itself.
+                TabRowMMD(
+                    selectedTabIndex = tab.ordinal,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    indicator = {},
+                ) {
+                    Tab.entries.forEach { t ->
+                        val chosen = t == tab
+                        val rule = MaterialTheme.colorScheme.onSurface
+                        TabMMD(
+                            selected = chosen,
+                            onClick = { onTab(t) },
+                            text = {
+                                TextMMD(
+                                    text = stringResource(
+                                        when (t) {
+                                            Tab.TODAY -> R.string.tab_today
+                                            Tab.FORECAST -> R.string.tab_forecast
+                                            Tab.RADAR -> R.string.tab_radar
+                                        },
+                                    ),
+                                    fontWeight = if (chosen) FontWeight.Bold else FontWeight.Normal,
+                                    modifier = Modifier
+                                        .padding(vertical = 10.dp)
+                                        .drawBehind {
+                                            if (chosen) {
+                                                val y = size.height + 4.dp.toPx()
+                                                drawLine(rule, Offset(0f, y), Offset(size.width, y), strokeWidth = 3.dp.toPx())
+                                            }
+                                        },
+                                )
+                            },
+                        )
+                    }
+                }
+            }
         },
     ) { contentPadding ->
-        LazyColumnMMD(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding)
-                .padding(horizontal = 20.dp),
-        ) {
-            item { Now(state, onSettings) }
+        val inside = Modifier.fillMaxSize().padding(contentPadding)
+        when (tab) {
+            Tab.TODAY -> TodayTab(state, onSettings, onAllowLocation, inside)
+            Tab.FORECAST -> ForecastTab(state, onAllowLocation, inside)
+            Tab.RADAR -> RadarTab(radar, onAllowLocation, inside)
+        }
+    }
+}
 
-            state.reading?.let { reading ->
-                readingRows(reading).forEach { row ->
-                    item {
-                        HorizontalDividerMMD()
-                        row()
-                    }
+/**
+ * What the station reads now, and what today is forecast to do.
+ *
+ * The temperature is the large figure because it is the one read at a glance; the rest are
+ * rows because they are read deliberately or not at all.
+ */
+@Composable
+private fun TodayTab(state: SkyState, onSettings: () -> Unit, onAllowLocation: () -> Unit, modifier: Modifier) {
+    val today = state.days.firstOrNull()?.takeIf { it.date == LocalDate.now() }
+    LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp)) {
+        item { Now(state, onSettings) }
+
+        item {
+            HorizontalDividerMMD()
+            if (today != null) {
+                DayRow(today)
+            } else {
+                Column(modifier = Modifier.padding(vertical = 12.dp)) {
+                    ForecastTrouble(state.forecastTrouble, true, onAllowLocation)
                 }
             }
+        }
 
-            item {
-                Spacer(Modifier.height(20.dp))
-                TextMMD(
-                    text = state.place?.let { stringResource(R.string.sky_forecast_for, it.label.substringBefore(",")) }
-                        ?: stringResource(R.string.sky_forecast),
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                Spacer(Modifier.height(4.dp))
-                ForecastTrouble(state.forecastTrouble, state.days.isEmpty(), onAllowLocation)
-            }
-            state.days.forEach { day ->
+        state.reading?.let { reading ->
+            readingRows(reading).forEach { row ->
                 item {
                     HorizontalDividerMMD()
-                    DayRow(day)
+                    row()
                 }
             }
-            state.days.firstOrNull()?.let { today ->
-                if (today.sunrise != null && today.sunset != null) {
-                    item {
-                        HorizontalDividerMMD()
-                        Reading(stringResource(R.string.sky_sunrise), clock(today.sunrise), "", small = true)
-                    }
-                    item {
-                        HorizontalDividerMMD()
-                        Reading(stringResource(R.string.sky_sunset), clock(today.sunset), "", small = true)
-                    }
-                }
-            }
-            if (state.days.isNotEmpty()) {
-                item {
-                    Spacer(Modifier.height(10.dp))
-                    TextMMD(text = stringResource(R.string.sky_forecast_credit), style = MaterialTheme.typography.labelSmall)
-                }
-            }
-            item { Spacer(Modifier.height(24.dp)) }
         }
+
+        if (today?.sunrise != null && today.sunset != null) {
+            item {
+                HorizontalDividerMMD()
+                Reading(stringResource(R.string.sky_sunrise), clock(today.sunrise), "", small = true)
+            }
+            item {
+                HorizontalDividerMMD()
+                Reading(stringResource(R.string.sky_sunset), clock(today.sunset), "", small = true)
+            }
+        }
+        if (today != null) {
+            item { Credit(state) }
+        }
+        item { Spacer(Modifier.height(24.dp)) }
+    }
+}
+
+/** The days after today, as many as the forecast gives, which is five. */
+@Composable
+private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Modifier) {
+    val ahead = state.days.filter { it.date.isAfter(LocalDate.now()) }
+    LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp)) {
+        item {
+            Spacer(Modifier.height(12.dp))
+            ForecastTrouble(state.forecastTrouble, ahead.isEmpty(), onAllowLocation)
+        }
+        ahead.forEachIndexed { i, day ->
+            item {
+                if (i > 0) HorizontalDividerMMD()
+                DayRow(day)
+            }
+        }
+        if (ahead.isNotEmpty()) {
+            item { Credit(state) }
+        }
+        item { Spacer(Modifier.height(24.dp)) }
+    }
+}
+
+/** Whose forecast, and for where when a place was chosen rather than read from the phone. */
+@Composable
+private fun Credit(state: SkyState) {
+    Column {
+        Spacer(Modifier.height(10.dp))
+        state.place?.let {
+            TextMMD(
+                text = stringResource(R.string.sky_forecast_for, it.label.substringBefore(",")),
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
+        TextMMD(text = stringResource(R.string.sky_forecast_credit), style = MaterialTheme.typography.labelSmall)
     }
 }
 

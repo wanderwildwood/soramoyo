@@ -25,7 +25,7 @@ data class Day(
 )
 
 /**
- * Three days from Open-Meteo, for wherever the phone is.
+ * Six days from Open-Meteo — today and the five after it — for the phone or the chosen place.
  *
  * Open-Meteo asks for no key and no account, which is the only kind of forecast service an
  * app with no server of its own can use. Its data is CC BY 4.0, and the screen says whose it
@@ -59,7 +59,8 @@ object Forecast {
             // The phone's own time zone would be wrong for a forecast of somewhere else;
             // "auto" gives the days and the sunrise in the zone of the place itself.
             .addQueryParameter("timezone", "auto")
-            .addQueryParameter("forecast_days", "3")
+            // Today for the first tab, and five after it for the second.
+            .addQueryParameter("forecast_days", "6")
             .build()
             .toString()
 
