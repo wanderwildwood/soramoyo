@@ -173,6 +173,32 @@ private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
         val bounds = proj.visibleBounds()
         val margin = 0.5
 
+        // --- state and province lines (Sky): under the borders and thinner, so a state line
+        //     never reads as a national one. Culled the same way as the borders.
+        val states = Path()
+        for (line in MapData.states(context)) {
+            var near = false
+            var i = 0
+            while (i < line.size) {
+                if (bounds.contains(line[i].toDouble(), line[i + 1].toDouble(), margin)) {
+                    near = true; break
+                }
+                i += 2
+            }
+            if (!near) continue
+            var j = 0
+            while (j < line.size) {
+                val p = proj.project(line[j].toDouble(), line[j + 1].toDouble())
+                if (j == 0) states.moveTo(p[0] * scale, p[1] * scale) else states.lineTo(p[0] * scale, p[1] * scale)
+                j += 2
+            }
+        }
+        drawPath(
+            path = states,
+            color = Color.Black,
+            style = Stroke(width = 0.8f, cap = StrokeCap.Round, join = StrokeJoin.Round),
+        )
+
         // --- borders ---
         val path = Path()
         for (ring in MapData.borders(context)) {

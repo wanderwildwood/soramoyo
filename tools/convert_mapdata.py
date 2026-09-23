@@ -4,6 +4,7 @@
 Reads (downloaded from Natural Earth, cached under tools/.ne_cache/):
   - ne_110m_admin_0_countries.geojson : country polygons -> borders/coastlines
   - ne_50m_populated_places.geojson   : populated places -> city labels
+  - ne_50m_admin_1_states_provinces_lines.geojson : state/province lines (Sky)
 
 Optionally overlays (from the sibling MeteoPlaneRadar project, if present):
   - CzCitiesData.h : CZ_CITIES[] + CZ bounding box. Inside that box the curated
@@ -13,6 +14,11 @@ Optionally overlays (from the sibling MeteoPlaneRadar project, if present):
 Writes (into app/src/main/assets/):
   - borders.json : [[[lat,lon],[lat,lon], ...], ...]   one array per ring/polyline
   - cities.json  : [{"name","abbr","lat","lon","minZoom"}, ...]
+  - states.json  : [[[lat,lon],[lat,lon], ...], ...]   one array per line (Sky)
+
+`--only states` writes states.json alone. The committed cities.json carries the Czech
+overlay, so regenerating everything without MeteoPlaneRadar beside this repo would
+quietly lose it.
 
 Each city carries a "minZoom": the lowest app zoom (4..7) at which it appears, so
 the map reveals more places as you zoom in. It is derived from Natural Earth's
@@ -46,6 +52,10 @@ CZ_MAP = os.path.join(SRC_DIR, "CzCitiesData.h")
 NE_BASE = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson"
 BORDERS_SRC = "ne_50m_admin_0_countries.geojson"    # medium detail: smooth coasts at zoom 4-7
 CITIES_SRC = "ne_10m_populated_places.geojson"      # ~7300 places, dense worldwide coverage
+# State and province lines, added in Sky. The 50m set covers the large federations (the
+# US, Canada, Australia, Brazil, Russia, India, China and a few more), which is where a
+# country border alone leaves a map with nothing to find yourself by.
+STATES_SRC = "ne_50m_admin_1_states_provinces_lines.geojson"
 
 # --- city zoom reveal (app zoom range is 4..7) ----------------------------
 MIN_ZOOM = 4
@@ -89,6 +99,22 @@ def parse_borders(gj):
             if len(out) >= 2:
                 rings.append(out)
     return rings
+
+
+def parse_lines(gj):
+    """Line features -> list of polylines of [lat, lon]."""
+    out = []
+    for feat in gj["features"]:
+        geom = feat.get("geometry")
+        if not geom:
+            continue
+        parts = [geom["coordinates"]] if geom["type"] == "LineString" else (
+            geom["coordinates"] if geom["type"] == "MultiLineString" else [])
+        for line in parts:
+            pts = [[round(lat, 3), round(lon, 3)] for lon, lat in line]
+            if len(pts) >= 2:
+                out.append(pts)
+    return out
 
 
 # --- cities ---------------------------------------------------------------
@@ -278,7 +304,21 @@ def apply_cz_overlay(cities):
     return kept + cz_cities
 
 
+def write_states():
+    lines = parse_lines(load_geojson(STATES_SRC))
+    os.makedirs(OUT_DIR, exist_ok=True)
+    path = os.path.join(OUT_DIR, "states.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(lines, f, separators=(",", ":"))
+    n_pts = sum(len(l) for l in lines)
+    print(f"states.json : {len(lines)} lines, {n_pts} points ({os.path.getsize(path) / 1024:.0f} KB)")
+
+
 def main():
+    if sys.argv[1:] == ["--only", "states"]:
+        write_states()
+        return
+    write_states()
     rings = parse_borders(load_geojson(BORDERS_SRC))
     cities = curate_abbr(parse_ne_cities(load_geojson(CITIES_SRC)))
     cities = apply_cz_overlay(cities)

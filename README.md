@@ -31,7 +31,9 @@ reads Fahrenheit, Celsius if it reads Celsius.
 
 **The radar.** kRadar's radar, unchanged at heart: the last two hours of
 [RainViewer](https://www.rainviewer.com/) radar over a vector map centred on the phone, a
-locally estimated half hour ahead, marked `≈`, and zoom. Press the radar in the top bar.
+locally estimated half hour ahead, marked `≈`, and zoom. State and province lines are drawn
+where Natural Earth has them — the US, Canada, Australia and the other large federations —
+which kRadar's map leaves out.
 
 **Where it is for.** A Kompakt has no network location, only its GPS, and indoors on a
 phone that has never had a fix the GPS may not find itself at all. So in settings the
@@ -72,7 +74,10 @@ it the release APK builds **unsigned** and will not install anywhere — there i
 fallback key by design.
 
 The base map is Natural Earth, baked into `app/src/main/assets/` by
-`tools/convert_mapdata.py`, which is kRadar's and is kept as it was.
+`tools/convert_mapdata.py`, which is kRadar's with state lines added. Regenerate only the
+state lines with `python3 tools/convert_mapdata.py --only states`: the committed
+`cities.json` carries kRadar's hand-made Czech overlay, which a full run without the
+MeteoPlaneRadar sources beside this repo would drop.
 
 ## Credit
 
@@ -81,7 +86,7 @@ forecast, the Web Mercator map and its drawing — is
 [kRadar](https://github.com/ok1cdj/kRadar) 1.4 by Ondřej Koloničný (OK1CDJ), GPL v3, and
 its history is kept in this repository's. What changed on that side: the screen now sits
 in the house top bar with a way back, uses the house type and icons, clips its map to the
-square, rounds the position, asks for a fresh fix when the cached one is stale, writes times
+square, draws state lines, rounds the position, asks for a fresh fix when the cached one is stale, writes times
 the phone's way, and no longer has the hidden test mode.
 
 Radar data by [RainViewer](https://www.rainviewer.com/api.html). Forecast by
