@@ -118,7 +118,7 @@ fun SkyTabs(
     ) { contentPadding ->
         val inside = Modifier.fillMaxSize().padding(contentPadding)
         when (tab) {
-            Tab.TODAY -> TodayTab(state, onSettings, onAllowLocation, inside)
+            Tab.TODAY -> TodayTab(state, onAllowLocation, inside)
             Tab.FORECAST -> ForecastTab(state, onAllowLocation, inside)
             Tab.RADAR -> RadarTab(radar, onAllowLocation, inside)
         }
@@ -132,18 +132,25 @@ fun SkyTabs(
  * rows because they are read deliberately or not at all.
  */
 @Composable
-private fun TodayTab(state: SkyState, onSettings: () -> Unit, onAllowLocation: () -> Unit, modifier: Modifier) {
+private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Modifier) {
     val today = state.days.firstOrNull()?.takeIf { it.date == LocalDate.now() }
+    // Most people who install this have no station, and for them today's forecast is the
+    // headline rather than a line under a reading they will never have. The station lives
+    // in settings; nothing here asks for one.
+    val noStation = state.stationTrouble == StationTrouble.NOT_SET
     LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp)) {
-        item { Now(state, onSettings) }
-
-        item {
-            HorizontalDividerMMD()
-            if (today != null) {
-                DayRow(today)
-            } else {
-                Column(modifier = Modifier.padding(vertical = 12.dp)) {
-                    ForecastTrouble(state.forecastTrouble, true, onAllowLocation)
+        if (noStation) {
+            item { Outlook(today, state, onAllowLocation) }
+        } else {
+            item { Now(state) }
+            item {
+                HorizontalDividerMMD()
+                if (today != null) {
+                    DayRow(today)
+                } else {
+                    Column(modifier = Modifier.padding(vertical = 12.dp)) {
+                        ForecastTrouble(state.forecastTrouble, true, onAllowLocation)
+                    }
                 }
             }
         }
@@ -211,22 +218,46 @@ private fun Credit(state: SkyState) {
     }
 }
 
+/**
+ * Today's forecast as the headline, for a phone with no station: the high and low where the
+ * station's temperature would be, and what the day is expected to do beneath.
+ */
+@Composable
+private fun Outlook(today: Day?, state: SkyState, onAllowLocation: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 14.dp)) {
+        if (today == null) {
+            if (state.forecastTrouble == ForecastTrouble.NONE) {
+                TextMMD(text = stringResource(R.string.sky_forecast_asking), style = MaterialTheme.typography.bodySmall)
+            } else {
+                ForecastTrouble(state.forecastTrouble, true, onAllowLocation)
+            }
+            return@Column
+        }
+        Row(verticalAlignment = Alignment.Bottom) {
+            TextMMD(text = "${today.high}°", fontSize = 72.sp, fontWeight = FontWeight.Medium)
+            Spacer(Modifier.width(10.dp))
+            TextMMD(
+                text = stringResource(R.string.sky_low, today.low),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 14.dp),
+            )
+        }
+        val condition = stringResource(conditionFor(today.code))
+        TextMMD(
+            text = today.rainChance?.takeIf { it > 0 }
+                ?.let { stringResource(R.string.sky_condition_with_rain, condition, it) }
+                ?: condition,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+
 /** The temperature, what it feels like, and how old it is — or why there is none. */
 @Composable
-private fun Now(state: SkyState, onSettings: () -> Unit) {
+private fun Now(state: SkyState) {
     val reading = state.reading
     Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 14.dp)) {
         when {
-            state.stationTrouble == StationTrouble.NOT_SET -> {
-                TextMMD(text = stringResource(R.string.sky_no_station), style = MaterialTheme.typography.bodySmall)
-                Spacer(Modifier.height(10.dp))
-                OutlinedButtonMMD(
-                    onClick = onSettings,
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                ) { TextMMD(text = stringResource(R.string.sky_set_station), style = MaterialTheme.typography.bodySmall) }
-                return@Column
-            }
-
             reading == null && state.stationTrouble == StationTrouble.NO_ANSWER -> {
                 TextMMD(
                     text = stringResource(R.string.sky_not_answering, state.address),

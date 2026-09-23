@@ -7,8 +7,6 @@
     <string name="tab_forecast">Forecast</string>
     <string name="tab_radar">Radar</string>
     <string name="sky_cd_settings">Settings</string>
-    <string name="sky_no_station">No station is set. Sky reads an Ecowitt gateway on your own network; give it the gateway\'s address and its readings appear here.</string>
-    <string name="sky_set_station">Set the station</string>
     <string name="sky_asking">Asking the station…</string>
     <!-- %1$s is the address from settings -->
     <string name="sky_not_answering">The station at %1$s is not answering. It can only be reached from its own network.</string>
@@ -31,6 +29,9 @@
 
     <!-- %1$s is the name of the place chosen in settings -->
     <string name="sky_forecast_for">Forecast for %1$s</string>
+    <!-- Beside the day's high in large type, when there is no station; %1$d is a temperature -->
+    <string name="sky_low">low %1$d°</string>
+    <string name="sky_forecast_asking">Fetching the forecast…</string>
     <string name="sky_forecast_no_permission">The forecast is for wherever the phone is, and needs its location to know where that is. Or choose a place in settings.</string>
     <string name="sky_forecast_no_location">The phone could not work out where it is — indoors its GPS may not. Choose a place in settings and the forecast will be for there.</string>
     <string name="sky_forecast_no_answer">The forecast could not be fetched. It will be asked for again next time Sky is opened.</string>
