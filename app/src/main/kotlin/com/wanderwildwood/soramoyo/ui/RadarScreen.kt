@@ -18,10 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mudita.mmd.components.buttons.OutlinedButtonMMD
 import com.mudita.mmd.components.text.TextMMD
-import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.soramoyo.R
 import com.wanderwildwood.soramoyo.map.MapData
 import com.wanderwildwood.soramoyo.map.MapProjection
@@ -54,87 +51,78 @@ import java.util.Date
 import kotlin.math.roundToInt
 
 /**
- * kRadar's radar, as its own screen: RainViewer's last two hours over a vector map centred
- * on the phone, a locally estimated half hour ahead, and the controls to step through it.
+ * kRadar's radar, as a tab: RainViewer's last two hours over a vector map centred on the
+ * phone or the chosen place, a locally estimated half hour ahead, and the controls to step
+ * through it.
  *
  * The map, the overlay and the forecast are kRadar's and are drawn as it draws them. What
- * changed is the frame round them: a top bar with a way back, the house's type and icons, and
- * no hidden test mode.
+ * changed is the frame round them: the house's type and icons, and no hidden test mode.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RadarScreen(
+fun RadarTab(
     vm: RadarViewModel,
-    onBack: () -> Unit,
     onAllowLocation: () -> Unit,
+    modifier: Modifier,
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
 
-    // The activity only tells the view model the app came to the front; opening this screen
-    // from the one before it is a coming to the front too, as far as the radar is concerned.
+    // The activity only tells the view model the app came to the front; opening this tab is
+    // a coming to the front too, as far as the radar is concerned.
     LaunchedEffect(Unit) { vm.onForeground() }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            TopAppBarMMD(
-                title = { TextMMD(text = headerText(state)) },
-                navigationIcon = { BarButton(Icons.Back, stringResource(R.string.radar_cd_back), onBack) },
-            )
-        },
-    ) { contentPadding ->
-        Column(
+    Column(
+        modifier = modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        // The frame's time, which on a screen of its own was the title.
+        TextMMD(text = headerText(state), style = MaterialTheme.typography.titleMedium)
+        // Locally estimated cloud motion behind the ≈ forecast frames.
+        state.motion?.let { m ->
+            state.framesCenter?.let { c ->
+                val kmh = m.speedKmh(c.lat, state.framesZoom).roundToInt()
+                // Bearing is meaningless at ~0 speed — don't imply a direction.
+                val label = if (kmh == 0) stringResource(R.string.motion_stationary)
+                else stringResource(R.string.motion_estimate, compass(m.bearingDeg()), kmh)
+                TextMMD(text = label, style = MaterialTheme.typography.labelSmall)
+            }
+        }
+
+        // Square, and as large as the panel allows once everything else has its line: under
+        // the tab row a full-width square pushed RainViewer's credit off the bottom, and that
+        // credit is a condition of using its data.
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding)
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .weight(1f)
+                .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                .padding(vertical = 6.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            // Locally estimated cloud motion behind the ≈ forecast frames.
-            state.motion?.let { m ->
-                state.framesCenter?.let { c ->
-                    val kmh = m.speedKmh(c.lat, state.framesZoom).roundToInt()
-                    // Bearing is meaningless at ~0 speed — don't imply a direction.
-                    val label = if (kmh == 0) stringResource(R.string.motion_stationary)
-                    else stringResource(R.string.motion_estimate, compass(m.bearingDeg()), kmh)
-                    TextMMD(text = label, style = MaterialTheme.typography.labelSmall)
-                }
+            when {
+                state.permissionDenied -> LocationPrompt(onAllowLocation)
+                state.location == null -> TextMMD(text = stringResource(R.string.locating), style = MaterialTheme.typography.bodySmall)
+                else -> RadarMap(state)
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .padding(vertical = 6.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                when {
-                    state.permissionDenied -> LocationPrompt(onAllowLocation)
-                    state.location == null -> TextMMD(text = stringResource(R.string.locating), style = MaterialTheme.typography.bodySmall)
-                    else -> RadarMap(state)
-                }
-
-                if (state.loading) {
-                    TextMMD(text = stringResource(R.string.loading), style = MaterialTheme.typography.bodySmall)
-                }
+            if (state.loading) {
+                TextMMD(text = stringResource(R.string.loading), style = MaterialTheme.typography.bodySmall)
             }
+        }
 
-            state.error?.let {
-                TextMMD(text = stringResource(it), style = MaterialTheme.typography.labelSmall)
-            }
+        state.error?.let {
+            TextMMD(text = stringResource(it), style = MaterialTheme.typography.labelSmall)
+        }
 
-            Controls(vm, state)
+        Controls(vm, state)
 
-            Spacer(Modifier.height(8.dp))
-            // RainViewer's attribution is a condition of using it, not a courtesy.
-            TextMMD(text = stringResource(R.string.attribution), style = MaterialTheme.typography.labelSmall)
-            state.lastUpdate?.let { t ->
-                if (t > 0L) {
-                    TextMMD(
-                        text = stringResource(R.string.updated, updateFmt.format(Date(t * 1000L))),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
+        Spacer(Modifier.height(8.dp))
+        // RainViewer's attribution is a condition of using it, not a courtesy.
+        TextMMD(text = stringResource(R.string.attribution), style = MaterialTheme.typography.labelSmall)
+        state.lastUpdate?.let { t ->
+            if (t > 0L) {
+                TextMMD(
+                    text = stringResource(R.string.updated, updateFmt.format(Date(t * 1000L))),
+                    style = MaterialTheme.typography.labelSmall,
+                )
             }
         }
     }
