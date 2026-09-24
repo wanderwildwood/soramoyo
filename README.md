@@ -45,7 +45,9 @@ feels-like, wind and humidity, marked as an estimate and for what time.
 
 **The forecast.** Today's high and low and chance of rain sit under the station reading,
 with sunrise and sunset; the Forecast tab has the five days after it, each with how much rain
-is expected. Under today, the next twelve hours: one line saying when rain (or snow) is likely
+(or snow) is expected, and what the day will feel like where wind or damp make it colder or
+hotter than it reads. Tap a day for its own page: its hours before and after noon, when rain
+is likely and until when, the wind at its strongest, gusts, UV, sunrise and sunset. Under today, the next twelve hours: one line saying when rain (or snow) is likely
 to start or stop, and how much, over a strip of the hours with their temperatures and the
 chance of rain drawn as bars. If the station says it is raining and the forecast does not,
 the line says so. From [Open-Meteo](https://open-meteo.com/), for wherever the phone is or

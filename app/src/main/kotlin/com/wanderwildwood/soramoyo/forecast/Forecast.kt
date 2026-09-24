@@ -14,11 +14,17 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
  * One day of forecast. [rainChance] is null where the model gave none; [rain] is how much is
- * expected to fall, in millimetres or inches as the forecast was asked for.
+ * expected to fall, in millimetres or inches as the forecast was asked for. [feelsHigh] and
+ * [feelsLow] are the day's apparent temperatures: wind chill, humidity and sun counted in.
+ * The rest are for the day's own page: the strongest wind and gust in km/h or mph, where the
+ * wind mostly comes from, the highest UV, how many hours it rains, the snow in centimetres or
+ * inches, and [rainOnly], the rain and showers alone. [rain] is everything that falls, snow
+ * counted as the water it melts to, which on a snowy day is neither the rain nor the snow.
  */
 data class Day(
     val date: LocalDate,
@@ -29,7 +35,32 @@ data class Day(
     val rain: Double? = null,
     val sunrise: LocalDateTime?,
     val sunset: LocalDateTime?,
-)
+    val feelsHigh: Int? = null,
+    val feelsLow: Int? = null,
+    val windMax: Double? = null,
+    val gustMax: Double? = null,
+    /** Degrees clockwise from north that the wind mostly comes from. */
+    val windFrom: Int? = null,
+    val uvMax: Double? = null,
+    val rainHours: Double? = null,
+    val snow: Double? = null,
+    val rainOnly: Double? = null,
+) {
+    /** A day the forecast calls snowy and that has snow to show for it. */
+    val snowy: Boolean get() = Change.snow(code) && (snow ?: 0.0) > 0.0
+
+    /**
+     * Whether what the day feels like is worth a line of its own: when either end is a few
+     * degrees from the real one (3 °C, or 5 °F, about the same). On a mild still day the two
+     * agree and the line would only repeat the high and low.
+     */
+    fun feelsDifferent(metric: Boolean): Boolean {
+        val apart = if (metric) 3 else 5
+        val high = feelsHigh ?: return false
+        val low = feelsLow ?: return false
+        return abs(high - this.high) >= apart || abs(low - this.low) >= apart
+    }
+}
 
 /** One hour of forecast, its time in the zone of the place it is for. */
 data class Hour(
@@ -109,17 +140,20 @@ object Forecast {
             .addQueryParameter(
                 "daily",
                 "weather_code,temperature_2m_max,temperature_2m_min," +
-                    "precipitation_probability_max,precipitation_sum,sunrise,sunset",
+                    "apparent_temperature_max,apparent_temperature_min," +
+                    "precipitation_probability_max,precipitation_sum,precipitation_hours,snowfall_sum," +
+                    "rain_sum,showers_sum," +
+                    "wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,uv_index_max," +
+                    "sunrise,sunset",
             )
             .addQueryParameter(
                 "current",
                 "weather_code,temperature_2m,apparent_temperature,relative_humidity_2m," +
                     "wind_speed_10m,wind_gusts_10m,wind_direction_10m",
             )
+            // Every hour of every day asked for: Today takes the next twelve, and each day's
+            // own page takes its twenty-four.
             .addQueryParameter("hourly", "weather_code,temperature_2m,precipitation_probability,precipitation")
-            // Hours from the one now under way. Two spare, in case the hour turns between the
-            // server answering and the screen being drawn.
-            .addQueryParameter("forecast_hours", (HOURS + 2).toString())
             .addQueryParameter("temperature_unit", if (metric) "celsius" else "fahrenheit")
             .addQueryParameter("precipitation_unit", if (metric) "mm" else "inch")
             .addQueryParameter("wind_speed_unit", if (metric) "kmh" else "mph")
@@ -146,6 +180,16 @@ object Forecast {
         val codes = daily.getJSONArray("weather_code")
         val highs = daily.getJSONArray("temperature_2m_max")
         val lows = daily.getJSONArray("temperature_2m_min")
+        val feelsHighs = daily.optJSONArray("apparent_temperature_max")
+        val feelsLows = daily.optJSONArray("apparent_temperature_min")
+        val rainHours = daily.optJSONArray("precipitation_hours")
+        val snow = daily.optJSONArray("snowfall_sum")
+        val rains = daily.optJSONArray("rain_sum")
+        val showers = daily.optJSONArray("showers_sum")
+        val winds = daily.optJSONArray("wind_speed_10m_max")
+        val gusts = daily.optJSONArray("wind_gusts_10m_max")
+        val windFrom = daily.optJSONArray("wind_direction_10m_dominant")
+        val uv = daily.optJSONArray("uv_index_max")
         val rain = daily.optJSONArray("precipitation_probability_max")
         val amounts = daily.optJSONArray("precipitation_sum")
         val rises = daily.optJSONArray("sunrise")
@@ -163,6 +207,18 @@ object Forecast {
                 rain = amounts?.takeUnless { it.isNull(i) }?.getDouble(i),
                 sunrise = rises?.optString(i)?.takeIf { it.isNotEmpty() && it != "null" }?.let(LocalDateTime::parse),
                 sunset = sets?.optString(i)?.takeIf { it.isNotEmpty() && it != "null" }?.let(LocalDateTime::parse),
+                feelsHigh = feelsHighs?.takeUnless { it.isNull(i) }?.getDouble(i)?.roundToInt(),
+                feelsLow = feelsLows?.takeUnless { it.isNull(i) }?.getDouble(i)?.roundToInt(),
+                windMax = winds?.takeUnless { it.isNull(i) }?.getDouble(i),
+                gustMax = gusts?.takeUnless { it.isNull(i) }?.getDouble(i),
+                windFrom = windFrom?.takeUnless { it.isNull(i) }?.getDouble(i)?.roundToInt(),
+                uvMax = uv?.takeUnless { it.isNull(i) }?.getDouble(i),
+                rainHours = rainHours?.takeUnless { it.isNull(i) }?.getDouble(i),
+                snow = snow?.takeUnless { it.isNull(i) }?.getDouble(i),
+                rainOnly = listOfNotNull(
+                    rains?.takeUnless { it.isNull(i) }?.getDouble(i),
+                    showers?.takeUnless { it.isNull(i) }?.getDouble(i),
+                ).takeIf { it.isNotEmpty() }?.sum(),
             )
         }
     }

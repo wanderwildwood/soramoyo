@@ -20,12 +20,14 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mudita.mmd.ThemeMMD
+import com.wanderwildwood.soramoyo.ui.DayScreen
 import com.wanderwildwood.soramoyo.ui.RadarViewModel
 import com.wanderwildwood.soramoyo.ui.SettingsScreen
 import com.wanderwildwood.soramoyo.ui.SkyTabs
 import com.wanderwildwood.soramoyo.ui.Tab
 import com.wanderwildwood.soramoyo.ui.SkyViewModel
 import com.wanderwildwood.soramoyo.ui.monochrome
+import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,14 +40,16 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/** The tabs, or settings over them. */
-private enum class Screen { TABS, SETTINGS }
+/** The tabs, or settings or one day's forecast over them. */
+private enum class Screen { TABS, SETTINGS, DAY }
 
 @Composable
 private fun Sky(sky: SkyViewModel = viewModel()) {
     val state by sky.state.collectAsStateWithLifecycle()
     var screen by rememberSaveable { mutableStateOf(Screen.TABS) }
     var tab by rememberSaveable { mutableStateOf(Tab.TODAY) }
+    // The day open on its own page, as an ISO date so it survives being saved.
+    var day by rememberSaveable { mutableStateOf("") }
 
     // Held here rather than inside the radar tab so that its frames outlive a trip to another
     // tab: going to look at the temperature and coming back should not download two hours of
@@ -78,7 +82,7 @@ private fun Sky(sky: SkyViewModel = viewModel()) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(watcher) }
     }
 
-    // Back leaves settings, then goes to Today, and only from Today leaves the app.
+    // Back leaves settings or a day, then goes to Today, and only from Today leaves the app.
     BackHandler(enabled = screen != Screen.TABS || tab != Tab.TODAY) {
         if (screen != Screen.TABS) screen = Screen.TABS else tab = Tab.TODAY
     }
@@ -91,6 +95,16 @@ private fun Sky(sky: SkyViewModel = viewModel()) {
             radar = radar,
             onSettings = { screen = Screen.SETTINGS },
             onAllowLocation = allowLocation,
+            onDay = {
+                day = it.toString()
+                screen = Screen.DAY
+            },
+        )
+
+        Screen.DAY -> DayScreen(
+            date = LocalDate.parse(day),
+            state = state,
+            onClose = { screen = Screen.TABS },
         )
 
         Screen.SETTINGS -> SettingsScreen(
