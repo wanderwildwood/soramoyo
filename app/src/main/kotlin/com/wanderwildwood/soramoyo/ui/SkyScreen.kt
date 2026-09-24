@@ -1,5 +1,6 @@
 package com.wanderwildwood.soramoyo.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,7 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,14 +42,17 @@ import com.mudita.mmd.components.tabs.TabRowMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.soramoyo.R
+import com.wanderwildwood.soramoyo.forecast.Change
 import com.wanderwildwood.soramoyo.forecast.Day
+import com.wanderwildwood.soramoyo.forecast.HOURS
+import com.wanderwildwood.soramoyo.forecast.Hour
+import com.wanderwildwood.soramoyo.forecast.upcoming
 import com.wanderwildwood.soramoyo.station.Source
 import com.wanderwildwood.soramoyo.station.StationReading
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -140,18 +149,31 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
     // in settings; nothing here asks for one.
     val noStation = state.stationTrouble == StationTrouble.NOT_SET
     LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp)) {
+        val hours = upcoming(state.hours, state.offset)
         if (noStation) {
             item { Outlook(today, state, onAllowLocation) }
+            if (hours.isNotEmpty()) {
+                item {
+                    HorizontalDividerMMD()
+                    Hours(hours, state.inches)
+                }
+            }
         } else {
             item { Now(state) }
             item {
                 HorizontalDividerMMD()
                 if (today != null) {
-                    DayRow(today)
+                    DayRow(today, state.inches)
                 } else {
                     Column(modifier = Modifier.padding(vertical = 12.dp)) {
                         ForecastTrouble(state.forecastTrouble, true, onAllowLocation)
                     }
+                }
+            }
+            if (hours.isNotEmpty()) {
+                item {
+                    HorizontalDividerMMD()
+                    Hours(hours, state.inches)
                 }
             }
         }
@@ -194,7 +216,7 @@ private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, modifier: 
         ahead.forEachIndexed { i, day ->
             item {
                 if (i > 0) HorizontalDividerMMD()
-                DayRow(day)
+                DayRow(day, state.inches)
             }
         }
         if (ahead.isNotEmpty()) {
@@ -384,7 +406,7 @@ private fun ForecastTrouble(trouble: ForecastTrouble, nothingYet: Boolean, onAll
 }
 
 @Composable
-private fun DayRow(day: Day) {
+private fun DayRow(day: Day, inches: Boolean) {
     val today = LocalDate.now()
     val name = when (day.date) {
         today -> stringResource(R.string.sky_today)
@@ -400,10 +422,15 @@ private fun DayRow(day: Day) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             TextMMD(text = name, style = MaterialTheme.typography.bodyMedium)
+            val chance = day.rainChance?.takeIf { it > 0 }
+            val amount = amount(day.rain, inches)
             TextMMD(
-                text = day.rainChance?.takeIf { it > 0 }
-                    ?.let { stringResource(R.string.sky_condition_with_rain, condition, it) }
-                    ?: condition,
+                text = when {
+                    chance != null && amount != null ->
+                        stringResource(R.string.sky_condition_with_rain_amount, condition, chance, amount, unit(inches))
+                    chance != null -> stringResource(R.string.sky_condition_with_rain, condition, chance)
+                    else -> condition
+                },
                 style = MaterialTheme.typography.labelSmall,
             )
         }
@@ -415,6 +442,128 @@ private fun DayRow(day: Day) {
         )
     }
 }
+
+/**
+ * The next hours: a line saying when rain is likely to start or stop, and under it a strip,
+ * an hour to a column, of the chance of rain drawn as a bar, with a dotted line where it
+ * becomes likely. The line is what is read; the strip is there to see how sure it is. The
+ * temperature and the hour are written every third column: every column was tried, and on
+ * the Kompakt's panel the figures ran together into one string.
+ */
+@Composable
+private fun Hours(hours: List<Hour>, inches: Boolean) {
+    val ink = MaterialTheme.colorScheme.onSurface
+    val twentyFour = android.text.format.DateFormat.is24HourFormat(LocalContext.current)
+    val now = stringResource(R.string.sky_now)
+    val count = hours.size
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+        TextMMD(
+            text = when (val change = Change.of(hours)) {
+                Change.Dry -> stringResource(R.string.sky_hours_dry, count)
+                is Change.From -> stringResource(
+                    if (change.snow) R.string.sky_hours_snow_from else R.string.sky_hours_rain_from,
+                    clock(change.at),
+                )
+                is Change.Until -> stringResource(
+                    if (change.snow) R.string.sky_hours_snow_until else R.string.sky_hours_rain_until,
+                    clock(change.at),
+                )
+                is Change.Throughout -> stringResource(
+                    if (change.snow) R.string.sky_hours_snow_throughout else R.string.sky_hours_rain_throughout,
+                    count,
+                )
+            },
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        amount(Change.total(hours), inches)?.let {
+            TextMMD(
+                text = stringResource(R.string.sky_hours_amount, it, unit(inches), count),
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
+        Spacer(Modifier.height(10.dp))
+
+        val described = stringResource(R.string.sky_cd_hours)
+        Row(modifier = Modifier.fillMaxWidth().semantics { contentDescription = described }) {
+            hours.forEachIndexed { i, hour ->
+                val written = i % 3 == 0
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    // Written past the column's edges if it needs to: its neighbours are empty.
+                    TextMMD(
+                        text = if (written) "${hour.temperature}°" else "",
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.wrapContentWidth(unbounded = true),
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    // The bar stands on a rule drawn across the whole strip, so an hour with
+                    // no chance at all still shows as an hour.
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(BAR_HEIGHT)
+                            .drawBehind {
+                                drawLine(ink, Offset(0f, size.height), Offset(size.width, size.height), strokeWidth = 1.dp.toPx())
+                                val likely = size.height * (1f - Change.LIKELY / 100f)
+                                drawLine(
+                                    ink,
+                                    Offset(0f, likely),
+                                    Offset(size.width, likely),
+                                    strokeWidth = 1.dp.toPx(),
+                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(2.dp.toPx(), 3.dp.toPx())),
+                                )
+                            },
+                        contentAlignment = Alignment.BottomCenter,
+                    ) {
+                        val chance = (hour.rainChance ?: 0).coerceIn(0, 100)
+                        if (chance > 0) {
+                            Box(
+                                Modifier
+                                    .width(10.dp)
+                                    .height(BAR_HEIGHT * chance / 100)
+                                    .background(ink),
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    TextMMD(
+                        text = when {
+                            i == 0 -> now
+                            written -> hourLabel(hour.time, twentyFour)
+                            else -> ""
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.wrapContentWidth(unbounded = true),
+                    )
+                }
+            }
+        }
+    }
+}
+
+private val BAR_HEIGHT = 40.dp
+
+private val hour24: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+private val hour12: DateTimeFormatter = DateTimeFormatter.ofPattern("h a")
+
+/** The hour, as the phone's clock would write it: "15:00" or "3 PM". */
+private fun hourLabel(time: java.time.LocalDateTime, twentyFour: Boolean): String =
+    (if (twentyFour) hour24 else hour12).withLocale(Locale.getDefault()).format(time)
+
+/** An amount of rain as it is written, or null where it would round to nothing. */
+private fun amount(value: Double?, inches: Boolean): String? {
+    value ?: return null
+    return when {
+        inches && value >= 0.005 -> String.format(Locale.getDefault(), "%.2f", value)
+        !inches && value >= 10 -> String.format(Locale.getDefault(), "%.0f", value)
+        !inches && value >= 0.05 -> String.format(Locale.getDefault(), "%.1f", value)
+        else -> null
+    }
+}
+
+private fun unit(inches: Boolean): String = if (inches) "in" else "mm"
 
 /** A label, a number with its unit, and a note only where a label cannot carry it. */
 @Composable
@@ -445,12 +594,23 @@ private fun Reading(label: String, value: String, unit: String, note: String? = 
     }
 }
 
-private val clockFormat: DateTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
+/**
+ * A time as the phone's own clock writes it. The locale alone would say 9:47 PM on a phone
+ * set to the 24-hour clock, beside a status bar saying 21:47.
+ */
+@Composable
+private fun clockFormat(): DateTimeFormatter {
+    val locale = Locale.getDefault()
+    val skeleton = if (android.text.format.DateFormat.is24HourFormat(LocalContext.current)) "Hm" else "hm"
+    return DateTimeFormatter.ofPattern(android.text.format.DateFormat.getBestDateTimePattern(locale, skeleton), locale)
+}
 
+@Composable
 private fun clock(millis: Long): String =
-    clockFormat.format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
+    clockFormat().format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
 
-private fun clock(time: java.time.LocalDateTime): String = clockFormat.format(time)
+@Composable
+private fun clock(time: java.time.LocalDateTime): String = clockFormat().format(time)
 
 /** WMO weather interpretation codes, as Open-Meteo uses them, in a few plain words. */
 private fun conditionFor(code: Int): Int = when (code) {

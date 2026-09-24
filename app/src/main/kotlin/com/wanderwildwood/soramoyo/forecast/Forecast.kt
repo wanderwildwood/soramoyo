@@ -7,22 +7,61 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.io.IOException
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
-/** One day of forecast. [rainChance] is null where the model gave none. */
+/**
+ * One day of forecast. [rainChance] is null where the model gave none; [rain] is how much is
+ * expected to fall, in millimetres or inches as the forecast was asked for.
+ */
 data class Day(
     val date: LocalDate,
     val code: Int,
     val high: Int,
     val low: Int,
     val rainChance: Int?,
+    val rain: Double? = null,
     val sunrise: LocalDateTime?,
     val sunset: LocalDateTime?,
 )
+
+/** One hour of forecast, its time in the zone of the place it is for. */
+data class Hour(
+    val time: LocalDateTime,
+    val code: Int,
+    val temperature: Int,
+    val rainChance: Int?,
+    val rain: Double?,
+)
+
+/**
+ * What came back: the days, the hours from the one under way, whether the amounts are in
+ * inches, and the place's offset from UTC, which the hours' times are in.
+ */
+data class Predicted(
+    val days: List<Day> = emptyList(),
+    val hours: List<Hour> = emptyList(),
+    val inches: Boolean = false,
+    val offset: ZoneOffset = ZoneOffset.UTC,
+)
+
+/**
+ * The next [HOURS] hours from [now]. A forecast is kept for half an hour, so by the time it
+ * is looked at again its first hour may be over.
+ */
+fun upcoming(hours: List<Hour>, offset: ZoneOffset, now: Instant = Instant.now()): List<Hour> {
+    val thisHour = LocalDateTime.ofInstant(now, offset).truncatedTo(ChronoUnit.HOURS)
+    return hours.filterNot { it.time.isBefore(thisHour) }.take(HOURS)
+}
+
+/** How many hours ahead the Today tab shows. */
+const val HOURS = 12
 
 /**
  * Six days from Open-Meteo — today and the five after it — for the phone or the chosen place.
@@ -37,7 +76,7 @@ object Forecast {
         .readTimeout(20, TimeUnit.SECONDS)
         .build()
 
-    suspend fun fetch(lat: Double, lon: Double, metric: Boolean): List<Day> =
+    suspend fun fetch(lat: Double, lon: Double, metric: Boolean): Predicted =
         withContext(Dispatchers.IO) {
             val request = Request.Builder().url(urlFor(lat, lon, metric)).get().build()
             client.newCall(request).execute().use { response ->
@@ -53,9 +92,14 @@ object Forecast {
             .addQueryParameter(
                 "daily",
                 "weather_code,temperature_2m_max,temperature_2m_min," +
-                    "precipitation_probability_max,sunrise,sunset",
+                    "precipitation_probability_max,precipitation_sum,sunrise,sunset",
             )
+            .addQueryParameter("hourly", "weather_code,temperature_2m,precipitation_probability,precipitation")
+            // Hours from the one now under way. Two spare, in case the hour turns between the
+            // server answering and the screen being drawn.
+            .addQueryParameter("forecast_hours", (HOURS + 2).toString())
             .addQueryParameter("temperature_unit", if (metric) "celsius" else "fahrenheit")
+            .addQueryParameter("precipitation_unit", if (metric) "mm" else "inch")
             // The phone's own time zone would be wrong for a forecast of somewhere else;
             // "auto" gives the days and the sunrise in the zone of the place itself.
             .addQueryParameter("timezone", "auto")
@@ -64,13 +108,23 @@ object Forecast {
             .build()
             .toString()
 
-    internal fun parse(json: String): List<Day> {
-        val daily = JSONObject(json).getJSONObject("daily")
+    internal fun parse(json: String, now: Instant = Instant.now()): Predicted {
+        val root = JSONObject(json)
+        val inches = root.optJSONObject("daily_units")?.optString("precipitation_sum") == "inch" ||
+            root.optJSONObject("hourly_units")?.optString("precipitation") == "inch"
+        val offset = ZoneOffset.ofTotalSeconds(root.optInt("utc_offset_seconds", 0))
+        val thisHour = LocalDateTime.ofInstant(now, offset).truncatedTo(ChronoUnit.HOURS)
+        return Predicted(days(root), hours(root).filterNot { it.time.isBefore(thisHour) }, inches, offset)
+    }
+
+    private fun days(root: JSONObject): List<Day> {
+        val daily = root.getJSONObject("daily")
         val dates = daily.getJSONArray("time")
         val codes = daily.getJSONArray("weather_code")
         val highs = daily.getJSONArray("temperature_2m_max")
         val lows = daily.getJSONArray("temperature_2m_min")
         val rain = daily.optJSONArray("precipitation_probability_max")
+        val amounts = daily.optJSONArray("precipitation_sum")
         val rises = daily.optJSONArray("sunrise")
         val sets = daily.optJSONArray("sunset")
 
@@ -83,8 +137,32 @@ object Forecast {
                 high = highs.getDouble(i).roundToInt(),
                 low = lows.getDouble(i).roundToInt(),
                 rainChance = rain?.takeUnless { it.isNull(i) }?.getInt(i),
+                rain = amounts?.takeUnless { it.isNull(i) }?.getDouble(i),
                 sunrise = rises?.optString(i)?.takeIf { it.isNotEmpty() && it != "null" }?.let(LocalDateTime::parse),
                 sunset = sets?.optString(i)?.takeIf { it.isNotEmpty() && it != "null" }?.let(LocalDateTime::parse),
+            )
+        }
+    }
+
+    /**
+     * The hours, in the place's own time: Open-Meteo gives the times without a zone and says
+     * the offset once, beside them.
+     */
+    private fun hours(root: JSONObject): List<Hour> {
+        val hourly = root.optJSONObject("hourly") ?: return emptyList()
+        val times = hourly.getJSONArray("time")
+        val codes = hourly.optJSONArray("weather_code")
+        val temps = hourly.getJSONArray("temperature_2m")
+        val chances = hourly.optJSONArray("precipitation_probability")
+        val amounts = hourly.optJSONArray("precipitation")
+        return (0 until times.length()).mapNotNull { i ->
+            if (temps.isNull(i)) return@mapNotNull null
+            Hour(
+                time = LocalDateTime.parse(times.getString(i)),
+                code = codes?.takeUnless { it.isNull(i) }?.getInt(i) ?: -1,
+                temperature = temps.getDouble(i).roundToInt(),
+                rainChance = chances?.takeUnless { it.isNull(i) }?.getInt(i),
+                rain = amounts?.takeUnless { it.isNull(i) }?.getDouble(i),
             )
         }
     }

@@ -1,0 +1,150 @@
+{
+    "latitude": 50.08,
+    "longitude": 14.419998,
+    "generationtime_ms": 0.18906593322753906,
+    "utc_offset_seconds": 7200,
+    "timezone": "Europe/Prague",
+    "timezone_abbreviation": "GMT+2",
+    "elevation": 208.0,
+    "hourly_units": {
+        "time": "iso8601",
+        "temperature_2m": "\u00b0C",
+        "precipitation_probability": "%",
+        "precipitation": "mm",
+        "weather_code": "wmo code"
+    },
+    "hourly": {
+        "time": [
+            "2026-09-24T03:00",
+            "2026-09-24T04:00",
+            "2026-09-24T05:00",
+            "2026-09-24T06:00",
+            "2026-09-24T07:00",
+            "2026-09-24T08:00",
+            "2026-09-24T09:00",
+            "2026-09-24T10:00",
+            "2026-09-24T11:00",
+            "2026-09-24T12:00",
+            "2026-09-24T13:00",
+            "2026-09-24T14:00",
+            "2026-09-24T15:00",
+            "2026-09-24T16:00"
+        ],
+        "temperature_2m": [
+            11.3,
+            11.7,
+            11.7,
+            12.1,
+            12.3,
+            12.7,
+            13.1,
+            13.4,
+            14.3,
+            15.5,
+            15.6,
+            16.1,
+            15.4,
+            16.1
+        ],
+        "precipitation_probability": [
+            0,
+            0,
+            0,
+            5,
+            18,
+            88,
+            93,
+            88,
+            40,
+            38,
+            48,
+            50,
+            63,
+            60
+        ],
+        "precipitation": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.3,
+            1.4,
+            0.1,
+            0.0,
+            0.1,
+            0.0,
+            0.2,
+            0.0
+        ],
+        "weather_code": [
+            2,
+            3,
+            3,
+            3,
+            3,
+            3,
+            61,
+            80,
+            80,
+            2,
+            80,
+            3,
+            80,
+            2
+        ]
+    },
+    "daily_units": {
+        "time": "iso8601",
+        "weather_code": "wmo code",
+        "temperature_2m_max": "\u00b0C",
+        "temperature_2m_min": "\u00b0C",
+        "precipitation_probability_max": "%",
+        "precipitation_sum": "mm",
+        "sunrise": "iso8601",
+        "sunset": "iso8601"
+    },
+    "daily": {
+        "time": [
+            "2026-09-24",
+            "2026-09-25",
+            "2026-09-26"
+        ],
+        "weather_code": [
+            80,
+            3,
+            3
+        ],
+        "temperature_2m_max": [
+            16.1,
+            17.2,
+            21.6
+        ],
+        "temperature_2m_min": [
+            11.1,
+            9.1,
+            7.1
+        ],
+        "precipitation_probability_max": [
+            93,
+            3,
+            0
+        ],
+        "precipitation_sum": [
+            2.2,
+            0.0,
+            0.0
+        ],
+        "sunrise": [
+            "2026-09-24T06:51",
+            "2026-09-25T06:52",
+            "2026-09-26T06:54"
+        ],
+        "sunset": [
+            "2026-09-24T18:56",
+            "2026-09-25T18:54",
+            "2026-09-26T18:51"
+        ]
+    }
+}

@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.wanderwildwood.soramoyo.forecast.Day
 import com.wanderwildwood.soramoyo.forecast.Forecast
+import com.wanderwildwood.soramoyo.forecast.Hour
 import com.wanderwildwood.soramoyo.location.LatLon
 import com.wanderwildwood.soramoyo.location.LocationProvider
 import com.wanderwildwood.soramoyo.location.Place
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.ZoneOffset
 import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -35,6 +37,12 @@ data class SkyState(
     val stationTrouble: StationTrouble = StationTrouble.NONE,
     val asking: Boolean = false,
     val days: List<Day> = emptyList(),
+    /** The next hours, from the one under way. */
+    val hours: List<Hour> = emptyList(),
+    /** Whether the forecast's rain amounts are in inches rather than millimetres. */
+    val inches: Boolean = false,
+    /** The forecast place's offset from UTC, which the hours' times are in. */
+    val offset: ZoneOffset = ZoneOffset.UTC,
     val forecastTrouble: ForecastTrouble = ForecastTrouble.NONE,
     /** Where the forecast and radar are for, when a place has been chosen rather than the phone's position. */
     val place: Place? = null,
@@ -68,7 +76,15 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         Source.save(getApplication(), source)
         // A different station's last reading is not this one's.
         _state.update {
-            SkyState(source = source, days = it.days, forecastTrouble = it.forecastTrouble, place = it.place)
+            SkyState(
+                source = source,
+                days = it.days,
+                hours = it.hours,
+                inches = it.inches,
+                offset = it.offset,
+                forecastTrouble = it.forecastTrouble,
+                place = it.place,
+            )
         }
         readStation()
     }
@@ -77,7 +93,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
     fun setPlace(place: Place?) {
         Places.choose(getApplication(), place)
         // The old forecast is for somewhere else now.
-        _state.update { it.copy(place = place, days = emptyList(), forecastTrouble = ForecastTrouble.NONE) }
+        _state.update { it.copy(place = place, days = emptyList(), hours = emptyList(), forecastTrouble = ForecastTrouble.NONE) }
         readForecast(force = true)
     }
 
@@ -143,10 +159,18 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                 return@launch
             }
             try {
-                val days = Forecast.fetch(here.lat, here.lon, metric)
+                val predicted = Forecast.fetch(here.lat, here.lon, metric)
                 forecastAtMs = SystemClock.elapsedRealtime()
                 forecastFor = here to metric
-                _state.update { it.copy(days = days, forecastTrouble = ForecastTrouble.NONE) }
+                _state.update {
+                    it.copy(
+                        days = predicted.days,
+                        hours = predicted.hours,
+                        inches = predicted.inches,
+                        offset = predicted.offset,
+                        forecastTrouble = ForecastTrouble.NONE,
+                    )
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
