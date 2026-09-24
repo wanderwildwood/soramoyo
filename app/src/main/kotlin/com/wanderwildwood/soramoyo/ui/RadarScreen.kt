@@ -62,6 +62,7 @@ import kotlin.math.roundToInt
 fun RadarTab(
     vm: RadarViewModel,
     onAllowLocation: () -> Unit,
+    metric: Boolean,
     modifier: Modifier,
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -79,10 +80,12 @@ fun RadarTab(
         // Locally estimated cloud motion behind the ≈ forecast frames.
         state.motion?.let { m ->
             state.framesCenter?.let { c ->
-                val kmh = m.speedKmh(c.lat, state.framesZoom).roundToInt()
+                // In the units the rest of the app is in: km/h under imperial read as a slip.
+                val kmh = m.speedKmh(c.lat, state.framesZoom)
+                val speed = (if (metric) kmh else kmh / 1.609344).roundToInt()
                 // Bearing is meaningless at ~0 speed — don't imply a direction.
-                val label = if (kmh == 0) stringResource(R.string.motion_stationary)
-                else stringResource(R.string.motion_estimate, compass(m.bearingDeg()), kmh)
+                val label = if (speed == 0) stringResource(R.string.motion_stationary)
+                else stringResource(R.string.motion_estimate, compass(m.bearingDeg()), speed, if (metric) "km/h" else "mph")
                 TextMMD(text = label, style = MaterialTheme.typography.labelSmall)
             }
         }
