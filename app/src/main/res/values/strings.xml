@@ -42,6 +42,22 @@
     <string name="sky_tomorrow">Tomorrow</string>
     <!-- %1$s is a condition such as "Light rain", %2$d a percentage -->
     <string name="sky_condition_with_rain">%1$s, %2$d%% chance of rain</string>
+    <!-- %1$s is a condition such as "Light rain", %2$d a percentage, %3$s an amount and %4$s its unit, mm or in -->
+    <string name="sky_condition_with_rain_amount">%1$s, %2$d%% chance of rain, %3$s %4$s</string>
+    <!-- The line over the hourly strip: when rain or snow is likely to start or stop. %1$s is a time, %1$d a number of hours -->
+    <string name="sky_hours_dry">No rain likely in the next %1$d hours</string>
+    <string name="sky_hours_rain_from">Rain likely from %1$s</string>
+    <string name="sky_hours_rain_until">Rain likely until %1$s</string>
+    <string name="sky_hours_rain_throughout">Rain likely for the next %1$d hours</string>
+    <string name="sky_hours_snow_from">Snow likely from %1$s</string>
+    <string name="sky_hours_snow_until">Snow likely until %1$s</string>
+    <string name="sky_hours_snow_throughout">Snow likely for the next %1$d hours</string>
+    <!-- Under that line: %1$s an amount, %2$s its unit (mm or in), %3$d a number of hours -->
+    <string name="sky_hours_amount">About %1$s %2$s in the next %3$d hours</string>
+    <!-- Spoken by a screen reader for the hourly strip -->
+    <string name="sky_cd_hours">Hour by hour: the chance of rain as a bar, dotted where it becomes likely</string>
+    <!-- Under the first column of the hourly strip, the hour now under way -->
+    <string name="sky_now">Now</string>
     <!-- High and low temperatures for a day -->
     <string name="sky_high_low">%1$d° / %2$d°</string>
     <string name="sky_sunrise">Sunrise</string>

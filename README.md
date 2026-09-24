@@ -44,7 +44,10 @@ or does not, an issue here is the way to say so.
 Without a station, Today leads with the day's forecast instead.
 
 **The forecast.** Today's high and low and chance of rain sit under the station reading,
-with sunrise and sunset; the Forecast tab has the five days after it. From
+with sunrise and sunset; the Forecast tab has the five days after it, each with how much rain
+is expected. Under today, the next twelve hours: one line saying when rain (or snow) is likely
+to start or stop, and how much, over a strip of the hours with their temperatures and the
+chance of rain drawn as bars. From
 [Open-Meteo](https://open-meteo.com/), for wherever the phone is or for a place you
 choose. Fahrenheit if your station reads Fahrenheit, Celsius if it reads Celsius.
 
