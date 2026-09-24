@@ -53,7 +53,7 @@
     <string name="sky_hours_snow_until">Snow likely until %1$s</string>
     <string name="sky_hours_snow_throughout">Snow likely for the next %1$d hours</string>
     <!-- Under that line: %1$s an amount, %2$s its unit (mm or in), %3$d a number of hours -->
-    <string name="sky_hours_amount">About %1$s %2$s in the next %3$d hours</string>
+    <string name="sky_hours_amount">About %1$s %2$s over the next %3$d hours</string>
     <!-- Spoken by a screen reader for the hourly strip -->
     <string name="sky_cd_hours">Hour by hour: the chance of rain as a bar, dotted where it becomes likely</string>
     <!-- Under the first column of the hourly strip, the hour now under way -->

@@ -456,9 +456,10 @@ private fun Hours(hours: List<Hour>, inches: Boolean) {
     val twentyFour = android.text.format.DateFormat.is24HourFormat(LocalContext.current)
     val now = stringResource(R.string.sky_now)
     val count = hours.size
+    val change = Change.of(hours)
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
         TextMMD(
-            text = when (val change = Change.of(hours)) {
+            text = when (change) {
                 Change.Dry -> stringResource(R.string.sky_hours_dry, count)
                 is Change.From -> stringResource(
                     if (change.snow) R.string.sky_hours_snow_from else R.string.sky_hours_rain_from,
@@ -475,7 +476,9 @@ private fun Hours(hours: List<Hour>, inches: Boolean) {
             },
             style = MaterialTheme.typography.bodyMedium,
         )
-        amount(Change.total(hours), inches)?.let {
+        // Under "no rain likely", a trace spread over unlikely hours would contradict the
+        // line above it rather than add to it.
+        amount(Change.total(hours), inches)?.takeIf { change != Change.Dry }?.let {
             TextMMD(
                 text = stringResource(R.string.sky_hours_amount, it, unit(inches), count),
                 style = MaterialTheme.typography.labelSmall,
