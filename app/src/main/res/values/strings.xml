@@ -63,6 +63,24 @@
     <string name="sky_now">Now</string>
     <!-- High and low temperatures for a day -->
     <string name="sky_high_low">%1$d° / %2$d°</string>
+    <string name="sky_feels_like_high_low">Feels like %1$d° / %2$d°</string>
+    <string name="sky_cd_back">Back</string>
+    <string name="sky_day_gone">This day is no longer in the forecast.</string>
+    <string name="sky_day_dry">No rain likely</string>
+    <string name="sky_condition_with_snow">%1$s, %2$d%% chance of snow</string>
+    <string name="sky_condition_with_snow_amount">%1$s, %2$d%% chance of snow, %3$s\u00A0%4$s</string>
+    <string name="sky_day_rain_between">Rain likely from %1$s until %2$s</string>
+    <string name="sky_day_snow_between">Snow likely from %1$s until %2$s</string>
+    <string name="sky_day_rain_all">Rain likely all day</string>
+    <string name="sky_day_snow_all">Snow likely all day</string>
+    <string name="sky_rain">Rain</string>
+    <string name="sky_snow">Snow</string>
+    <string name="sky_rain_chance">%1$d%% chance</string>
+    <plurals name="sky_rain_chance_hours">
+        <item quantity="one">%1$d%% chance, over about %2$d hour</item>
+        <item quantity="other">%1$d%% chance, over about %2$d hours</item>
+    </plurals>
+    <string name="sky_wind_strongest">At its strongest</string>
     <string name="sky_sunrise">Sunrise</string>
     <string name="sky_sunset">Sunset</string>
     <string name="sky_forecast_credit">Forecast by Open-Meteo, CC BY 4.0</string>

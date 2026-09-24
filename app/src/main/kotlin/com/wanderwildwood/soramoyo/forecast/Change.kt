@@ -25,6 +25,9 @@ sealed interface Change {
 
         private val SNOW = setOf(71, 73, 75, 77, 85, 86)
 
+        /** Whether a WMO weather code is one of snow. */
+        fun snow(code: Int): Boolean = code in SNOW
+
         /** Likely to rain or snow; an hour the model gave no chance for goes by its amount. */
         fun wet(hour: Hour): Boolean =
             hour.rainChance?.let { it >= LIKELY } ?: ((hour.rain ?: 0.0) > 0.0)

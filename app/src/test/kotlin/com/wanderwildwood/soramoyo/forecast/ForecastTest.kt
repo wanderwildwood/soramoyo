@@ -47,6 +47,73 @@ class ForecastTest {
         assertEquals(null, days[0].sunrise)
     }
 
+    @Test
+    fun readsWhatTheDayFeelsLike() {
+        val json = """
+            {"daily":{"time":["2026-01-14","2026-01-15"],"weather_code":[3,71],
+            "temperature_2m_max":[-4.6,-2.0],"temperature_2m_min":[-11.2,-6.0],
+            "apparent_temperature_max":[-10.4,null],"apparent_temperature_min":[-18.7,null]}}
+        """.trimIndent()
+        val days = Forecast.parse(json).days
+        assertEquals(-10, days[0].feelsHigh)
+        assertEquals(-19, days[0].feelsLow)
+        assertTrue(days[0].feelsDifferent(metric = true))
+        // None given, none shown.
+        assertEquals(null, days[1].feelsHigh)
+        assertFalse(days[1].feelsDifferent(metric = true))
+    }
+
+    @Test
+    fun readsWhatTheDayPageShows() {
+        val json = """
+            {"daily":{"time":["2026-01-14"],"weather_code":[73],
+            "temperature_2m_max":[-4.6],"temperature_2m_min":[-11.2],
+            "precipitation_hours":[7.0],"snowfall_sum":[4.2],"wind_speed_10m_max":[31.4],
+            "wind_gusts_10m_max":[58.0],"wind_direction_10m_dominant":[292],"uv_index_max":[1.35]}}
+        """.trimIndent()
+        val day = Forecast.parse(json).days.single()
+        assertEquals(7.0, day.rainHours!!, 0.0)
+        assertEquals(4.2, day.snow!!, 0.0)
+        assertEquals(31.4, day.windMax!!, 0.0)
+        assertEquals(58.0, day.gustMax!!, 0.0)
+        assertEquals(292, day.windFrom)
+        assertEquals(1.35, day.uvMax!!, 0.0)
+    }
+
+    /** On a snowy day the snow is its own depth, and the rain is the rain without it. */
+    @Test
+    fun aSnowyDayKeepsItsSnowAndItsRainApart() {
+        val json = """
+            {"daily":{"time":["2026-01-14","2026-01-15"],"weather_code":[73,61],
+            "temperature_2m_max":[-1.0,4.0],"temperature_2m_min":[-6.0,1.0],
+            "precipitation_sum":[14.2,6.0],"snowfall_sum":[9.1,0.0],
+            "rain_sum":[1.2,5.0],"showers_sum":[0.8,1.0]}}
+        """.trimIndent()
+        val (snowy, wet) = Forecast.parse(json).days
+        assertTrue(snowy.snowy)
+        assertEquals(2.0, snowy.rainOnly!!, 1e-9)
+        // Rain with no snow to show is a rainy day, whatever else it is called.
+        assertFalse(wet.snowy)
+    }
+
+    /** Every hour of all six days comes back, for the days' own pages, not only Today's twelve. */
+    @Test
+    fun asksForTheHoursOfEveryDay() {
+        val url = Forecast.urlFor(51.5, -0.13, metric = true)
+        assertFalse(url, url.contains("forecast_hours"))
+        assertTrue(url, url.contains("forecast_days=6"))
+    }
+
+    @Test
+    fun aDayThatFeelsAsItIsSaysNothingMore() {
+        val day = Day(LocalDate.of(2026, 7, 1), 0, high = 75, low = 58, rainChance = null,
+            sunrise = null, sunset = null, feelsHigh = 78, feelsLow = 56)
+        assertFalse(day.feelsDifferent(metric = false))
+        // Three degrees Fahrenheit apart is under the five a Fahrenheit day asks for; five is not.
+        assertTrue(day.copy(feelsHigh = 80).feelsDifferent(metric = false))
+        assertTrue(day.copy(high = 20, low = 12, feelsHigh = 23, feelsLow = 12).feelsDifferent(metric = true))
+    }
+
     /** The position goes out to about a kilometre and no finer. */
     @Test
     fun thePositionIsRoundedBeforeItLeaves() {
@@ -54,6 +121,7 @@ class ForecastTest {
         assertTrue(url, url.contains("latitude=51.51&"))
         assertTrue(url, url.contains("longitude=-0.13&"))
         assertTrue(url, url.contains("temperature_unit=fahrenheit"))
+        assertTrue(url, url.contains("apparent_temperature_max"))
     }
 
     /** A morning in Prague, fetched at 03:32 there, with showers coming. */
