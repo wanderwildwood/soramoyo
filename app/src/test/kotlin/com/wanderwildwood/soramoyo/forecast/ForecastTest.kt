@@ -121,4 +121,15 @@ class ForecastTest {
             "temperature_2m_max":[],"temperature_2m_min":[]}}"""
         assertTrue(Forecast.parse(json).inches)
     }
+
+    /** Now, as the forecast has it, for a phone with no station; and asked for in km/h or mph. */
+    @Test
+    fun readsTheCurrentEstimate() {
+        assertEquals(
+            Current(LocalDateTime.of(2026, 9, 24, 3, 30), 3, 11.7, 9.8, 67, 5.8, 12.6, 202),
+            prague.current,
+        )
+        assertTrue(Forecast.urlFor(50.0, 14.0, metric = false).contains("wind_speed_unit=mph"))
+        assertEquals(null, Forecast.parse(fixture("open-meteo-prague.json")).current)
+    }
 }

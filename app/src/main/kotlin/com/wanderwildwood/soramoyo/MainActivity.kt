@@ -96,12 +96,14 @@ private fun Sky(sky: SkyViewModel = viewModel()) {
         Screen.SETTINGS -> SettingsScreen(
             source = state.source,
             place = state.place,
+            units = state.units,
             onClose = { screen = Screen.TABS },
             onSource = sky::setSource,
             onPlace = {
                 sky.setPlace(it)
                 radar.placeChanged()
             },
+            onUnits = sky::setUnits,
         )
     }
 }

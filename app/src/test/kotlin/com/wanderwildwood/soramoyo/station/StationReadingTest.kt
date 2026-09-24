@@ -80,4 +80,36 @@ class StationReadingTest {
         assertEquals(want, StationClient.urlFor(" http://192.168.1.50/ "))
         assertEquals(want, StationClient.urlFor("https://192.168.1.50"))
     }
+
+    /** Metric chosen in settings, over a gateway set to imperial. */
+    @Test
+    fun anImperialGatewayConvertedToMetric() {
+        val r = Units.convert(StationReading.parse(fixture("gw3000-livedata.json")), metric = true)
+
+        assertEquals("20.8 C", r.temperature!!.let { "${it.text} ${it.unit}" })
+        assertEquals("19.5", r.dewPoint!!.text)
+        assertEquals("km/h", r.windSpeed!!.unit)
+        assertEquals("13.0 mm", r.rainToday!!.let { "${it.text} ${it.unit}" })
+        assertEquals("mm/Hr", r.rainRate!!.unit)
+        assertEquals("968.8", r.pressure!!.text)
+        assertEquals("hPa", r.pressure!!.unit)
+        assertTrue(r.metric!!)
+        // Humidity, direction and UV have no units to change.
+        assertEquals(92, r.humidity)
+        assertEquals(224, r.windFrom)
+    }
+
+    /** Asked for the units it is already in, the gateway's own figures are kept, places and all. */
+    @Test
+    fun theGatewaysOwnUnitsAreLeftAlone() {
+        val r = StationReading.parse(fixture("gw3000-livedata.json"))
+        assertEquals(r, Units.convert(r, metric = false))
+    }
+
+    @Test
+    fun anUnknownUnitIsLeftAsItIs() {
+        val beaufort = Measure(3.0, "BFT", "3")
+        val r = StationReading.parse(fixture("gw3000-livedata.json")).copy(windSpeed = beaufort)
+        assertEquals(beaufort, Units.convert(r, metric = true).windSpeed)
+    }
 }
