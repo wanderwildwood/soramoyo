@@ -52,6 +52,9 @@
     <string name="sky_hours_snow_from">Snow likely from %1$s</string>
     <string name="sky_hours_snow_until">Snow likely until %1$s</string>
     <string name="sky_hours_snow_throughout">Snow likely for the next %1$d hours</string>
+    <!-- The same line when the station says it is raining now and the forecast disagrees; %1$s is a time -->
+    <string name="sky_hours_raining_none_forecast">Raining now, though the forecast has none likely</string>
+    <string name="sky_hours_raining_forecast_from">Raining now, though the forecast has it from %1$s</string>
     <!-- Under that line: %1$s an amount, %2$s its unit (mm or in), %3$d a number of hours -->
     <string name="sky_hours_amount">About %1$s %2$s over the next %3$d hours</string>
     <!-- Spoken by a screen reader for the hourly strip -->

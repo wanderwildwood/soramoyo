@@ -155,7 +155,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
             if (hours.isNotEmpty()) {
                 item {
                     HorizontalDividerMMD()
-                    Hours(hours, state.inches)
+                    Hours(hours, state.inches, rainingNow(state))
                 }
             }
         } else {
@@ -173,7 +173,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
             if (hours.isNotEmpty()) {
                 item {
                     HorizontalDividerMMD()
-                    Hours(hours, state.inches)
+                    Hours(hours, state.inches, rainingNow(state))
                 }
             }
         }
@@ -451,7 +451,7 @@ private fun DayRow(day: Day, inches: Boolean) {
  * the Kompakt's panel the figures ran together into one string.
  */
 @Composable
-private fun Hours(hours: List<Hour>, inches: Boolean) {
+private fun Hours(hours: List<Hour>, inches: Boolean, raining: Boolean) {
     val ink = MaterialTheme.colorScheme.onSurface
     val twentyFour = android.text.format.DateFormat.is24HourFormat(LocalContext.current)
     val now = stringResource(R.string.sky_now)
@@ -460,11 +460,21 @@ private fun Hours(hours: List<Hour>, inches: Boolean) {
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
         TextMMD(
             text = when (change) {
-                Change.Dry -> stringResource(R.string.sky_hours_dry, count)
-                is Change.From -> stringResource(
-                    if (change.snow) R.string.sky_hours_snow_from else R.string.sky_hours_rain_from,
-                    clock(change.at),
-                )
+                // The station knows the present better than a model does: a drizzle the
+                // forecast missed should not sit under a line saying none is likely.
+                Change.Dry -> if (raining) {
+                    stringResource(R.string.sky_hours_raining_none_forecast)
+                } else {
+                    stringResource(R.string.sky_hours_dry, count)
+                }
+                is Change.From -> if (raining) {
+                    stringResource(R.string.sky_hours_raining_forecast_from, clock(change.at))
+                } else {
+                    stringResource(
+                        if (change.snow) R.string.sky_hours_snow_from else R.string.sky_hours_rain_from,
+                        clock(change.at),
+                    )
+                }
                 is Change.Until -> stringResource(
                     if (change.snow) R.string.sky_hours_snow_until else R.string.sky_hours_rain_until,
                     clock(change.at),
@@ -550,6 +560,15 @@ private val BAR_HEIGHT = 40.dp
 
 private val hour24: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 private val hour12: DateTimeFormatter = DateTimeFormatter.ofPattern("h a")
+
+/** Whether the station says it is raining now, by its sensor or by a rate above nothing. */
+private fun rainingNow(state: SkyState): Boolean {
+    val reading = state.reading ?: return false
+    // A reading from a station that has stopped answering is not "now".
+    if (state.stationTrouble == StationTrouble.NO_ANSWER) return false
+    val rate = reading.rainRate
+    return reading.raining == true || (rate != null && rate.number > 0.0)
+}
 
 /** The hour, as the phone's clock would write it: "15:00" or "3 PM". */
 private fun hourLabel(time: java.time.LocalDateTime, twentyFour: Boolean): String =
