@@ -63,6 +63,26 @@ class ForecastTest {
         assertFalse(days[1].feelsDifferent(metric = true))
     }
 
+    /** A wet morning is over by the afternoon: what is left of the day is dry. */
+    @Test
+    fun theRestOfTodayLeavesTheMorningBehind() {
+        val date = LocalDate.of(2026, 9, 24)
+        fun hour(h: Int, code: Int, chance: Int, rain: Double) =
+            Hour(date.atTime(h, 0), code, 10, chance, rain)
+        val hours = listOf(hour(7, 63, 100, 2.0), hour(8, 61, 90, 0.5), hour(14, 2, 10, 0.0), hour(15, 3, 20, 0.1)) +
+            Hour(date.plusDays(1).atTime(0, 0), 65, 8, 95, 4.0)
+        val day = Day(date, 63, high = 15, low = 8, rainChance = 100, rain = 2.6, sunrise = null, sunset = null)
+        // 14:20 UTC in a place at UTC.
+        val rest = day.restOf(hours, java.time.ZoneOffset.UTC, Instant.parse("2026-09-24T14:20:00Z"))
+        assertEquals(20, rest.rainChance)
+        assertEquals(0.1, rest.rain!!, 1e-9)
+        // Overcast, the worst of the two hours left; tomorrow's heavy rain is not today's.
+        assertEquals(3, rest.code)
+        assertEquals(15, rest.high)
+        // Past the last hour there is nothing to narrow to.
+        assertEquals(day, day.restOf(hours, java.time.ZoneOffset.UTC, Instant.parse("2026-09-24T23:30:00Z")))
+    }
+
     @Test
     fun readsWhatTheDayPageShows() {
         val json = """

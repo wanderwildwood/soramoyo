@@ -52,6 +52,7 @@ import com.wanderwildwood.soramoyo.forecast.Day
 import com.wanderwildwood.soramoyo.forecast.HOURS
 import com.wanderwildwood.soramoyo.forecast.Hour
 import com.wanderwildwood.soramoyo.forecast.Pollen
+import com.wanderwildwood.soramoyo.forecast.restOf
 import com.wanderwildwood.soramoyo.forecast.upcoming
 import com.wanderwildwood.soramoyo.station.Measure
 import com.wanderwildwood.soramoyo.station.Source
@@ -138,7 +139,7 @@ fun SkyTabs(
         when (tab) {
             Tab.TODAY -> TodayTab(state, onAllowLocation, inside)
             Tab.FORECAST -> ForecastTab(state, onAllowLocation, onDay, inside)
-            Tab.RADAR -> RadarTab(radar, onAllowLocation, inside)
+            Tab.RADAR -> RadarTab(radar, onAllowLocation, state.metric, inside)
         }
     }
 }
@@ -151,7 +152,8 @@ fun SkyTabs(
  */
 @Composable
 private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Modifier) {
-    val today = state.days.firstOrNull { it.date == state.placeToday() }
+    // The rest of today, not the whole of it: its morning's rain is over by the afternoon.
+    val today = state.days.firstOrNull { it.date == state.placeToday() }?.restOf(state.hours, state.offset)
     // Most people who install this have no station, and for them today's forecast is the
     // headline rather than a line under a reading they will never have. The station lives
     // in settings; nothing here asks for one.

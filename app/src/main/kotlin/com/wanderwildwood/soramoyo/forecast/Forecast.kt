@@ -69,6 +69,8 @@ data class Hour(
     val temperature: Int,
     val rainChance: Int?,
     val rain: Double?,
+    /** Snow in centimetres or inches, as the day's is. */
+    val snow: Double? = null,
 )
 
 /**
@@ -106,6 +108,27 @@ data class Predicted(
 fun upcoming(hours: List<Hour>, offset: ZoneOffset, now: Instant = Instant.now()): List<Hour> {
     val thisHour = LocalDateTime.ofInstant(now, offset).truncatedTo(ChronoUnit.HOURS)
     return hours.filterNot { it.time.isBefore(thisHour) }.take(HOURS)
+}
+
+/**
+ * What is left of this day from the hour under way: its weather, chance and amount taken from
+ * those hours alone. Today's forecast covers the whole day, so by afternoon a morning's rain
+ * gave "100% chance of rain" above "No rain likely in the next 12 hours". The high and low stay
+ * the whole day's; the hour's own reading is the temperature now. A day with none of its hours
+ * to go is left as it was.
+ */
+fun Day.restOf(hours: List<Hour>, offset: ZoneOffset, now: Instant = Instant.now()): Day {
+    val thisHour = LocalDateTime.ofInstant(now, offset).truncatedTo(ChronoUnit.HOURS)
+    val left = hours.filter { it.time.toLocalDate() == date && !it.time.isBefore(thisHour) }
+    if (left.isEmpty()) return this
+    fun sum(of: (Hour) -> Double?) = left.mapNotNull(of).takeIf { it.isNotEmpty() }?.sum()
+    return copy(
+        // Open-Meteo's day code is the most severe of its hours, and so is this.
+        code = left.maxOf { it.code },
+        rainChance = left.mapNotNull { it.rainChance }.maxOrNull(),
+        rain = sum { it.rain },
+        snow = sum { it.snow },
+    )
 }
 
 /** How many hours ahead the Today tab shows. */
@@ -153,7 +176,7 @@ object Forecast {
             )
             // Every hour of every day asked for: Today takes the next twelve, and each day's
             // own page takes its twenty-four.
-            .addQueryParameter("hourly", "weather_code,temperature_2m,precipitation_probability,precipitation")
+            .addQueryParameter("hourly", "weather_code,temperature_2m,precipitation_probability,precipitation,snowfall")
             .addQueryParameter("temperature_unit", if (metric) "celsius" else "fahrenheit")
             .addQueryParameter("precipitation_unit", if (metric) "mm" else "inch")
             .addQueryParameter("wind_speed_unit", if (metric) "kmh" else "mph")
@@ -252,6 +275,7 @@ object Forecast {
         val temps = hourly.getJSONArray("temperature_2m")
         val chances = hourly.optJSONArray("precipitation_probability")
         val amounts = hourly.optJSONArray("precipitation")
+        val snows = hourly.optJSONArray("snowfall")
         return (0 until times.length()).mapNotNull { i ->
             if (temps.isNull(i)) return@mapNotNull null
             Hour(
@@ -260,6 +284,7 @@ object Forecast {
                 temperature = temps.getDouble(i).roundToInt(),
                 rainChance = chances?.takeUnless { it.isNull(i) }?.getInt(i),
                 rain = amounts?.takeUnless { it.isNull(i) }?.getDouble(i),
+                snow = snows?.takeUnless { it.isNull(i) }?.getDouble(i),
             )
         }
     }
