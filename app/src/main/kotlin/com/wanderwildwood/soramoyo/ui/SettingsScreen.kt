@@ -35,27 +35,33 @@ import com.wanderwildwood.soramoyo.R
 import com.wanderwildwood.soramoyo.location.Place
 import com.wanderwildwood.soramoyo.location.Places
 import com.wanderwildwood.soramoyo.station.Source
+import com.wanderwildwood.soramoyo.station.Units
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
- * The two things there are to set: which station, and where the forecast and radar are for.
+ * The three things there are to set: which station, where the forecast and radar are for,
+ * and the units.
  *
- * Units are not here on purpose. The gateway already knows how its owner counts, and a
- * second place to say it is a second place for the two to disagree.
+ * Units follow the station, else the phone's country, until told otherwise. They were left
+ * out at first, on the grounds that the gateway already knows how its owner counts; but a
+ * phone set to one country and a person from another is common, and most have no gateway.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     source: Source,
     place: Place?,
+    units: Units.Choice,
     onClose: () -> Unit,
     onSource: (Source) -> Unit,
     onPlace: (Place?) -> Unit,
+    onUnits: (Units.Choice) -> Unit,
 ) {
     var aboutOpen by remember { mutableStateOf(false) }
     var stationOpen by remember { mutableStateOf(false) }
     var placeOpen by remember { mutableStateOf(false) }
+    var unitsOpen by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -88,6 +94,13 @@ fun SettingsScreen(
                     onClick = { placeOpen = true },
                 )
             }
+            item {
+                Setting(
+                    title = stringResource(R.string.settings_units),
+                    value = stringResource(unitsName(units)),
+                    onClick = { unitsOpen = true },
+                )
+            }
         }
     }
 
@@ -102,6 +115,19 @@ fun SettingsScreen(
             },
             onDismiss = { placeOpen = false },
         )
+    }
+
+    if (unitsOpen) {
+        EInkDialog(onDismiss = { unitsOpen = false }) {
+            TextMMD(text = stringResource(R.string.settings_units), style = MaterialTheme.typography.bodyLarge)
+            Spacer(Modifier.height(10.dp))
+            Units.Choice.entries.forEach { choice ->
+                Choice(stringResource(unitsName(choice)), chosen = choice == units) {
+                    onUnits(choice)
+                    unitsOpen = false
+                }
+            }
+        }
     }
 
     if (stationOpen) {
@@ -127,6 +153,12 @@ private fun Setting(title: String, value: String, onClick: () -> Unit) {
         TextMMD(text = title, style = MaterialTheme.typography.bodyMedium)
         TextMMD(text = value, style = MaterialTheme.typography.labelSmall)
     }
+}
+
+private fun unitsName(choice: Units.Choice): Int = when (choice) {
+    Units.Choice.AUTOMATIC -> R.string.settings_units_automatic
+    Units.Choice.METRIC -> R.string.settings_units_metric
+    Units.Choice.IMPERIAL -> R.string.settings_units_imperial
 }
 
 /** What the place search has to say for itself. */

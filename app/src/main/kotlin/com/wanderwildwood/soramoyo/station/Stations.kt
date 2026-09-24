@@ -19,12 +19,20 @@ import kotlin.math.roundToInt
 
 /** Reads whichever station is set, into the one shape the screen draws. */
 object Stations {
-    suspend fun read(context: Context, source: Source): StationReading = when (source) {
-        is Source.Ecowitt -> StationClient.read(source.address)
-        is Source.Davis -> Davis.read(source.address)
-        Source.Tempest -> Tempest.listen(context)
-        is Source.Underground -> Underground.read(source.stationId, source.apiKey)
-        Source.None -> throw IOException("no station")
+    /**
+     * In the units chosen in settings. Left to itself an Ecowitt reading stays in its
+     * gateway's units, and the others follow the phone's country.
+     */
+    suspend fun read(context: Context, source: Source): StationReading {
+        val chosen = Units.chosen(context)
+        val metric = chosen ?: Units.metricHere()
+        return when (source) {
+            is Source.Ecowitt -> StationClient.read(source.address).let { if (chosen == null) it else Units.convert(it, chosen) }
+            is Source.Davis -> Davis.read(source.address, metric)
+            Source.Tempest -> Tempest.listen(context, metric)
+            is Source.Underground -> Underground.read(source.stationId, source.apiKey, metric)
+            Source.None -> throw IOException("no station")
+        }
     }
 
     internal val http = OkHttpClient.Builder()
@@ -44,12 +52,12 @@ object Stations {
  * it, so both are converted here.
  */
 object Davis {
-    suspend fun read(address: String): StationReading = withContext(Dispatchers.IO) {
+    suspend fun read(address: String, metric: Boolean): StationReading = withContext(Dispatchers.IO) {
         val host = address.trim().removePrefix("http://").removePrefix("https://").trimEnd('/')
         val request = Request.Builder().url("http://$host/v1/current_conditions").get().build()
         Stations.http.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("WeatherLink Live answered ${response.code}")
-            parse(response.body?.string().orEmpty(), Units.metricHere())
+            parse(response.body?.string().orEmpty(), metric)
         }
     }
 
@@ -111,7 +119,7 @@ object Tempest {
     private const val PORT = 50222
     private const val WAIT_MS = 75_000
 
-    suspend fun listen(context: Context): StationReading = withContext(Dispatchers.IO) {
+    suspend fun listen(context: Context, metric: Boolean): StationReading = withContext(Dispatchers.IO) {
         // Android drops broadcast packets to save battery unless an app holds this lock.
         val wifi = context.applicationContext.getSystemService(WifiManager::class.java)
         val lock = wifi?.createMulticastLock("sky-tempest")?.apply { setReferenceCounted(false); acquire() }
@@ -131,7 +139,7 @@ object Tempest {
                         break
                     }
                     val text = String(packet.data, 0, packet.length, Charsets.UTF_8)
-                    parse(text, Units.metricHere())?.let { return@withContext it }
+                    parse(text, metric)?.let { return@withContext it }
                 }
                 throw IOException("no Tempest heard")
             }
@@ -175,13 +183,13 @@ object Tempest {
  * Any station that uploads to Weather Underground, read back through its PWS API with the
  * owner's own key.
  *
- * Asked in the phone's units, which Weather Underground converts; its "metric" gives pressure
- * in millibars, which are hectopascals by another name. A station that has not reported for
- * an hour comes back with nothing, and so does a wrong station ID.
+ * Asked in the units shown (chosen in settings, else the phone's country), which Weather
+ * Underground converts; its "metric" gives pressure in millibars, which are hectopascals by
+ * another name. A station that has not reported for an hour comes back with nothing, and so
+ * does a wrong station ID.
  */
 object Underground {
-    suspend fun read(stationId: String, apiKey: String): StationReading = withContext(Dispatchers.IO) {
-        val metric = Units.metricHere()
+    suspend fun read(stationId: String, apiKey: String, metric: Boolean): StationReading = withContext(Dispatchers.IO) {
         val url = "https://api.weather.com/v2/pws/observations/current".toHttpUrl().newBuilder()
             .addQueryParameter("stationId", stationId)
             .addQueryParameter("format", "json")

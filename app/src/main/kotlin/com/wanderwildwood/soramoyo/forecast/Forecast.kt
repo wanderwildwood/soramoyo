@@ -41,10 +41,27 @@ data class Hour(
 )
 
 /**
+ * The forecast's estimate of right now, for a phone with no station to measure it. Speeds in
+ * km/h or mph, temperatures in the unit asked for.
+ */
+data class Current(
+    val time: LocalDateTime,
+    val code: Int,
+    val temperature: Double,
+    val feelsLike: Double?,
+    val humidity: Int?,
+    val windSpeed: Double?,
+    val windGust: Double?,
+    /** Degrees clockwise from north that the wind is coming from. */
+    val windFrom: Int?,
+)
+
+/**
  * What came back: the days, the hours from the one under way, whether the amounts are in
  * inches, and the place's offset from UTC, which the hours' times are in.
  */
 data class Predicted(
+    val current: Current? = null,
     val days: List<Day> = emptyList(),
     val hours: List<Hour> = emptyList(),
     val inches: Boolean = false,
@@ -94,12 +111,18 @@ object Forecast {
                 "weather_code,temperature_2m_max,temperature_2m_min," +
                     "precipitation_probability_max,precipitation_sum,sunrise,sunset",
             )
+            .addQueryParameter(
+                "current",
+                "weather_code,temperature_2m,apparent_temperature,relative_humidity_2m," +
+                    "wind_speed_10m,wind_gusts_10m,wind_direction_10m",
+            )
             .addQueryParameter("hourly", "weather_code,temperature_2m,precipitation_probability,precipitation")
             // Hours from the one now under way. Two spare, in case the hour turns between the
             // server answering and the screen being drawn.
             .addQueryParameter("forecast_hours", (HOURS + 2).toString())
             .addQueryParameter("temperature_unit", if (metric) "celsius" else "fahrenheit")
             .addQueryParameter("precipitation_unit", if (metric) "mm" else "inch")
+            .addQueryParameter("wind_speed_unit", if (metric) "kmh" else "mph")
             // The phone's own time zone would be wrong for a forecast of somewhere else;
             // "auto" gives the days and the sunrise in the zone of the place itself.
             .addQueryParameter("timezone", "auto")
@@ -114,7 +137,7 @@ object Forecast {
             root.optJSONObject("hourly_units")?.optString("precipitation") == "inch"
         val offset = ZoneOffset.ofTotalSeconds(root.optInt("utc_offset_seconds", 0))
         val thisHour = LocalDateTime.ofInstant(now, offset).truncatedTo(ChronoUnit.HOURS)
-        return Predicted(days(root), hours(root).filterNot { it.time.isBefore(thisHour) }, inches, offset)
+        return Predicted(current(root), days(root), hours(root).filterNot { it.time.isBefore(thisHour) }, inches, offset)
     }
 
     private fun days(root: JSONObject): List<Day> {
@@ -143,6 +166,24 @@ object Forecast {
             )
         }
     }
+
+    private fun current(root: JSONObject): Current? {
+        val c = root.optJSONObject("current") ?: return null
+        val temperature = c.num("temperature_2m") ?: return null
+        return Current(
+            time = LocalDateTime.parse(c.getString("time")),
+            code = c.num("weather_code")?.toInt() ?: -1,
+            temperature = temperature,
+            feelsLike = c.num("apparent_temperature"),
+            humidity = c.num("relative_humidity_2m")?.roundToInt(),
+            windSpeed = c.num("wind_speed_10m"),
+            windGust = c.num("wind_gusts_10m"),
+            windFrom = c.num("wind_direction_10m")?.roundToInt(),
+        )
+    }
+
+    private fun JSONObject.num(name: String): Double? =
+        if (!has(name) || isNull(name)) null else optDouble(name).takeIf { !it.isNaN() }
 
     /**
      * The hours, in the place's own time: Open-Meteo gives the times without a zone and says

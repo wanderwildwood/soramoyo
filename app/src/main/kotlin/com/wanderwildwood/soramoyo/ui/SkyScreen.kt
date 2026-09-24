@@ -42,11 +42,17 @@ import com.mudita.mmd.components.tabs.TabRowMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.soramoyo.R
+import com.wanderwildwood.soramoyo.forecast.Air
+import com.wanderwildwood.soramoyo.forecast.AirBand
+import com.wanderwildwood.soramoyo.forecast.AirQuality
 import com.wanderwildwood.soramoyo.forecast.Change
+import com.wanderwildwood.soramoyo.forecast.Current
 import com.wanderwildwood.soramoyo.forecast.Day
 import com.wanderwildwood.soramoyo.forecast.HOURS
 import com.wanderwildwood.soramoyo.forecast.Hour
+import com.wanderwildwood.soramoyo.forecast.Pollen
 import com.wanderwildwood.soramoyo.forecast.upcoming
+import com.wanderwildwood.soramoyo.station.Measure
 import com.wanderwildwood.soramoyo.station.Source
 import com.wanderwildwood.soramoyo.station.StationReading
 import java.time.Instant
@@ -143,15 +149,28 @@ fun SkyTabs(
  */
 @Composable
 private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Modifier) {
-    val today = state.days.firstOrNull()?.takeIf { it.date == LocalDate.now() }
+    val today = state.days.firstOrNull { it.date == state.placeToday() }
     // Most people who install this have no station, and for them today's forecast is the
     // headline rather than a line under a reading they will never have. The station lives
     // in settings; nothing here asks for one.
     val noStation = state.stationTrouble == StationTrouble.NOT_SET
-    LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp)) {
+    // No rail here: it took a strip off the right of every row, and Today is read top down
+    // with a swipe, which still moves it four rows at a time.
+    LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp), isScrollbarVisible = false) {
         val hours = upcoming(state.hours, state.offset)
+        val current = state.current
         if (noStation) {
-            item { Outlook(today, state, onAllowLocation) }
+            if (current != null) {
+                item { Estimate(current, state.metric) }
+                if (today != null) {
+                    item {
+                        HorizontalDividerMMD()
+                        DayRow(today, state.inches, today.date)
+                    }
+                }
+            } else {
+                item { Outlook(today, state, onAllowLocation) }
+            }
             if (hours.isNotEmpty()) {
                 item {
                     HorizontalDividerMMD()
@@ -163,7 +182,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
             item {
                 HorizontalDividerMMD()
                 if (today != null) {
-                    DayRow(today, state.inches)
+                    DayRow(today, state.inches, today.date)
                 } else {
                     Column(modifier = Modifier.padding(vertical = 12.dp)) {
                         ForecastTrouble(state.forecastTrouble, true, onAllowLocation)
@@ -178,8 +197,18 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
             }
         }
 
-        state.reading?.let { reading ->
+        // Measured if there is a station, else the forecast's estimate of the same things.
+        val rows = state.reading ?: current?.takeIf { noStation }?.let { asReading(it, state.metric) }
+        rows?.let { reading ->
             readingRows(reading).forEach { row ->
+                item {
+                    HorizontalDividerMMD()
+                    row()
+                }
+            }
+        }
+        state.air?.let { air ->
+            airRows(air, state.metric).forEach { row ->
                 item {
                     HorizontalDividerMMD()
                     row()
@@ -207,7 +236,8 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
 /** The days after today, as many as the forecast gives, which is five. */
 @Composable
 private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Modifier) {
-    val ahead = state.days.filter { it.date.isAfter(LocalDate.now()) }
+    val placeToday = state.placeToday()
+    val ahead = state.days.filter { it.date.isAfter(placeToday) }
     LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp)) {
         item {
             Spacer(Modifier.height(12.dp))
@@ -216,7 +246,7 @@ private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, modifier: 
         ahead.forEachIndexed { i, day ->
             item {
                 if (i > 0) HorizontalDividerMMD()
-                DayRow(day, state.inches)
+                DayRow(day, state.inches, placeToday)
             }
         }
         if (ahead.isNotEmpty()) {
@@ -238,7 +268,112 @@ private fun Credit(state: SkyState) {
             )
         }
         TextMMD(text = stringResource(R.string.sky_forecast_credit), style = MaterialTheme.typography.labelSmall)
+        if (state.air != null) {
+            TextMMD(text = stringResource(R.string.sky_air_credit), style = MaterialTheme.typography.labelSmall)
+        }
     }
+}
+
+/**
+ * The forecast's estimate of now, for a phone with no station: the same large figure a
+ * station's reading gets, and a line under it saying it is an estimate and for when.
+ */
+@Composable
+private fun Estimate(current: Current, metric: Boolean) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 14.dp)) {
+        Row(verticalAlignment = Alignment.Bottom) {
+            TextMMD(text = "${current.temperature.roundToInt()}°", fontSize = 72.sp, fontWeight = FontWeight.Medium)
+            Spacer(Modifier.width(6.dp))
+            TextMMD(
+                text = if (metric) "C" else "F",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 14.dp),
+            )
+        }
+        current.feelsLike?.let {
+            TextMMD(
+                text = stringResource(R.string.sky_feels_like, it.roundToInt()),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+        TextMMD(
+            text = stringResource(R.string.sky_estimate, stringResource(conditionFor(current.code)), clock(current.time)),
+            style = MaterialTheme.typography.labelSmall,
+        )
+    }
+}
+
+/** The forecast's estimate, in the shape a station's reading has, so it gets the same rows. */
+private fun asReading(c: Current, metric: Boolean): StationReading {
+    fun m(v: Double?, unit: String) = v?.let { Measure(it, unit, String.format(Locale.US, "%.1f", it)) }
+    val speed = if (metric) "km/h" else "mph"
+    return StationReading(
+        temperature = m(c.temperature, if (metric) "C" else "F"),
+        feelsLike = m(c.feelsLike, if (metric) "C" else "F"),
+        dewPoint = null,
+        humidity = c.humidity,
+        windSpeed = m(c.windSpeed, speed),
+        windGust = m(c.windGust, speed),
+        windFrom = c.windFrom,
+        rainToday = null,
+        rainRate = null,
+        raining = null,
+        pressure = null,
+        uvIndex = null,
+        soilMoisture = null,
+    )
+}
+
+/**
+ * The air: its quality on the scale that goes with the units (the US index with imperial,
+ * the European one with metric), and the two heaviest pollens where there are any.
+ */
+private fun airRows(air: Air, metric: Boolean): List<@Composable () -> Unit> {
+    val rows = ArrayList<@Composable () -> Unit>()
+    val us = !metric || air.europeanAqi == null
+    val aqi = if (us) air.usAqi else air.europeanAqi
+    if (aqi != null) {
+        rows += {
+            val band = if (us) AirQuality.usBand(aqi) else AirQuality.europeanBand(aqi)
+            Reading(
+                label = stringResource(R.string.sky_air),
+                value = aqi.toString(),
+                unit = stringResource(if (us) R.string.sky_air_us else R.string.sky_air_eu),
+                note = stringResource(bandName(band, us)),
+            )
+        }
+    }
+    air.pollen.take(2).forEach { (kind, grains) ->
+        rows += {
+            Reading(
+                label = stringResource(pollenName(kind)),
+                value = grains.roundToInt().toString(),
+                unit = stringResource(R.string.sky_pollen_unit),
+            )
+        }
+    }
+    return rows
+}
+
+/** Each scale's own words for its bands: the EPA's six and the EEA's six are not the same. */
+private fun bandName(band: AirBand, us: Boolean): Int = when (band) {
+    AirBand.GOOD -> R.string.air_good
+    AirBand.FAIR -> R.string.air_fair
+    AirBand.MODERATE -> R.string.air_moderate
+    AirBand.SENSITIVE -> R.string.air_sensitive
+    AirBand.POOR -> if (us) R.string.air_unhealthy else R.string.air_poor
+    AirBand.VERY_POOR -> if (us) R.string.air_very_unhealthy else R.string.air_very_poor
+    AirBand.EXTREME -> if (us) R.string.air_hazardous else R.string.air_extremely_poor
+}
+
+private fun pollenName(kind: Pollen): Int = when (kind) {
+    Pollen.ALDER -> R.string.pollen_alder
+    Pollen.BIRCH -> R.string.pollen_birch
+    Pollen.GRASS -> R.string.pollen_grass
+    Pollen.MUGWORT -> R.string.pollen_mugwort
+    Pollen.OLIVE -> R.string.pollen_olive
+    Pollen.RAGWEED -> R.string.pollen_ragweed
 }
 
 /**
@@ -406,8 +541,7 @@ private fun ForecastTrouble(trouble: ForecastTrouble, nothingYet: Boolean, onAll
 }
 
 @Composable
-private fun DayRow(day: Day, inches: Boolean) {
-    val today = LocalDate.now()
+private fun DayRow(day: Day, inches: Boolean, today: LocalDate) {
     val name = when (day.date) {
         today -> stringResource(R.string.sky_today)
         today.plusDays(1) -> stringResource(R.string.sky_tomorrow)

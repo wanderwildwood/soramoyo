@@ -38,18 +38,25 @@ and whether it is falling now, humidity, dew point, pressure and UV, from one of
 - **A Davis WeatherLink Live**, read on your own network through its local API. **Written from
   Davis's published format and not yet tried on a real one.**
 
-Tempest and Davis readings are shown in the phone's own units. If you have one and it works,
-or does not, an issue here is the way to say so.
+If you have a Tempest or a Davis and it works, or does not, an issue here is the way to say so.
 
-Without a station, Today leads with the day's forecast instead.
+Without a station, Today leads with the forecast's estimate of now instead — temperature,
+feels-like, wind and humidity, marked as an estimate and for what time.
 
 **The forecast.** Today's high and low and chance of rain sit under the station reading,
 with sunrise and sunset; the Forecast tab has the five days after it, each with how much rain
 is expected. Under today, the next twelve hours: one line saying when rain (or snow) is likely
 to start or stop, and how much, over a strip of the hours with their temperatures and the
-chance of rain drawn as bars. From
-[Open-Meteo](https://open-meteo.com/), for wherever the phone is or for a place you
-choose. Fahrenheit if your station reads Fahrenheit, Celsius if it reads Celsius.
+chance of rain drawn as bars. If the station says it is raining and the forecast does not,
+the line says so. From [Open-Meteo](https://open-meteo.com/), for wherever the phone is or
+for a place you choose.
+
+**The air.** Air quality, on the US index with imperial units and the European one with
+metric, and in Europe the two heaviest pollens when there are any. From the Copernicus
+Atmosphere Monitoring Service, by Open-Meteo: modelled, not measured.
+
+**Units.** As the station reads, or else the phone's country, until metric or imperial is
+chosen in settings; then everything follows, the station's readings included.
 
 **The radar.** kRadar's radar, unchanged at heart: the last two hours of
 [RainViewer](https://www.rainviewer.com/) radar over a vector map centred on the phone, a
@@ -77,10 +84,10 @@ others.
 An Ecowitt, Tempest or Davis station is read on your own network, and nothing it says leaves
 the phone. A Weather Underground station is read from Weather Underground, with your key.
 
-The radar and the forecast both need to know roughly where the phone is, or the place you
-chose. Either is rounded to two decimal places — about a kilometre — before it leaves the
-phone, and it goes to Open-Meteo for the forecast and to RainViewer for the radar tiles. A
-place you search for is sent, as typed, to Open-Meteo's place search.
+The radar, the forecast and the air all need to know roughly where the phone is, or the
+place you chose. Either is rounded to two decimal places — about a kilometre — before it
+leaves the phone, and it goes to Open-Meteo for the forecast and the air, and to RainViewer
+for the radar tiles. A place you search for is sent, as typed, to Open-Meteo's place search.
 
 With no place set, if the phone's cached position is more than fifteen minutes old, a fresh
 one is asked for before either is fetched, rather than showing the weather for wherever the
