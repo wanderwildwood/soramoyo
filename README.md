@@ -13,8 +13,8 @@ the station and the forecast are added here.
 
 | | |
 |---|---|
-| ![Today: the station, and today's forecast](screenshots/1-station.png) | ![Forecast: the five days after today](screenshots/2-forecast.png) |
-| ![Radar, with the state lines](screenshots/3-radar.png) | ![Where your position goes](screenshots/4-about.png) |
+| ![Today: now, today, and the next twelve hours](screenshots/1-today.png) | ![Forecast: the five days after today, and what they feel like](screenshots/2-forecast.png) |
+| ![A day of its own: its hours and its snow](screenshots/3-day.png) | ![Radar, with the state lines](screenshots/4-radar.png) |
 
 ## What it shows
 
