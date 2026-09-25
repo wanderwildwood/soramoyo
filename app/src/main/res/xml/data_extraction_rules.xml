@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What may leave the phone. allowBackup="false" stops a cloud backup, but not the cable or
+  wireless copy Android 12 offers when setting up a new phone; only these rules do. The
+  settings file holds the Weather Underground key, sealed with a keystore key that does not
+  leave this phone, so on a new one it could not be opened anyway - better not copied at all.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="sky.xml"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="sky.xml"/>
+    </device-transfer>
+</data-extraction-rules>

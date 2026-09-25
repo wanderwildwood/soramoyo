@@ -35,11 +35,26 @@ sealed interface Source {
                 "ecowitt" -> Ecowitt(address)
                 "davis" -> Davis(address)
                 "tempest" -> Tempest
-                "wu" -> Underground(p.getString(WU_ID, "").orEmpty(), p.getString(WU_KEY, "").orEmpty())
+                "wu" -> Underground(p.getString(WU_ID, "").orEmpty(), apiKey(context, p.getString(WU_KEY, "").orEmpty()))
                 "none" -> None
                 // Before there was a choice, an address was always an Ecowitt gateway's.
                 else -> if (address.isNotEmpty()) Ecowitt(address) else None
             }
+        }
+
+        /**
+         * The Weather Underground key is kept sealed (see [Secrets]). One written in the clear
+         * by 0.7.1 or earlier is sealed where it lies the first time it is read, so upgrading
+         * keeps it; if the keystore will not seal it, it is left as it was and tried again next
+         * time. One that cannot be opened reads as no key at all.
+         */
+        private fun apiKey(context: Context, stored: String): String {
+            if (stored.isNotEmpty() && !Secrets.isSealed(stored)) {
+                runCatching { Secrets.seal(stored) }.getOrNull()?.let { sealed ->
+                    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(WU_KEY, sealed).apply()
+                }
+            }
+            return Secrets.open(stored)
         }
 
         fun save(context: Context, source: Source) {
@@ -51,7 +66,9 @@ sealed interface Source {
                 is Davis -> e.putString(KIND, "davis").putString(ADDRESS, source.address)
                 Tempest -> e.putString(KIND, "tempest")
                 is Underground -> e.putString(KIND, "wu")
-                    .putString(WU_ID, source.stationId).putString(WU_KEY, source.apiKey)
+                    .putString(WU_ID, source.stationId)
+                    // Not written at all, rather than in the clear, if the keystore will not seal it.
+                    .putString(WU_KEY, runCatching { Secrets.seal(source.apiKey) }.getOrDefault(""))
             }
             e.apply()
         }
