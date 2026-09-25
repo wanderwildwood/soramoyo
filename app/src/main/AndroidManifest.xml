@@ -28,13 +28,15 @@
     </queries>
 
     <!--
-        usesCleartextTraffic: an Ecowitt gateway serves plain HTTP and nothing else, at an
-        address only its owner knows, so it cannot be named in a network security config
-        ahead of time. The two services on the internet are asked over HTTPS regardless;
-        their addresses are written into the app that way.
+        usesCleartextTraffic: an Ecowitt gateway or a Davis WeatherLink Live serves plain
+        HTTP and nothing else, on the home network at an address only its owner knows, so it
+        cannot be named in a network security config ahead of time. Everything on the
+        internet - Open-Meteo, RainViewer, Weather Underground - is asked over HTTPS
+        regardless; those addresses are written into the app that way.
     -->
     <application
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="false"
