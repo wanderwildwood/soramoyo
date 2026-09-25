@@ -435,7 +435,14 @@ private fun Now(state: SkyState) {
                         is Source.Ecowitt -> stringResource(R.string.sky_not_answering, source.address)
                         is Source.Davis -> stringResource(R.string.sky_not_answering, source.address)
                         Source.Tempest -> stringResource(R.string.sky_tempest_silent)
-                        is Source.Underground -> stringResource(R.string.sky_wu_silent, source.stationId)
+                        // An empty key is not a wrong one: the key is sealed with this phone's
+                        // keystore, so after a reinstall or on a new phone it cannot be opened and
+                        // reads back empty. Said as what it is, so nobody hunts for a typo.
+                        is Source.Underground -> if (source.apiKey.isEmpty()) {
+                            stringResource(R.string.sky_wu_key_gone, source.stationId)
+                        } else {
+                            stringResource(R.string.sky_wu_silent, source.stationId)
+                        }
                         Source.None -> ""
                     },
                     style = MaterialTheme.typography.bodySmall,

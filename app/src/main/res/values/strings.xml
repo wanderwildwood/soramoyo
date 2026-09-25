@@ -17,6 +17,7 @@
     <string name="sky_tempest_silent">No Tempest hub was heard. It broadcasts only on its own network.</string>
     <!-- %1$s is a Weather Underground station ID -->
     <string name="sky_wu_silent">Weather Underground had nothing for %1$s. Check the station ID and API key in settings.</string>
+    <string name="sky_wu_key_gone">The Weather Underground API key for %1$s needs entering again in settings. It stays with the phone it was typed on, so a reinstall or a new phone asks for it once more.</string>
     <string name="sky_last_read">Not answering. Last read at %1$s</string>
     <string name="sky_wind">Wind</string>
     <string name="sky_gusts">Gusts</string>
