@@ -234,7 +234,7 @@
     <string name="about_after">The radar and its map are kRadar\'s, by Ondřej Koloničný, GPL 3.</string>
     <string name="about_data">Radar by RainViewer. Forecast by Open-Meteo, CC BY 4.0. Borders and cities from Natural Earth, public domain.</string>
     <string name="about_icons">Icons from Material Symbols, Apache 2.0</string>
-    <string name="about_feed_the_llamas">Feed the llamas</string>
+    <string name="about_feed_the_llamas">feed the llamas</string>
     <!-- Shown in place of the llama row when nothing on the phone opens web pages; %1$s is the address -->
     <string name="about_no_browser">Nothing here opens web pages — %1$s</string>
     <string name="about_close">Close</string>
