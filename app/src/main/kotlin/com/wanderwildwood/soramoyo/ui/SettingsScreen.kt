@@ -1,5 +1,9 @@
 package com.wanderwildwood.soramoyo.ui
 
+import androidx.compose.ui.Alignment
+import com.wanderwildwood.soramoyo.glance.LockScreen
+import com.mudita.mmd.components.switcher.SwitchMMD
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -100,6 +104,28 @@ fun SettingsScreen(
                     value = stringResource(unitsName(units)),
                     onClick = { unitsOpen = true },
                 )
+            }
+            item {
+                // Read and written here: nothing else on this screen depends on it.
+                val context = LocalContext.current
+                var onLock by remember { mutableStateOf(LockScreen.on(context)) }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onLock = !onLock
+                            LockScreen.set(context, onLock)
+                        }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextMMD(
+                        text = stringResource(R.string.settings_lock_screen),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f),
+                    )
+                    SwitchMMD(checked = onLock, onCheckedChange = null)
+                }
             }
         }
     }

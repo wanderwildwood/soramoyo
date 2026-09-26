@@ -47,6 +47,10 @@
     <string name="sky_condition_with_rain_amount">%1$s, %2$d%% chance of rain, %3$s\u00A0%4$s</string>
     <!-- The line over the hourly strip: when rain or snow is likely to start or stop. %1$s is a time, %1$d a number of hours -->
     <string name="sky_hours_dry">No rain likely in the next %1$d hours</string>
+    <!-- Settings: whether the weather shows on the lock screen, through the Glance app -->
+    <string name="settings_lock_screen">The weather on the lock screen</string>
+    <!-- On the lock screen: the day's high and low, "18° / 9°" -->
+    <string name="lock_high_low">%1$d° / %2$d°</string>
     <string name="sky_hours_rain_from">Rain likely from %1$s</string>
     <string name="sky_hours_rain_until">Rain likely until %1$s</string>
     <string name="sky_hours_rain_throughout">Rain likely for the next %1$d hours</string>
