@@ -91,6 +91,12 @@ place you chose. Either is rounded to two decimal places — about a kilometre �
 leaves the phone, and it goes to Open-Meteo for the forecast and the air, and to RainViewer
 for the radar tiles. A place you search for is sent, as typed, to Open-Meteo's place search.
 
+With [Glance](https://github.com/wanderwildwood/hitome) installed, the weather also shows on
+the lock screen: the temperature, the day's high and low, and when rain is likely. Looking at
+the lock screen fetches the forecast the same way opening the app does, at most once every half
+hour, and nothing runs on a timer. Settings → The weather on the lock screen turns it off; the
+lines go to Glance alone.
+
 With no place set, if the phone's cached position is more than fifteen minutes old, a fresh
 one is asked for before either is fetched, rather than showing the weather for wherever the
 phone last was.

@@ -53,6 +53,12 @@
             </intent-filter>
         </activity>
 
+
+        <!-- The weather for Glance's lock-screen panel; it answers Glance alone. -->
+        <provider
+            android:name=".glance.NowOnLockScreen"
+            android:authorities="com.wanderwildwood.soramoyo.glance"
+            android:exported="true" />
     </application>
 
 </manifest>

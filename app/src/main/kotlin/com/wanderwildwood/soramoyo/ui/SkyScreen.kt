@@ -1030,7 +1030,7 @@ private fun clock(millis: Long): String =
 private fun clock(time: java.time.LocalDateTime): String = clockFormat().format(time)
 
 /** WMO weather interpretation codes, as Open-Meteo uses them, in a few plain words. */
-private fun conditionFor(code: Int): Int = when (code) {
+internal fun conditionFor(code: Int): Int = when (code) {
     0 -> R.string.wmo_clear
     1 -> R.string.wmo_mostly_clear
     2 -> R.string.wmo_partly_cloudy
