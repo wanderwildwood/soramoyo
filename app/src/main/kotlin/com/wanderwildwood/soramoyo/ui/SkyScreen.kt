@@ -158,6 +158,8 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
     // headline rather than a line under a reading they will never have. The station lives
     // in settings; nothing here asks for one.
     val noStation = state.stationTrouble == StationTrouble.NOT_SET
+    // A station that is set but cannot be reached, with nothing recent from it to show.
+    val fallback = !noStation && stationGone(state)
     // No rail here: it took a strip off the right of every row, and Today is read top down
     // with a swipe, which still moves it four rows at a time.
     LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp), isScrollbarVisible = false) {
@@ -182,7 +184,23 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
                 }
             }
         } else {
-            item { Now(state) }
+            if (fallback && current != null) {
+                // The station cannot be reached -- away from home, or the home network down --
+                // so the forecast's estimate for the chosen place stands in, saying so, rather
+                // than a message and nothing.
+                item {
+                    Column {
+                        Estimate(current, state.metric)
+                        TextMMD(
+                            text = stringResource(R.string.sky_station_fallback),
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(bottom = 12.dp),
+                        )
+                    }
+                }
+            } else {
+                item { Now(state) }
+            }
             item {
                 HorizontalDividerMMD()
                 if (today != null) {
@@ -202,7 +220,11 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
         }
 
         // Measured if there is a station, else the forecast's estimate of the same things.
-        val rows = state.reading ?: current?.takeIf { noStation }?.let { asReading(it, state.metric) }
+        val rows = if (fallback && current != null) {
+            asReading(current, state.metric)
+        } else {
+            state.reading ?: current?.takeIf { noStation }?.let { asReading(it, state.metric) }
+        }
         rows?.let { reading ->
             readingRows(reading).forEach { row ->
                 item {
@@ -310,6 +332,17 @@ private fun Estimate(current: Current, metric: Boolean) {
         )
     }
 }
+
+/**
+ * Whether the station is set but gone: not answering, and with no reading, or only one older
+ * than [STALE_MS]. A reading from a few minutes ago is still worth more than an estimate; one
+ * from hours ago, labelled "last read", is not.
+ */
+private fun stationGone(state: SkyState): Boolean =
+    state.stationTrouble == StationTrouble.NO_ANSWER &&
+        (state.reading == null || System.currentTimeMillis() - state.readAt > STALE_MS)
+
+private const val STALE_MS = 60 * 60 * 1000L
 
 /** The forecast's estimate, in the shape a station's reading has, so it gets the same rows. */
 private fun asReading(c: Current, metric: Boolean): StationReading {
