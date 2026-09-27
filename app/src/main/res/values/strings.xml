@@ -92,6 +92,8 @@
     <string name="sky_air_credit">Air quality from the Copernicus Atmosphere Monitoring Service, by Open-Meteo</string>
     <!-- Under the temperature when there is no station: %1$s is a condition such as "Overcast", %2$s a time -->
     <string name="sky_estimate">%1$s. The forecast\'s estimate for %2$s</string>
+    <!-- Under the forecast's estimate, when a station is set but cannot be reached. -->
+    <string name="sky_station_fallback">The station is not answering, so this is the forecast\'s estimate.</string>
     <string name="sky_air">Air quality</string>
     <!-- The scale the air-quality figure is on, written beside it as a unit -->
     <string name="sky_air_us">US AQI</string>
