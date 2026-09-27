@@ -67,7 +67,7 @@ fun AboutDialog(onDismiss: () -> Unit) {
 
 /**
  * A llama at the foot of the About, which opens the page a donation goes to.
- * The site's address sits at the start of the same line, and only the llama and its words open it.
+ * The site's address sits at the start of the same line and opens the site; the llama and its words open the page.
  *
  * Three words rather than an address: a verb and an object, so what happens when you press
  * them is not a surprise even though the page is not named. The drawing is his own, and it is
@@ -80,13 +80,28 @@ fun AboutDialog(onDismiss: () -> Unit) {
 @Composable
 private fun Llama() {
     val context = LocalContext.current
-    var dead by remember { mutableStateOf(false) }
+    // Which address had nothing to open it, to say so in place of the words.
+    var dead by remember { mutableStateOf<String?>(null) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        TextMMD(text = "wanderthe.dev", style = MaterialTheme.typography.labelSmall)
+        TextMMD(
+            text = "wanderthe.dev",
+            style = MaterialTheme.typography.labelSmall,
+            // The site's address opens the site, the way the llama beside it opens its page.
+            modifier = Modifier
+                .clickable {
+                    val opened = runCatching {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://wanderthe.dev")),
+                        )
+                    }.isSuccess
+                    dead = if (opened) null else "wanderthe.dev"
+                }
+                .padding(vertical = 4.dp),
+        )
         Spacer(Modifier.width(6.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -97,7 +112,7 @@ private fun Llama() {
                             Intent(Intent.ACTION_VIEW, Uri.parse("https://square.link/u/AGu8oT10")),
                         )
                     }.isSuccess
-                    dead = !opened
+                    dead = if (opened) null else "square.link/u/AGu8oT10"
                 }
                 .padding(vertical = 4.dp),
         ) {
@@ -108,8 +123,8 @@ private fun Llama() {
             )
             Spacer(Modifier.width(6.dp))
             TextMMD(
-                text = if (dead) {
-                    stringResource(R.string.about_no_browser, "square.link/u/AGu8oT10")
+                text = if (dead != null) {
+                    stringResource(R.string.about_no_browser, dead!!)
                 } else {
                     stringResource(R.string.about_feed_the_llamas)
                 },
