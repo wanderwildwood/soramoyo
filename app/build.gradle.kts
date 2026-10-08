@@ -15,8 +15,8 @@ android {
         // The Kompakt runs Android 12 (API 31); nothing here needs anything newer.
         minSdk = 31
         targetSdk = 31
-        versionCode = 17
-        versionName = "0.7.8"
+        versionCode = 18
+        versionName = "0.7.9"
     }
 
     // A real keystore in signing/ signs every build type when it is present, so the
