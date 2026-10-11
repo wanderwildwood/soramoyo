@@ -1,11 +1,13 @@
 package com.wanderwildwood.soramoyo.glance
 
 import android.content.Context
+import android.os.Bundle
 import android.text.format.DateFormat
 import com.wanderwildwood.soramoyo.R
 import com.wanderwildwood.soramoyo.forecast.Change
 import com.wanderwildwood.soramoyo.forecast.Forecast
 import com.wanderwildwood.soramoyo.forecast.upcoming
+import com.wanderwildwood.soramoyo.location.LocationProvider
 import com.wanderwildwood.soramoyo.location.Places
 import com.wanderwildwood.soramoyo.station.Source
 import com.wanderwildwood.soramoyo.station.Stations
@@ -13,14 +15,16 @@ import com.wanderwildwood.soramoyo.station.Units
 import com.wanderwildwood.soramoyo.ui.conditionFor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.roundToInt
 
 /**
@@ -28,8 +32,13 @@ import kotlin.math.roundToInt
  * snow is likely to start or stop.
  *
  * Nothing runs on a timer. When the lock screen asks, it gets the last answer at once; if that
- * is more than half an hour old, a new one is fetched in the background and Glance is told when
- * it is ready. So the weather is only ever fetched when someone looks at the phone.
+ * is more than half an hour old, a new one is fetched and Glance is told when it is ready. So
+ * the weather is only ever fetched when someone looks at the phone.
+ *
+ * Glance waits for the new one through [call] ("refresh"), and the wait is what makes it
+ * work: an app nobody is talking to loses the network within seconds of the lock screen's
+ * question being answered, before a forecast can arrive, so a fetch started from [lines]
+ * alone ended with the old lines kept and nothing said.
  */
 class NowOnLockScreen : GlanceProvider() {
 
@@ -46,9 +55,21 @@ class NowOnLockScreen : GlanceProvider() {
         }
     }
 
-    private fun refresh(context: Context) {
-        if (!busy.compareAndSet(false, true)) return
-        scope.launch {
+    /** Glance asking for the weather to be brought up to date, and waiting until it is. */
+    override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
+        if (method != REFRESH || callingPackage != READER) return null
+        val context = context?.applicationContext ?: return null
+        if (!enabled(context) || System.currentTimeMillis() - cache(context).getLong(AT, 0L) <= FRESH_MS) return null
+        val job = refresh(context)
+        runBlocking { withTimeoutOrNull(WAIT_MS) { job.join() } }
+        return null
+    }
+
+    /** The fetch under way, or a new one; one at a time. */
+    @Synchronized
+    private fun refresh(context: Context): Job {
+        running?.takeIf { it.isActive }?.let { return it }
+        return scope.launch {
             try {
                 val lines = fetch(context) ?: return@launch
                 val rows = JSONArray()
@@ -60,14 +81,13 @@ class NowOnLockScreen : GlanceProvider() {
                 changed(context)
             } catch (_: Exception) {
                 // No answer this time: the last lines stay, and the next look asks again.
-            } finally {
-                busy.set(false)
             }
-        }
+        }.also { running = it }
     }
 
     private suspend fun fetch(context: Context): List<Line>? {
-        val here = Places.where(context) ?: return null
+        // Never a new fix: out of sight, the phone would not give one (see LocationProvider.lastFound).
+        val here = Places.chosen(context)?.at ?: LocationProvider.lastFound(context) ?: return null
         val source = Source.load(context)
         val reading = if (source == Source.None) null else runCatching { Stations.read(context, source) }.getOrNull()
         val metric = Units.chosen(context) ?: reading?.metric ?: Units.metricHere()
@@ -104,7 +124,9 @@ class NowOnLockScreen : GlanceProvider() {
         private const val LINES = "lines"
         private const val AT = "at"
         private const val FRESH_MS = 30 * 60 * 1000L
-        private val busy = AtomicBoolean(false)
+        private const val REFRESH = "refresh"
+        private const val WAIT_MS = 20_000L
+        private var running: Job? = null
         private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 }
