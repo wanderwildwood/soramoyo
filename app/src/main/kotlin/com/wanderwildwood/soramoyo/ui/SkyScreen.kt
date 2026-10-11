@@ -264,7 +264,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
 private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, onDay: (LocalDate) -> Unit, modifier: Modifier) {
     val placeToday = state.placeToday()
     val ahead = state.days.filter { it.date.isAfter(placeToday) }
-    LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp)) {
+    LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp), isScrollbarVisible = false) {
         item {
             Spacer(Modifier.height(12.dp))
             ForecastTrouble(state.forecastTrouble, ahead.isEmpty(), onAllowLocation)

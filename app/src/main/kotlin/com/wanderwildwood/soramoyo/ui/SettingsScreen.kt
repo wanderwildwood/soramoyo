@@ -82,6 +82,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(contentPadding)
                 .padding(horizontal = 20.dp),
+            isScrollbarVisible = false,
         ) {
             item { Spacer(Modifier.height(12.dp)) }
             item {
