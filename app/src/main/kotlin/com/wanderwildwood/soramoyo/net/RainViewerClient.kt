@@ -53,7 +53,9 @@ object RainViewerClient {
     /**
      * Widget tile URL centered on lat/lon:
      * `{host}{path}/{size}/{z}/{lat}/{lon}/{color}/{smooth}_{snow}.png`.
-     * color=2 (Universal Blue — greyscaled on e-ink), smooth=1, snow=1.
+     * color=2 (Universal Blue, the only scheme the free API still serves: any other number
+     * returns the same tile), smooth=1, snow=1. [com.wanderwildwood.soramoyo.render.RadarRamp]
+     * reads its colours back to dBZ.
      */
     fun tileUrl(frame: RadarFrame, lat: Double, lon: Double, zoom: Int, size: Int): String =
         String.format(
