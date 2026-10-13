@@ -43,4 +43,33 @@ class PlacesTest {
         // The name itself is not searched again: "Portland" is in every label.
         assertEquals(all, Places.narrow(all, ""))
     }
+
+    private val home = Place("Portland, Maine, United States", 43.66, -70.26)
+    private val work = Place("Bangor, Maine, United States", 44.80, -68.77)
+
+    @Test
+    fun theFirstPlaceIsShownUntilTheSecondIsChosen() {
+        assertEquals(home, Places.showing(home, work, onSecond = false))
+        assertEquals(work, Places.showing(home, work, onSecond = true))
+    }
+
+    /** A switch left on the second place, with the second since taken away, falls back to the first. */
+    @Test
+    fun noSecondPlaceMeansTheFirst() {
+        assertEquals(home, Places.showing(home, null, onSecond = true))
+        assertEquals(null, Places.showing(null, null, onSecond = true))
+    }
+
+    /** The first can be the phone's own position while the second is a named place. */
+    @Test
+    fun theSecondNeedsNoFirst() {
+        assertEquals(work, Places.showing(null, work, onSecond = true))
+        assertEquals(null, Places.showing(null, work, onSecond = false))
+    }
+
+    @Test
+    fun theSwitchNamesTheTownAlone() {
+        assertEquals("Portland", Places.short(home.label))
+        assertEquals("Monaco", Places.short("Monaco"))
+    }
 }

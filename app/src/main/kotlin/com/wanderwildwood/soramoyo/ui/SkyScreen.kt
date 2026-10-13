@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mudita.mmd.components.buttons.OutlinedButtonMMD
@@ -54,6 +55,8 @@ import com.wanderwildwood.soramoyo.forecast.Hour
 import com.wanderwildwood.soramoyo.forecast.Pollen
 import com.wanderwildwood.soramoyo.forecast.restOf
 import com.wanderwildwood.soramoyo.forecast.upcoming
+import com.wanderwildwood.soramoyo.location.Place
+import com.wanderwildwood.soramoyo.location.Places
 import com.wanderwildwood.soramoyo.station.Measure
 import com.wanderwildwood.soramoyo.station.Source
 import com.wanderwildwood.soramoyo.station.StationReading
@@ -81,10 +84,12 @@ fun SkyTabs(
     onTab: (Tab) -> Unit,
     state: SkyState,
     radar: RadarViewModel,
+    onSwitchPlace: () -> Unit,
     onSettings: () -> Unit,
     onAllowLocation: () -> Unit,
     onDay: (LocalDate) -> Unit,
 ) {
+    val shown = state.forScreen()
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
@@ -93,6 +98,7 @@ fun SkyTabs(
                     title = { TextMMD(text = stringResource(R.string.app_name)) },
                     actions = { BarButton(Icons.Settings, stringResource(R.string.sky_cd_settings), onSettings) },
                 )
+                state.second?.let { PlaceSwitch(state.place, it, state.showingSecond, onSwitchPlace) }
                 // MMD's plain tab row, which does not slide between tabs. Its own underline is
                 // left out: in this row it measures to the row's full height and draws a black
                 // block over the tabs beside the chosen one. The chosen tab is its label in
@@ -137,11 +143,54 @@ fun SkyTabs(
     ) { contentPadding ->
         val inside = Modifier.fillMaxSize().padding(contentPadding)
         when (tab) {
-            Tab.TODAY -> TodayTab(state, onAllowLocation, inside)
-            Tab.FORECAST -> ForecastTab(state, onAllowLocation, onDay, inside)
+            Tab.TODAY -> TodayTab(shown, onAllowLocation, inside)
+            Tab.FORECAST -> ForecastTab(shown, onAllowLocation, onDay, inside)
             Tab.RADAR -> RadarTab(radar, onAllowLocation, state.metric, inside)
         }
     }
+}
+
+/**
+ * The two places, only once a second one is set: the one shown in bold, the other plain, and
+ * a press anywhere on the line goes over to the other. It is not a fourth tab because it is
+ * not a fourth thing to look at — it is the same three for somewhere else.
+ */
+@Composable
+private fun PlaceSwitch(first: Place?, second: Place, onSecond: Boolean, onSwitch: () -> Unit) {
+    val firstName = first?.let { Places.short(it.label) } ?: stringResource(R.string.sky_place_here)
+    val secondName = Places.short(second.label)
+    val switchTo = stringResource(R.string.sky_cd_switch_place, if (onSecond) firstName else secondName)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onSwitch)
+            .semantics { contentDescription = switchTo }
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        TextMMD(
+            text = firstName,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (onSecond) FontWeight.Normal else FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false),
+        )
+        TextMMD(
+            text = stringResource(R.string.sky_place_between),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 10.dp),
+        )
+        TextMMD(
+            text = secondName,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (onSecond) FontWeight.Bold else FontWeight.Normal,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false),
+        )
+    }
+    HorizontalDividerMMD()
 }
 
 /**
@@ -290,7 +339,7 @@ private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, onDay: (Lo
 private fun Credit(state: SkyState, air: Boolean = state.air != null) {
     Column {
         Spacer(Modifier.height(10.dp))
-        state.place?.let {
+        state.shown?.let {
             TextMMD(
                 text = stringResource(R.string.sky_forecast_for, it.label.substringBefore(",")),
                 style = MaterialTheme.typography.labelSmall,

@@ -58,7 +58,30 @@ data class SkyState(
     val forecastTrouble: ForecastTrouble = ForecastTrouble.NONE,
     /** Where the forecast and radar are for, when a place has been chosen rather than the phone's position. */
     val place: Place? = null,
+    /** A second place to switch to, when one has been set. */
+    val second: Place? = null,
+    /** Whether the second place is the one shown; meaningless while there is none. */
+    val onSecond: Boolean = false,
 ) {
+    /** Whether what is on the screen is for the second place. */
+    val showingSecond: Boolean get() = onSecond && second != null
+
+    /** The place on the screen, or null for the phone's own position. */
+    val shown: Place? get() = Places.showing(place, second, onSecond)
+
+    /**
+     * This state as the screen shows it. The station is at the first place, so while the
+     * second is shown its reading is left out: a temperature from home under a forecast for
+     * work would be read as work's.
+     */
+    fun forScreen(): SkyState = if (!showingSecond) this else copy(
+        source = Source.None,
+        reading = null,
+        readAt = 0L,
+        stationTrouble = StationTrouble.NOT_SET,
+        asking = false,
+    )
+
     /**
      * Today where the forecast is for, which is not always today on the phone: a place three
      * zones west is still on yesterday until three in the morning here, and matching its days
@@ -78,7 +101,13 @@ data class SkyState(
 class SkyViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _state = MutableStateFlow(
-        SkyState(source = Source.load(app), place = Places.chosen(app), units = Units.choice(app)),
+        SkyState(
+            source = Source.load(app),
+            place = Places.chosen(app),
+            second = Places.second(app),
+            onSecond = Places.onSecond(app),
+            units = Units.choice(app),
+        ),
     )
     val state = _state.asStateFlow()
 
@@ -87,6 +116,25 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
     private var forecastAtMs = 0L
     private var forecastFor: Pair<LatLon, Boolean>? = null
     private var asking: Boolean? = null
+
+    /**
+     * The other place's forecast, kept when the switch is pressed so that pressing it back
+     * shows it at once rather than fetching it again. It is refreshed on the same half-hour
+     * as the one on the screen.
+     */
+    private var other: Held? = null
+
+    private data class Held(
+        val current: Current?,
+        val days: List<Day>,
+        val hours: List<Hour>,
+        val inches: Boolean,
+        val offset: ZoneOffset,
+        val metric: Boolean,
+        val air: Air?,
+        val atMs: Long,
+        val forWhat: Pair<LatLon, Boolean>?,
+    )
 
     fun onForeground() {
         readStation()
@@ -105,10 +153,76 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
     /** A place for the forecast and radar, or null to go back to the phone's position. */
     fun setPlace(place: Place?) {
         Places.choose(getApplication(), place)
-        // The old forecast is for somewhere else now.
+        if (_state.value.showingSecond) {
+            // Not the one on the screen: only what was kept for it is out of date.
+            other = null
+            _state.update { it.copy(place = place) }
+        } else {
+            _state.update { it.copy(place = place) }
+            forget()
+        }
+    }
+
+    /** A second place to switch to, or null for none. Taking it away goes back to the first. */
+    fun setSecond(place: Place?) {
+        Places.chooseSecond(getApplication(), place)
+        val wasShowing = _state.value.showingSecond
+        _state.update { it.copy(second = place, onSecond = place != null && it.onSecond) }
+        when {
+            place == null && wasShowing -> swap()
+            place == null -> other = null
+            wasShowing -> forget()
+            else -> other = null
+        }
+    }
+
+    /** Over to the other place: the switch at the top of the screen. */
+    fun switchPlace() {
+        val s = _state.value
+        if (s.second == null) return
+        val toSecond = !s.showingSecond
+        Places.showSecond(getApplication(), toSecond)
+        _state.update { it.copy(onSecond = toSecond) }
+        swap()
+    }
+
+    /** Keep what is on the screen as the other place's, and show what was kept, if anything. */
+    private fun swap() {
+        forecastJob?.cancel()
+        asking = null
+        val s = _state.value
+        val leaving = if (s.days.isEmpty()) null else Held(
+            s.current, s.days, s.hours, s.inches, s.offset, s.metric, s.air, forecastAtMs, forecastFor,
+        )
+        val coming = other
+        other = leaving
+        if (coming == null) {
+            forget()
+            return
+        }
+        forecastAtMs = coming.atMs
+        forecastFor = coming.forWhat
         _state.update {
             it.copy(
-                place = place,
+                current = coming.current,
+                days = coming.days,
+                hours = coming.hours,
+                inches = coming.inches,
+                offset = coming.offset,
+                metric = coming.metric,
+                air = coming.air,
+                forecastTrouble = ForecastTrouble.NONE,
+            )
+        }
+        readForecast(force = false)
+    }
+
+    /** The forecast on the screen is for somewhere else now: clear it and ask for the new one. */
+    private fun forget() {
+        forecastAtMs = 0L
+        forecastFor = null
+        _state.update {
+            it.copy(
                 current = null,
                 days = emptyList(),
                 hours = emptyList(),
@@ -124,6 +238,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         Units.choose(getApplication(), choice)
         // The station's last reading is in the old units; it is read again rather than shown so.
         _state.update { it.copy(units = choice, reading = null) }
+        other = null
         readStation()
         readForecast(force = true)
     }
