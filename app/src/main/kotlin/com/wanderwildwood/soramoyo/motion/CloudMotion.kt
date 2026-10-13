@@ -120,7 +120,7 @@ object CloudMotion {
                 val src = (y - dy) * w
                 var x = xStart
                 while (x < xEnd) {
-                    a[dst + x] = last.alpha[src + (x - dx)]
+                    a[dst + x] = last.intensity[src + (x - dx)]
                     x++
                 }
                 y++

@@ -1,21 +1,22 @@
 package com.wanderwildwood.soramoyo.motion
 
 /**
- * Continuous precipitation-intensity raster for one radar frame: the RainViewer
- * tile's alpha channel (0..255) at full tile resolution, before [com.wanderwildwood.soramoyo.render.EinkConverter]
- * quantizes it to 5 e-ink levels. The motion search needs the continuous signal,
- * so we keep the raw alpha here and quantize only for display.
+ * Continuous precipitation-intensity raster for one radar frame: each pixel's reflectivity
+ * packed by [com.wanderwildwood.soramoyo.render.RadarRamp.intensityOf] (0 = dry, rising 3 per
+ * dBZ), at full tile resolution, before [com.wanderwildwood.soramoyo.render.EinkConverter]
+ * bands it into greys. The motion search needs the continuous signal, so it is kept here and
+ * banded only for display.
  *
- * Alpha is stored as a raw [ByteArray] (0..255, read unsigned) to keep ~13 frames
+ * Stored as a raw [ByteArray] (0..255, read unsigned) to keep ~13 frames
  * cheap in memory (256 KB each at 512²) versus a float grid.
  */
-class IntensityField(val w: Int, val h: Int, val alpha: ByteArray) {
+class IntensityField(val w: Int, val h: Int, val intensity: ByteArray) {
 
-    /** Fraction of pixels carrying any rain (alpha at/above [threshold]). */
-    fun wetFraction(threshold: Int = 12): Float {
+    /** Fraction of pixels carrying any rain (intensity at/above [threshold]). */
+    fun wetFraction(threshold: Int = 1): Float {
         var wet = 0
-        for (b in alpha) if ((b.toInt() and 0xFF) >= threshold) wet++
-        return wet.toFloat() / alpha.size
+        for (b in intensity) if ((b.toInt() and 0xFF) >= threshold) wet++
+        return wet.toFloat() / intensity.size
     }
 
     /**
@@ -37,7 +38,7 @@ class IntensityField(val w: Int, val h: Int, val alpha: ByteArray) {
                     val row = y * w
                     var x = x0
                     while (x < x1) {
-                        sum += alpha[row + x].toInt() and 0xFF
+                        sum += intensity[row + x].toInt() and 0xFF
                         cnt++
                         x++
                     }

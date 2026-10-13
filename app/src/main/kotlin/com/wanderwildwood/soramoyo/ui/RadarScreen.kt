@@ -147,10 +147,11 @@ private fun LocationPrompt(onRequest: () -> Unit) {
 }
 
 /**
- * Stacked layers: a STATIC vector base map (borders + cities) that only recomposes
- * when location/zoom/size change, a DYNAMIC radar overlay repainted as the
- * animation advances (shown only when it matches the current projection, so map
- * and radar never drift), and a center "you are here" marker on top.
+ * Stacked layers: a DYNAMIC radar overlay repainted as the animation advances (shown
+ * only when it matches the current projection, so map and radar never drift), the
+ * STATIC vector map (borders + cities) over it, which only recomposes when
+ * location/zoom/size change, and a center "you are here" marker on top. The map goes
+ * over the rain, not under it, so a town or a border stays readable inside a storm.
  */
 @Composable
 private fun RadarMap(state: RadarUiState) {
@@ -158,14 +159,18 @@ private fun RadarMap(state: RadarUiState) {
     // Clipped, because a Canvas draws wherever its paths go: without it the borders ran out
     // of the square and down through the controls beneath.
     Box(modifier = Modifier.fillMaxSize().clipToBounds().background(Color.White)) {
-        VectorLayer(lat = loc.lat, lon = loc.lon, zoom = state.zoom, tileSize = state.tileSize)
         // Only overlay the raster while it matches the live zoom/center.
         OverlayLayer(if (state.overlayAligned) state.frames.getOrNull(state.currentIndex) else null)
+        VectorLayer(lat = loc.lat, lon = loc.lon, zoom = state.zoom, tileSize = state.tileSize)
         CenterMarker()
     }
 }
 
-/** Static borders + cities. Args are primitives so it skips recomposition during playback. */
+/**
+ * Static borders + cities. Args are primitives so it skips recomposition during playback.
+ * Every line, dot and label has a white casing under it: invisible on the dry map, it keeps
+ * them readable on the dark rain bands they now sit over.
+ */
 @Composable
 private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
     val context = LocalContext.current
@@ -198,6 +203,11 @@ private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
         }
         drawPath(
             path = states,
+            color = Color.White,
+            style = Stroke(width = 2.8f, cap = StrokeCap.Round, join = StrokeJoin.Round),
+        )
+        drawPath(
+            path = states,
             color = Color.Black,
             style = Stroke(width = 0.8f, cap = StrokeCap.Round, join = StrokeJoin.Round),
         )
@@ -227,6 +237,11 @@ private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
         }
         drawPath(
             path = path,
+            color = Color.White,
+            style = Stroke(width = 3.4f, cap = StrokeCap.Round, join = StrokeJoin.Round),
+        )
+        drawPath(
+            path = path,
             color = Color.Black,
             style = Stroke(width = 1.2f, cap = StrokeCap.Round, join = StrokeJoin.Round),
         )
@@ -246,6 +261,12 @@ private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
             textSize = 11f * density
             isAntiAlias = true
         }
+        val haloPaint = Paint(labelPaint).apply {
+            color = android.graphics.Color.WHITE
+            style = Paint.Style.STROKE
+            strokeWidth = 3f * density
+            strokeJoin = Paint.Join.ROUND
+        }
         val textH = (labelPaint.fontMetrics.descent - labelPaint.fontMetrics.ascent)
         val placed = ArrayList<Rect>()
         val candidate = Rect()
@@ -257,6 +278,7 @@ private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
             val x = p[0] * scale
             val y = p[1] * scale
             if (x < 0f || y < 0f || x > side || y > side) continue
+            drawCircle(color = Color.White, radius = 3.6f, center = Offset(x, y))
             drawCircle(color = Color.Black, radius = 2.2f, center = Offset(x, y))
 
             if (labelCount >= labelBudget) continue
@@ -271,6 +293,7 @@ private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
             }
             if (collides) continue
             placed.add(Rect(candidate))
+            drawContext.canvas.nativeCanvas.drawText(text, lx, ly, haloPaint)
             drawContext.canvas.nativeCanvas.drawText(text, lx, ly, labelPaint)
             labelCount++
         }
