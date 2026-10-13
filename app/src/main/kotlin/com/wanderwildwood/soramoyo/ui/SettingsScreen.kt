@@ -44,8 +44,8 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
- * The three things there are to set: which station, where the forecast and radar are for,
- * and the units.
+ * The things there are to set: which station, where the forecast and radar are for (and a
+ * second place to switch to), the units, and the lock screen.
  *
  * Units follow the station, else the phone's country, until told otherwise. They were left
  * out at first, on the grounds that the gateway already knows how its owner counts; but a
@@ -56,15 +56,18 @@ import kotlin.coroutines.cancellation.CancellationException
 fun SettingsScreen(
     source: Source,
     place: Place?,
+    second: Place?,
     units: Units.Choice,
     onClose: () -> Unit,
     onSource: (Source) -> Unit,
     onPlace: (Place?) -> Unit,
+    onSecond: (Place?) -> Unit,
     onUnits: (Units.Choice) -> Unit,
 ) {
     var aboutOpen by remember { mutableStateOf(false) }
     var stationOpen by remember { mutableStateOf(false) }
     var placeOpen by remember { mutableStateOf(false) }
+    var secondOpen by remember { mutableStateOf(false) }
     var unitsOpen by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -97,6 +100,13 @@ fun SettingsScreen(
                     title = stringResource(R.string.settings_place),
                     value = place?.label ?: stringResource(R.string.settings_place_phone),
                     onClick = { placeOpen = true },
+                )
+            }
+            item {
+                Setting(
+                    title = stringResource(R.string.settings_second),
+                    value = second?.label ?: stringResource(R.string.settings_not_set),
+                    onClick = { secondOpen = true },
                 )
             }
             item {
@@ -135,12 +145,29 @@ fun SettingsScreen(
 
     if (placeOpen) {
         PlaceDialog(
+            title = R.string.settings_place,
+            why = R.string.settings_place_why,
+            nothing = R.string.settings_place_phone,
             chosen = place,
             onChoose = {
                 onPlace(it)
                 placeOpen = false
             },
             onDismiss = { placeOpen = false },
+        )
+    }
+
+    if (secondOpen) {
+        PlaceDialog(
+            title = R.string.settings_second,
+            why = R.string.settings_second_why,
+            nothing = R.string.settings_second_none,
+            chosen = second,
+            onChoose = {
+                onSecond(it)
+                secondOpen = false
+            },
+            onDismiss = { secondOpen = false },
         )
     }
 
@@ -199,10 +226,18 @@ private sealed interface Search {
 /**
  * Choosing where the forecast and radar are for: the phone's own position, or a place found
  * by name. The note says why it is here at all, because a stranger would otherwise wonder
- * why a phone needs telling where it is.
+ * why a phone needs telling where it is. The second place is chosen the same way, with
+ * "none" where the first has the phone.
  */
 @Composable
-private fun PlaceDialog(chosen: Place?, onChoose: (Place?) -> Unit, onDismiss: () -> Unit) {
+private fun PlaceDialog(
+    title: Int,
+    why: Int,
+    nothing: Int,
+    chosen: Place?,
+    onChoose: (Place?) -> Unit,
+    onDismiss: () -> Unit,
+) {
     var typed by remember { mutableStateOf("") }
     var search by remember { mutableStateOf<Search>(Search.Idle) }
     val scope = rememberCoroutineScope()
@@ -221,11 +256,11 @@ private fun PlaceDialog(chosen: Place?, onChoose: (Place?) -> Unit, onDismiss: (
     }
 
     EInkDialog(onDismiss = onDismiss) {
-        TextMMD(text = stringResource(R.string.settings_place), style = MaterialTheme.typography.bodyLarge)
+        TextMMD(text = stringResource(title), style = MaterialTheme.typography.bodyLarge)
         Spacer(Modifier.height(14.dp))
-        TextMMD(text = stringResource(R.string.settings_place_why), style = MaterialTheme.typography.labelSmall)
+        TextMMD(text = stringResource(why), style = MaterialTheme.typography.labelSmall)
         Spacer(Modifier.height(10.dp))
-        Choice(stringResource(R.string.settings_place_phone), chosen = chosen == null) { onChoose(null) }
+        Choice(stringResource(nothing), chosen = chosen == null) { onChoose(null) }
         chosen?.let { Choice(it.label, chosen = true) { onChoose(it) } }
         // Above the field rather than under it, because the keyboard stays up. On the
         // Kompakt it will not close when asked from inside a dialog — Compose's controller,

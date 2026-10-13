@@ -93,6 +93,12 @@ private fun Sky(sky: SkyViewModel = viewModel()) {
             onTab = { tab = it },
             state = state,
             radar = radar,
+            onSwitchPlace = {
+                sky.switchPlace()
+                radar.placeChanged()
+                // The radar tab asks only when it opens; already open, it is asked here.
+                if (tab == Tab.RADAR) radar.onForeground()
+            },
             onSettings = { screen = Screen.SETTINGS },
             onAllowLocation = allowLocation,
             onDay = {
@@ -103,18 +109,23 @@ private fun Sky(sky: SkyViewModel = viewModel()) {
 
         Screen.DAY -> DayScreen(
             date = LocalDate.parse(day),
-            state = state,
+            state = state.forScreen(),
             onClose = { screen = Screen.TABS },
         )
 
         Screen.SETTINGS -> SettingsScreen(
             source = state.source,
             place = state.place,
+            second = state.second,
             units = state.units,
             onClose = { screen = Screen.TABS },
             onSource = sky::setSource,
             onPlace = {
                 sky.setPlace(it)
+                radar.placeChanged()
+            },
+            onSecond = {
+                sky.setSecond(it)
                 radar.placeChanged()
             },
             onUnits = sky::setUnits,

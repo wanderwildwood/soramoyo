@@ -29,33 +29,74 @@ object Places {
     private const val KEY_LABEL = "place_label"
     private const val KEY_LAT = "place_lat"
     private const val KEY_LON = "place_lon"
+    private const val KEY_SECOND_LABEL = "second_label"
+    private const val KEY_SECOND_LAT = "second_lat"
+    private const val KEY_SECOND_LON = "second_lon"
+    private const val KEY_ON_SECOND = "on_second"
 
-    fun chosen(context: Context): Place? {
-        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val label = prefs.getString(KEY_LABEL, null) ?: return null
-        val lat = prefs.getString(KEY_LAT, null)?.toDoubleOrNull() ?: return null
-        val lon = prefs.getString(KEY_LON, null)?.toDoubleOrNull() ?: return null
-        return Place(label, lat, lon)
-    }
+    /** The first place: the one the station, the lock screen and the radar's default belong to. */
+    fun chosen(context: Context): Place? = read(context, KEY_LABEL, KEY_LAT, KEY_LON)
 
     /** Null goes back to the phone's own position. */
-    fun choose(context: Context, place: Place?) {
-        val edit = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+    fun choose(context: Context, place: Place?) = write(context, place, KEY_LABEL, KEY_LAT, KEY_LON)
+
+    /**
+     * A second place, for someone who lives in one town and works in another. Off unless
+     * set; the main screen offers a switch between the two only while it is.
+     */
+    fun second(context: Context): Place? = read(context, KEY_SECOND_LABEL, KEY_SECOND_LAT, KEY_SECOND_LON)
+
+    /** Null removes the second place, and goes back to the first. */
+    fun chooseSecond(context: Context, place: Place?) {
+        write(context, place, KEY_SECOND_LABEL, KEY_SECOND_LAT, KEY_SECOND_LON)
+        if (place == null) showSecond(context, false)
+    }
+
+    /** Whether the second place was the one last shown, kept so the app opens where it was left. */
+    fun onSecond(context: Context): Boolean = prefs(context).getBoolean(KEY_ON_SECOND, false)
+
+    fun showSecond(context: Context, on: Boolean) {
+        prefs(context).edit().putBoolean(KEY_ON_SECOND, on).apply()
+    }
+
+    /** The place being shown: the second when it is set and chosen, else the first. */
+    fun showing(context: Context): Place? = showing(chosen(context), second(context), onSecond(context))
+
+    /** Null means the phone's own position. */
+    internal fun showing(first: Place?, second: Place?, onSecond: Boolean): Place? =
+        if (onSecond && second != null) second else first
+
+    /** The town alone, for the switch: "Portland, Maine, United States" is "Portland". */
+    internal fun short(label: String): String = label.substringBefore(",").trim()
+
+    /** Whether the phone's position is needed for what is shown now, and so its permission. */
+    fun needsPosition(context: Context): Boolean = showing(context) == null
+
+    /** The place being shown if there is one, else where the phone is. */
+    suspend fun where(context: Context): LatLon? = showing(context)?.at ?: LocationProvider.here(context)
+
+    private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    private fun read(context: Context, label: String, lat: String, lon: String): Place? {
+        val p = prefs(context)
+        return Place(
+            p.getString(label, null) ?: return null,
+            p.getString(lat, null)?.toDoubleOrNull() ?: return null,
+            p.getString(lon, null)?.toDoubleOrNull() ?: return null,
+        )
+    }
+
+    private fun write(context: Context, place: Place?, label: String, lat: String, lon: String) {
+        val edit = prefs(context).edit()
         if (place == null) {
-            edit.remove(KEY_LABEL).remove(KEY_LAT).remove(KEY_LON)
+            edit.remove(label).remove(lat).remove(lon)
         } else {
-            edit.putString(KEY_LABEL, place.label)
-                .putString(KEY_LAT, place.lat.toString())
-                .putString(KEY_LON, place.lon.toString())
+            edit.putString(label, place.label)
+                .putString(lat, place.lat.toString())
+                .putString(lon, place.lon.toString())
         }
         edit.apply()
     }
-
-    /** Whether the phone's position is needed at all, and so its permission. */
-    fun needsPosition(context: Context): Boolean = chosen(context) == null
-
-    /** The chosen place if there is one, else where the phone is. */
-    suspend fun where(context: Context): LatLon? = chosen(context)?.at ?: LocationProvider.here(context)
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)

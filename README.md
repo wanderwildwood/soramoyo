@@ -72,6 +72,12 @@ forecast and the radar can be given a place by name instead — "Portland, Maine
 with the state after a comma to pick one town out of several. While a place is set, the
 phone's position is not read.
 
+**A second place.** Someone who lives in one town and works in another can set a second
+place the same way. The two names then sit at the top of the screen, and a press goes over to
+the other: Today, Forecast and Radar all follow. The station belongs to the first place and is
+left out while the second is shown; the lock screen stays with the first too. With no second
+place set, nothing changes.
+
 Away from home a station on your own network cannot be reached, and the screen says so,
 keeping the last reading and the time it was taken.
 
@@ -87,7 +93,7 @@ An Ecowitt, Tempest or Davis station is read on your own network, and nothing it
 the phone. A Weather Underground station is read from Weather Underground, with your key.
 
 The radar, the forecast and the air all need to know roughly where the phone is, or the
-place you chose. Either is rounded to two decimal places — about a kilometre — before it
+places you chose. Each is rounded to two decimal places — about a kilometre — before it
 leaves the phone, and it goes to Open-Meteo for the forecast and the air, and to RainViewer
 for the radar tiles. A place you search for is sent, as typed, to Open-Meteo's place search.
 

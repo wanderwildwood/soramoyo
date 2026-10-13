@@ -31,6 +31,12 @@
     <string name="sky_uv">UV index</string>
     <string name="sky_soil">Soil moisture</string>
 
+    <!-- The first place in the switch at the top when it is the phone's own position -->
+    <string name="sky_place_here">Here</string>
+    <!-- Between the two place names in the switch at the top -->
+    <string name="sky_place_between">·</string>
+    <!-- Read aloud for the place switch; %1$s is the place it goes to -->
+    <string name="sky_cd_switch_place">Show %1$s</string>
     <!-- %1$s is the name of the place chosen in settings -->
     <string name="sky_forecast_for">Forecast for %1$s</string>
     <!-- Beside the day's high in large type, when there is no station; %1$d is a temperature -->
@@ -223,6 +229,9 @@
     <string name="settings_units_metric">Metric: °C, km/h, mm, hPa</string>
     <string name="settings_units_imperial">Imperial: °F, mph, in, inHg</string>
     <string name="settings_place_why">A place chosen here is used instead of the phone\'s position, which it then never reads. Worth it on a phone with only a GPS, which indoors may not find itself at all.</string>
+    <string name="settings_second">Second place</string>
+    <string name="settings_second_none">None</string>
+    <string name="settings_second_why">Somewhere else to see at a press, such as where you work. A press on the two names at the top of the screen then switches between them. The station and the lock screen stay with the first.</string>
     <string name="settings_place_by_name">Or a place by name — add its state or country after a comma if there are several</string>
     <string name="settings_place_search">Search</string>
     <string name="settings_place_asking">Looking…</string>
@@ -235,7 +244,7 @@
     <!-- About -->
     <!-- %1$s is the version -->
     <string name="about_title">Sky %1$s</string>
-    <string name="about_privacy">An Ecowitt, Tempest or Davis station is read on your own network. A Weather Underground station is read from Weather Underground, with your API key. The phone\'s position, to about a kilometre, or the place you chose, goes to Open-Meteo for the forecast and to RainViewer for the radar; a place you search for goes to Open-Meteo. Nothing else leaves the phone.</string>
+    <string name="about_privacy">An Ecowitt, Tempest or Davis station is read on your own network. A Weather Underground station is read from Weather Underground, with your API key. The phone\'s position, to about a kilometre, or the places you chose, goes to Open-Meteo for the forecast and to RainViewer for the radar; a place you search for goes to Open-Meteo. Nothing else leaves the phone.</string>
     <string name="about_licence">GNU General Public License v3</string>
     <string name="about_after">The radar and its map are kRadar\'s, by Ondřej Koloničný, GPL 3.</string>
     <string name="about_data">Radar by RainViewer. Forecast by Open-Meteo, CC BY 4.0. Borders and cities from Natural Earth, public domain.</string>
