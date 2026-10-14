@@ -94,11 +94,20 @@ fun SkyTabs(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Column {
+                // With a second place the two names take the title's place rather than a line
+                // of their own under it: that line pushed the rows of Today down a whole row,
+                // and the wind off the first screen.
                 TopAppBarMMD(
-                    title = { TextMMD(text = stringResource(R.string.app_name)) },
+                    title = {
+                        val second = state.second
+                        if (second == null) {
+                            TextMMD(text = stringResource(R.string.app_name))
+                        } else {
+                            PlaceSwitch(state.place, second, state.showingSecond, onSwitchPlace)
+                        }
+                    },
                     actions = { BarButton(Icons.Settings, stringResource(R.string.sky_cd_settings), onSettings) },
                 )
-                state.second?.let { PlaceSwitch(state.place, it, state.showingSecond, onSwitchPlace) }
                 // MMD's plain tab row, which does not slide between tabs. Its own underline is
                 // left out: in this row it measures to the row's full height and draws a black
                 // block over the tabs beside the chosen one. The chosen tab is its label in
@@ -151,8 +160,8 @@ fun SkyTabs(
 }
 
 /**
- * The two places, only once a second one is set: the one shown in bold, the other plain, and
- * a press anywhere on the line goes over to the other. It is not a fourth tab because it is
+ * The two places, in the top bar in place of the title once a second one is set: the one shown
+ * in bold, the other plain, and a press anywhere on them goes over to the other. It is not a fourth tab because it is
  * not a fourth thing to look at — it is the same three for somewhere else.
  */
 @Composable
@@ -165,12 +174,11 @@ private fun PlaceSwitch(first: Place?, second: Place, onSecond: Boolean, onSwitc
             .fillMaxWidth()
             .clickable(onClick = onSwitch)
             .semantics { contentDescription = switchTo }
-            .padding(horizontal = 20.dp, vertical = 10.dp),
+            .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         TextMMD(
             text = firstName,
-            style = MaterialTheme.typography.bodyMedium,
             fontWeight = if (onSecond) FontWeight.Normal else FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -178,19 +186,16 @@ private fun PlaceSwitch(first: Place?, second: Place, onSecond: Boolean, onSwitc
         )
         TextMMD(
             text = stringResource(R.string.sky_place_between),
-            style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(horizontal = 10.dp),
         )
         TextMMD(
             text = secondName,
-            style = MaterialTheme.typography.bodyMedium,
             fontWeight = if (onSecond) FontWeight.Bold else FontWeight.Normal,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f, fill = false),
         )
     }
-    HorizontalDividerMMD()
 }
 
 /**
