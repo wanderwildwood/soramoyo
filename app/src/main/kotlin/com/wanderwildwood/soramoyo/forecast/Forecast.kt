@@ -102,12 +102,12 @@ data class Predicted(
 )
 
 /**
- * The next [HOURS] hours from [now]. A forecast is kept for half an hour, so by the time it
- * is looked at again its first hour may be over.
+ * The next [count] hours from [now], [HOURS] unless asked for more. A forecast is kept for half
+ * an hour, so by the time it is looked at again its first hour may be over.
  */
-fun upcoming(hours: List<Hour>, offset: ZoneOffset, now: Instant = Instant.now()): List<Hour> {
+fun upcoming(hours: List<Hour>, offset: ZoneOffset, now: Instant = Instant.now(), count: Int = HOURS): List<Hour> {
     val thisHour = LocalDateTime.ofInstant(now, offset).truncatedTo(ChronoUnit.HOURS)
-    return hours.filterNot { it.time.isBefore(thisHour) }.take(HOURS)
+    return hours.filterNot { it.time.isBefore(thisHour) }.take(count)
 }
 
 /**
@@ -131,7 +131,7 @@ fun Day.restOf(hours: List<Hour>, offset: ZoneOffset, now: Instant = Instant.now
     )
 }
 
-/** How many hours ahead the Today tab shows. */
+/** How many hours ahead the Today tab shows at a time; a swipe shows as many again. */
 const val HOURS = 12
 
 /**
