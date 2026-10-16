@@ -72,11 +72,11 @@ import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.roundToInt
 
-/** The three tabs, in the order they sit. */
-enum class Tab { TODAY, FORECAST, RADAR }
+/** The four tabs, in the order they sit. */
+enum class Tab { TODAY, FORECAST, RADAR, ALMANAC }
 
 /**
- * Sky's one screen: a top bar, three tabs, and whichever tab is open beneath them.
+ * Sky's one screen: a top bar, four tabs, and whichever tab is open beneath them.
  *
  * Today opens, because it is what the app is opened for. The days ahead and the radar are a
  * press away, each with the whole panel to itself rather than sharing a long list.
@@ -135,10 +135,17 @@ fun SkyTabs(
                                             Tab.TODAY -> R.string.tab_today
                                             Tab.FORECAST -> R.string.tab_forecast
                                             Tab.RADAR -> R.string.tab_radar
+                                            Tab.ALMANAC -> R.string.tab_almanac
                                         },
                                     ),
                                     fontWeight = if (chosen) FontWeight.Bold else FontWeight.Normal,
+                                    // Four to a row, "Forecast" and "Almanac" are wider than a
+                                    // tab less its padding, and broke onto two lines. One line,
+                                    // running into the padding, which has nothing else in it.
+                                    maxLines = 1,
+                                    softWrap = false,
                                     modifier = Modifier
+                                        .wrapContentWidth(unbounded = true)
                                         .padding(vertical = 10.dp)
                                         .drawBehind {
                                             if (chosen) {
@@ -159,6 +166,7 @@ fun SkyTabs(
             Tab.TODAY -> TodayTab(shown, onAllowLocation, inside)
             Tab.FORECAST -> ForecastTab(shown, onAllowLocation, onDay, inside)
             Tab.RADAR -> RadarTab(radar, onAllowLocation, state.metric, inside)
+            Tab.ALMANAC -> AlmanacTab(shown, onAllowLocation, inside)
         }
     }
 }
@@ -212,6 +220,7 @@ private fun PlaceSwitch(first: Place?, second: Place, onSecond: Boolean, onSwitc
 private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Modifier) {
     // The rest of today, not the whole of it: its morning's rain is over by the afternoon.
     val today = state.days.firstOrNull { it.date == state.placeToday() }?.restOf(state.hours, state.offset)
+    val yesterday = state.days.firstOrNull { it.date == state.placeToday().minusDays(1) }
     // Most people who install this have no station, and for them today's forecast is the
     // headline rather than a line under a reading they will never have. The station lives
     // in settings; nothing here asks for one.
@@ -233,11 +242,11 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
                 if (today != null) {
                     item {
                         HorizontalDividerMMD()
-                        DayRow(today, state.inches, today.date)
+                        DayRow(today, state.inches, today.date, yesterday = yesterday)
                     }
                 }
             } else {
-                item { Outlook(today, state, onAllowLocation) }
+                item { Outlook(today, yesterday, state, onAllowLocation) }
             }
             if (hours.isNotEmpty()) {
                 item {
@@ -266,7 +275,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
             item {
                 HorizontalDividerMMD()
                 if (today != null) {
-                    DayRow(today, state.inches, today.date)
+                    DayRow(today, state.inches, today.date, yesterday = yesterday)
                 } else {
                     Column(modifier = Modifier.padding(vertical = 12.dp)) {
                         ForecastTrouble(state.forecastTrouble, true, onAllowLocation)
@@ -483,7 +492,7 @@ private fun pollenName(kind: Pollen): Int = when (kind) {
  * station's temperature would be, and what the day is expected to do beneath.
  */
 @Composable
-private fun Outlook(today: Day?, state: SkyState, onAllowLocation: () -> Unit) {
+private fun Outlook(today: Day?, yesterday: Day?, state: SkyState, onAllowLocation: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 14.dp)) {
         if (today == null) {
             if (state.forecastTrouble == ForecastTrouble.NONE) {
@@ -515,6 +524,24 @@ private fun Outlook(today: Day?, state: SkyState, onAllowLocation: () -> Unit) {
                 ?: condition,
             style = MaterialTheme.typography.bodyMedium,
         )
+        yesterday?.let {
+            TextMMD(text = againstYesterday(today, it, metric = !state.inches), style = MaterialTheme.typography.labelSmall)
+        }
+    }
+}
+
+/**
+ * Today's high set against yesterday's: "6° warmer than yesterday". A degree or two either way
+ * (2 °C, or 3 °F) is within what a forecast can tell apart, and is said as about the same.
+ */
+@Composable
+private fun againstYesterday(today: Day, yesterday: Day, metric: Boolean): String {
+    val by = today.high - yesterday.high
+    val same = if (metric) 2 else 3
+    return when {
+        by >= same -> stringResource(R.string.sky_warmer_than_yesterday, by)
+        by <= -same -> stringResource(R.string.sky_cooler_than_yesterday, -by)
+        else -> stringResource(R.string.sky_as_yesterday)
     }
 }
 
@@ -635,7 +662,7 @@ private fun readingRows(reading: StationReading): List<@Composable () -> Unit> {
 }
 
 @Composable
-private fun ForecastTrouble(trouble: ForecastTrouble, nothingYet: Boolean, onAllow: () -> Unit) {
+internal fun ForecastTrouble(trouble: ForecastTrouble, nothingYet: Boolean, onAllow: () -> Unit) {
     val words = when (trouble) {
         ForecastTrouble.NONE -> return
         ForecastTrouble.NO_PERMISSION -> stringResource(R.string.sky_forecast_no_permission)
@@ -656,7 +683,7 @@ private fun ForecastTrouble(trouble: ForecastTrouble, nothingYet: Boolean, onAll
 }
 
 @Composable
-private fun DayRow(day: Day, inches: Boolean, today: LocalDate, modifier: Modifier = Modifier) {
+private fun DayRow(day: Day, inches: Boolean, today: LocalDate, modifier: Modifier = Modifier, yesterday: Day? = null) {
     val name = dayName(day.date, today)
     val condition = stringResource(conditionFor(day.code))
 
@@ -684,6 +711,10 @@ private fun DayRow(day: Day, inches: Boolean, today: LocalDate, modifier: Modifi
                 },
                 style = MaterialTheme.typography.labelSmall,
             )
+            // Today's row only: how it compares is what yesterday is for.
+            yesterday?.let {
+                TextMMD(text = againstYesterday(day, it, metric = !inches), style = MaterialTheme.typography.labelSmall)
+            }
         }
         Column(horizontalAlignment = Alignment.End) {
             TextMMD(
@@ -705,7 +736,7 @@ private fun DayRow(day: Day, inches: Boolean, today: LocalDate, modifier: Modifi
 }
 
 @Composable
-private fun dayName(date: LocalDate, today: LocalDate): String = when (date) {
+internal fun dayName(date: LocalDate, today: LocalDate): String = when (date) {
     today -> stringResource(R.string.sky_today)
     today.plusDays(1) -> stringResource(R.string.sky_tomorrow)
     else -> date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
@@ -714,7 +745,8 @@ private fun dayName(date: LocalDate, today: LocalDate): String = when (date) {
 /**
  * One day of the forecast on a page of its own, opened from the Forecast tab: the high as the
  * large figure, what the day feels like, its twenty-four hours as two strips of twelve, and
- * rows for the rain, snow, wind, UV and the sun. Everything the list has room only to hint at.
+ * rows for the rain, snow, wind, UV, the sun and the moon. Everything the list has room only to
+ * hint at.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -765,6 +797,12 @@ fun DayScreen(date: LocalDate, state: SkyState, onClose: () -> Unit) {
                 item {
                     HorizontalDividerMMD()
                     Reading(stringResource(R.string.sky_sunset), clock(day.sunset), "", small = true)
+                }
+            }
+            almanacDayRows(day, state.at, state.almanacZone()).forEach { row ->
+                item {
+                    HorizontalDividerMMD()
+                    row()
                 }
             }
             item { Credit(state, air = false) }
@@ -1142,7 +1180,7 @@ private fun snowUnit(inches: Boolean): String = if (inches) "in" else "cm"
 
 /** A label, a number with its unit, and a note only where a label cannot carry it. */
 @Composable
-private fun Reading(label: String, value: String, unit: String, note: String? = null, small: Boolean = false) {
+internal fun Reading(label: String, value: String, unit: String, note: String? = null, small: Boolean = false) {
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -1185,7 +1223,7 @@ private fun clock(millis: Long): String =
     clockFormat().format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
 
 @Composable
-private fun clock(time: java.time.LocalDateTime): String = clockFormat().format(time)
+internal fun clock(time: java.time.LocalDateTime): String = clockFormat().format(time)
 
 /** WMO weather interpretation codes, as Open-Meteo uses them, in a few plain words. */
 internal fun conditionFor(code: Int): Int = when (code) {

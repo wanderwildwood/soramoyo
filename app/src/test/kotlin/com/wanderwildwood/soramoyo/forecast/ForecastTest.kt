@@ -145,10 +145,7 @@ class ForecastTest {
     }
 
     /** A morning in Prague, fetched at 03:32 there, with showers coming. */
-    private val prague = Forecast.parse(
-        fixture("open-meteo-prague-hourly.json"),
-        now = Instant.parse("2026-09-24T01:32:00Z"),
-    )
+    private val prague = Forecast.parse(fixture("open-meteo-prague-hourly.json"))
 
     @Test
     fun readsTwelveHoursFromTheOneUnderWay() {
@@ -162,23 +159,37 @@ class ForecastTest {
         assertEquals(2.2, prague.days.first().rain!!, 0.0)
     }
 
+    /** The gone hours are kept, for the day's own page; what is to come starts at the hour under way. */
     @Test
-    fun hoursAlreadyGoneAreLeftOut() {
-        val later = Forecast.parse(
-            fixture("open-meteo-prague-hourly.json"),
-            now = Instant.parse("2026-09-24T05:10:00Z"),
-        )
+    fun hoursAlreadyGoneAreKeptButNotUpcoming() {
+        assertEquals(LocalDateTime.of(2026, 9, 24, 3, 0), prague.hours.first().time)
         // 07:10 in Prague: from 07:00, and the fixture runs out at 16:00.
-        assertEquals(LocalDateTime.of(2026, 9, 24, 7, 0), later.hours.first().time)
-        assertEquals(10, later.hours.size)
-        // The same, from a forecast fetched earlier and kept.
-        assertEquals(later.hours, upcoming(prague.hours, prague.offset, Instant.parse("2026-09-24T05:10:00Z")))
+        val later = upcoming(prague.hours, prague.offset, Instant.parse("2026-09-24T05:10:00Z"))
+        assertEquals(LocalDateTime.of(2026, 9, 24, 7, 0), later.first().time)
+        assertEquals(10, later.size)
+        assertEquals(java.time.ZoneId.of("Europe/Prague"), prague.zone)
+    }
+
+    /** Yesterday, for Today to compare against, and the sun's hours for each day's page. */
+    @Test
+    fun asksForYesterdayAndTheSunshine() {
+        val url = Forecast.urlFor(51.5, -0.13, metric = true)
+        assertTrue(url, url.contains("past_days=1"))
+        assertTrue(url, url.contains("sunshine_duration"))
+        val json = """
+            {"daily":{"time":["2026-10-15"],"weather_code":[2],
+            "temperature_2m_max":[18.0],"temperature_2m_min":[8.0],
+            "sunshine_duration":[25560.0],"daylight_duration":[40320.0]}}
+        """.trimIndent()
+        val day = Forecast.parse(json).days.single()
+        assertEquals(7.1, day.sunshine!!, 1e-9)
+        assertEquals(11.2, day.daylight!!, 1e-9)
     }
 
     @Test
     fun theFirstTurnIsTheOneTold() {
         // 88% at eight, after a dry night. Later hours go back and forth; only the first counts.
-        val hours = prague.hours.take(HOURS)
+        val hours = upcoming(prague.hours, prague.offset, Instant.parse("2026-09-24T01:32:00Z"))
         assertEquals(Change.From(LocalDateTime.of(2026, 9, 24, 8, 0), snow = false), Change.of(hours))
         assertEquals(1.9, Change.total(hours), 1e-9)
     }

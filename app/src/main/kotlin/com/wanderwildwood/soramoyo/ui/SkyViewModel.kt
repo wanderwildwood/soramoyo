@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
@@ -44,12 +45,19 @@ data class SkyState(
     /** The forecast's estimate of now, shown when there is no station to measure it. */
     val current: Current? = null,
     val days: List<Day> = emptyList(),
-    /** The next hours, from the one under way. */
+    /** The forecast's hours, from yesterday's first; [upcoming] picks out those still to come. */
     val hours: List<Hour> = emptyList(),
     /** Whether the forecast's rain amounts are in inches rather than millimetres. */
     val inches: Boolean = false,
     /** The forecast place's offset from UTC, which the hours' times are in. */
     val offset: ZoneOffset = ZoneOffset.UTC,
+    /** The forecast place's time zone, where the forecast named it. */
+    val zone: ZoneId? = null,
+    /**
+     * Where the forecast is for, or was asked for: the almanac works from it, with or without
+     * a forecast to go with it.
+     */
+    val at: LatLon? = null,
     /** Whether the forecast is in metric units, which also picks the air-quality scale. */
     val metric: Boolean = true,
     /** The air now; null until it arrives, and left null if it never does. */
@@ -88,6 +96,13 @@ data class SkyState(
      * against the phone's date left Today waiting for a day that never came.
      */
     fun placeToday(): LocalDate = LocalDate.now(offset)
+
+    /**
+     * The zone the almanac's times are in: the forecast's, else the offset it gave, else the
+     * phone's own, which is right for the phone's own position and the best guess for a place
+     * chosen while there was no forecast to say.
+     */
+    fun almanacZone(): ZoneId = zone ?: offset.takeIf { days.isNotEmpty() } ?: ZoneId.systemDefault()
 }
 
 /**
@@ -130,6 +145,8 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         val hours: List<Hour>,
         val inches: Boolean,
         val offset: ZoneOffset,
+        val zone: ZoneId?,
+        val at: LatLon?,
         val metric: Boolean,
         val air: Air?,
         val atMs: Long,
@@ -192,7 +209,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         asking = null
         val s = _state.value
         val leaving = if (s.days.isEmpty()) null else Held(
-            s.current, s.days, s.hours, s.inches, s.offset, s.metric, s.air, forecastAtMs, forecastFor,
+            s.current, s.days, s.hours, s.inches, s.offset, s.zone, s.at, s.metric, s.air, forecastAtMs, forecastFor,
         )
         val coming = other
         other = leaving
@@ -209,6 +226,8 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                 hours = coming.hours,
                 inches = coming.inches,
                 offset = coming.offset,
+                zone = coming.zone,
+                at = coming.at,
                 metric = coming.metric,
                 air = coming.air,
                 forecastTrouble = ForecastTrouble.NONE,
@@ -226,6 +245,8 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                 current = null,
                 days = emptyList(),
                 hours = emptyList(),
+                zone = null,
+                at = null,
                 air = null,
                 forecastTrouble = ForecastTrouble.NONE,
             )
@@ -304,6 +325,9 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 return@launch
             }
+            // The almanac needs only this, and works it out on the phone: it is there even when
+            // the forecast that follows never arrives.
+            _state.update { it.copy(at = here) }
             // The air is asked beside the forecast, for the same place. It is an extra row, not
             // the point: if it fails there is simply no row, and nothing on the screen says so.
             launch {
@@ -326,6 +350,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                         hours = predicted.hours,
                         inches = predicted.inches,
                         offset = predicted.offset,
+                        zone = predicted.zone,
                         metric = metric,
                         forecastTrouble = ForecastTrouble.NONE,
                     )
