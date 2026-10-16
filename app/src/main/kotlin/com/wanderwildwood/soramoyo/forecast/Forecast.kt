@@ -10,6 +10,7 @@ import java.io.IOException
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.Locale
@@ -25,6 +26,7 @@ import kotlin.math.roundToInt
  * wind mostly comes from, the highest UV, how many hours it rains, the snow in centimetres or
  * inches, and [rainOnly], the rain and showers alone. [rain] is everything that falls, snow
  * counted as the water it melts to, which on a snowy day is neither the rain nor the snow.
+ * [sunshine] and [daylight] are hours: the sun out of cloud, and the sun above the horizon.
  */
 data class Day(
     val date: LocalDate,
@@ -45,6 +47,8 @@ data class Day(
     val rainHours: Double? = null,
     val snow: Double? = null,
     val rainOnly: Double? = null,
+    val sunshine: Double? = null,
+    val daylight: Double? = null,
 ) {
     /** A day the forecast calls snowy and that has snow to show for it. */
     val snowy: Boolean get() = Change.snow(code) && (snow ?: 0.0) > 0.0
@@ -90,8 +94,8 @@ data class Current(
 )
 
 /**
- * What came back: the days, the hours from the one under way, whether the amounts are in
- * inches, and the place's offset from UTC, which the hours' times are in.
+ * What came back: the days from yesterday, their hours, whether the amounts are in inches, the
+ * place's offset from UTC, which the hours' times are in, and its time zone where it was named.
  */
 data class Predicted(
     val current: Current? = null,
@@ -99,6 +103,7 @@ data class Predicted(
     val hours: List<Hour> = emptyList(),
     val inches: Boolean = false,
     val offset: ZoneOffset = ZoneOffset.UTC,
+    val zone: ZoneId? = null,
 )
 
 /**
@@ -135,7 +140,8 @@ fun Day.restOf(hours: List<Hour>, offset: ZoneOffset, now: Instant = Instant.now
 const val HOURS = 12
 
 /**
- * Six days from Open-Meteo — today and the five after it — for the phone or the chosen place.
+ * Seven days from Open-Meteo — yesterday, today and the five after it — for the phone or the
+ * chosen place.
  *
  * Open-Meteo asks for no key and no account, which is the only kind of forecast service an
  * app with no server of its own can use. Its data is CC BY 4.0, and the screen says whose it
@@ -167,7 +173,7 @@ object Forecast {
                     "precipitation_probability_max,precipitation_sum,precipitation_hours,snowfall_sum," +
                     "rain_sum,showers_sum," +
                     "wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,uv_index_max," +
-                    "sunrise,sunset",
+                    "sunrise,sunset,sunshine_duration,daylight_duration",
             )
             .addQueryParameter(
                 "current",
@@ -183,18 +189,27 @@ object Forecast {
             // The phone's own time zone would be wrong for a forecast of somewhere else;
             // "auto" gives the days and the sunrise in the zone of the place itself.
             .addQueryParameter("timezone", "auto")
-            // Today for the first tab, and five after it for the second.
+            // Today for the first tab, and five after it for the second. Yesterday too, for
+            // Today to say how it compares.
             .addQueryParameter("forecast_days", "6")
+            .addQueryParameter("past_days", "1")
             .build()
             .toString()
 
-    internal fun parse(json: String, now: Instant = Instant.now()): Predicted {
+    /**
+     * Every hour comes back, the gone ones too: a day's page shows all twenty-four. What is
+     * still to come is [upcoming]'s to pick out.
+     */
+    internal fun parse(json: String): Predicted {
         val root = JSONObject(json)
         val inches = root.optJSONObject("daily_units")?.optString("precipitation_sum") == "inch" ||
             root.optJSONObject("hourly_units")?.optString("precipitation") == "inch"
         val offset = ZoneOffset.ofTotalSeconds(root.optInt("utc_offset_seconds", 0))
-        val thisHour = LocalDateTime.ofInstant(now, offset).truncatedTo(ChronoUnit.HOURS)
-        return Predicted(current(root), days(root), hours(root).filterNot { it.time.isBefore(thisHour) }, inches, offset)
+        // Named, the zone knows where the clocks change, which an offset does not: the
+        // almanac's month runs past the end of summer time.
+        val zone = root.optString("timezone").takeIf { it.isNotEmpty() }
+            ?.let { runCatching { ZoneId.of(it) }.getOrNull() }
+        return Predicted(current(root), days(root), hours(root), inches, offset, zone)
     }
 
     private fun days(root: JSONObject): List<Day> {
@@ -217,6 +232,8 @@ object Forecast {
         val amounts = daily.optJSONArray("precipitation_sum")
         val rises = daily.optJSONArray("sunrise")
         val sets = daily.optJSONArray("sunset")
+        val sunshine = daily.optJSONArray("sunshine_duration")
+        val daylight = daily.optJSONArray("daylight_duration")
 
         return (0 until dates.length()).mapNotNull { i ->
             // A day the model has no temperature for is not a day worth showing a dash for.
@@ -242,6 +259,9 @@ object Forecast {
                     rains?.takeUnless { it.isNull(i) }?.getDouble(i),
                     showers?.takeUnless { it.isNull(i) }?.getDouble(i),
                 ).takeIf { it.isNotEmpty() }?.sum(),
+                // Given in seconds.
+                sunshine = sunshine?.takeUnless { it.isNull(i) }?.getDouble(i)?.div(3600),
+                daylight = daylight?.takeUnless { it.isNull(i) }?.getDouble(i)?.div(3600),
             )
         }
     }

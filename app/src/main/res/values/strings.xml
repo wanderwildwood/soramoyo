@@ -6,6 +6,7 @@
     <string name="tab_today">Today</string>
     <string name="tab_forecast">Forecast</string>
     <string name="tab_radar">Radar</string>
+    <string name="tab_almanac">Almanac</string>
     <string name="sky_cd_settings">Settings</string>
     <string name="sky_asking">Asking the station…</string>
     <!-- %1$s is the address from settings -->
@@ -99,6 +100,45 @@
     <string name="sky_wind_strongest">At its strongest</string>
     <string name="sky_sunrise">Sunrise</string>
     <string name="sky_sunset">Sunset</string>
+    <!-- Today's high against yesterday's: %1$d is the difference in degrees -->
+    <string name="sky_warmer_than_yesterday">%1$d° warmer than yesterday</string>
+    <string name="sky_cooler_than_yesterday">%1$d° cooler than yesterday</string>
+    <string name="sky_as_yesterday">About as warm as yesterday</string>
+    <string name="sky_sunshine">Sunshine</string>
+    <!-- Under the hours of sunshine: %1$s is the hours the sun is above the horizon -->
+    <string name="sky_sunshine_of">Of %1$s hours of daylight</string>
+    <string name="sky_hours_short">h</string>
+
+    <!-- The almanac: the sun and moon, worked out on the phone -->
+    <string name="sky_almanac_waiting">Finding where the phone is…</string>
+    <string name="sky_moonrise">Moonrise</string>
+    <string name="sky_moonset">Moonset</string>
+    <string name="sky_moon">Moon</string>
+    <string name="sky_not_today">Not today</string>
+    <!-- %1$d is the percentage of the moon's face that is lit -->
+    <string name="sky_moon_lit">%1$d%% lit</string>
+    <!-- %1$s is a moon phase ("Full moon"), %2$s its date -->
+    <string name="sky_next_phase">%1$s on %2$s</string>
+    <string name="sky_astronomical_dawn">Astronomical dawn</string>
+    <string name="sky_astronomical_dusk">Astronomical dusk</string>
+    <string name="sky_never_dark">Fully dark</string>
+    <string name="sky_never_dark_value">Not tonight</string>
+    <string name="sky_sun">Sun</string>
+    <string name="sky_sun_up_all_day">Up all day</string>
+    <string name="sky_sun_down_all_day">Down all day</string>
+    <string name="sky_daylight">Daylight</string>
+    <!-- A length of time: %1$d hours, %2$d minutes -->
+    <string name="sky_duration">%1$d h %2$d min</string>
+    <string name="sky_cd_month_before">Month before</string>
+    <string name="sky_cd_month_after">Month after</string>
+    <string name="moon_new">New moon</string>
+    <string name="moon_waxing_crescent">Waxing crescent</string>
+    <string name="moon_first_quarter">First quarter</string>
+    <string name="moon_waxing_gibbous">Waxing gibbous</string>
+    <string name="moon_full">Full moon</string>
+    <string name="moon_waning_gibbous">Waning gibbous</string>
+    <string name="moon_last_quarter">Last quarter</string>
+    <string name="moon_waning_crescent">Waning crescent</string>
     <string name="sky_forecast_credit">Forecast by Open-Meteo, CC BY 4.0</string>
     <string name="sky_air_credit">Air quality from the Copernicus Atmosphere Monitoring Service, by Open-Meteo</string>
     <!-- Under the temperature when there is no station: %1$s is a condition such as "Overcast", %2$s a time -->
