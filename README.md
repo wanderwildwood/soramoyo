@@ -18,7 +18,7 @@ the station and the forecast are added here.
 
 ## What it shows
 
-Three tabs: **Today**, **Forecast** and **Radar**. Today opens.
+Four tabs: **Today**, **Forecast**, **Radar** and **Almanac**. Today opens.
 
 **The station, if you have one.** Temperature, what it feels like, wind and gusts, rain today
 and whether it is falling now, humidity, dew point, pressure and UV, from one of four kinds:
@@ -44,10 +44,11 @@ Without a station, Today leads with the forecast's estimate of now instead — t
 feels-like, wind and humidity, marked as an estimate and for what time.
 
 **The forecast.** Today's high and low and chance of rain sit under the station reading,
-with sunrise and sunset; the Forecast tab has the five days after it, each with how much rain
+with sunrise and sunset and how the high compares with yesterday's; the Forecast tab has the five days after it, each with how much rain
 (or snow) is expected, and what the day will feel like where wind or damp make it colder or
 hotter than it reads. Tap a day for its own page: its hours before and after noon, when rain
-is likely and until when, the wind at its strongest, gusts, UV, sunrise and sunset. Under today, the next twelve hours: one line saying when rain (or snow) is likely
+is likely and until when, the wind at its strongest, gusts, UV, sunrise and sunset, the hours
+of sunshine, and the moon that day with its rise and set. Under today, the next twelve hours: one line saying when rain (or snow) is likely
 to start or stop, and how much, over a strip of the hours with their temperatures and the
 chance of rain drawn as bars. If the station says it is raining and the forecast does not,
 the line says so. From [Open-Meteo](https://open-meteo.com/), for wherever the phone is or
@@ -59,6 +60,13 @@ Atmosphere Monitoring Service, by Open-Meteo: modelled, not measured.
 
 **Units.** As the station reads, or else the phone's country, until metric or imperial is
 chosen in settings; then everything follows, the station's readings included.
+
+**The almanac.** The moon drawn as it looks tonight, its phase and how much of it is lit, and
+when the next new, quarter or full moon falls; moonrise and moonset, each with the compass
+point it is at; astronomical dawn, sunrise, sunset, astronomical dusk and the daylight
+between; and a month of moons, a week to a row, with the other months a press away. All of it
+is worked out on the phone from where it is, so it is there with no signal. Far enough north
+it says so when the sun does not set, or the night does not get fully dark.
 
 **The radar.** kRadar's radar, unchanged at heart: the last two hours of
 [RainViewer](https://www.rainviewer.com/) radar over a vector map centred on the phone, a
@@ -74,7 +82,7 @@ phone's position is not read.
 
 **A second place.** Someone who lives in one town and works in another can set a second
 place the same way. The two names then sit at the top of the screen, and a press goes over to
-the other: Today, Forecast and Radar all follow. The station belongs to the first place and is
+the other: Today, Forecast, Radar and Almanac all follow. The station belongs to the first place and is
 left out while the second is shown; the lock screen stays with the first too. With no second
 place set, nothing changes.
 
@@ -96,6 +104,7 @@ The radar, the forecast and the air all need to know roughly where the phone is,
 places you chose. Each is rounded to two decimal places — about a kilometre — before it
 leaves the phone, and it goes to Open-Meteo for the forecast and the air, and to RainViewer
 for the radar tiles. A place you search for is sent, as typed, to Open-Meteo's place search.
+The almanac sends nothing; it is worked out on the phone.
 
 With [Glance](https://github.com/wanderwildwood/hitome) installed, the weather also shows on
 the lock screen: the temperature, the day's high and low, and when rain is likely. Looking at
