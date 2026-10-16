@@ -72,6 +72,11 @@
     <string name="sky_cd_hours">Hour by hour: the chance of rain as a bar, dotted where it becomes likely</string>
     <!-- Under the first column of the hourly strip, the hour now under way -->
     <string name="sky_now">Now</string>
+    <string name="sky_hours_later">Later ›</string>
+    <string name="sky_hours_sooner">‹ Now</string>
+    <string name="sky_hours_span">%1$s to %2$s</string>
+    <string name="sky_later_rain_all">Rain likely throughout</string>
+    <string name="sky_later_snow_all">Snow likely throughout</string>
     <!-- High and low temperatures for a day -->
     <string name="sky_high_low">%1$d° / %2$d°</string>
     <string name="sky_feels_like_high_low">Feels like %1$d° / %2$d°</string>

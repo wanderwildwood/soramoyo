@@ -1,6 +1,10 @@
 package com.wanderwildwood.soramoyo.ui
 
 import androidx.compose.foundation.background
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -217,7 +221,11 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
     // No rail here: it took a strip off the right of every row, and Today is read top down
     // with a swipe, which still moves it four rows at a time.
     LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp), isScrollbarVisible = false) {
-        val hours = upcoming(state.hours, state.offset)
+        // The next twelve hours, and the twelve after them a swipe away: going out in the
+        // morning, the evening you come back in is past the first twelve.
+        val next = upcoming(state.hours, state.offset, count = HOURS * 2)
+        val hours = next.take(HOURS)
+        val after = next.drop(HOURS)
         val current = state.current
         if (noStation) {
             if (current != null) {
@@ -234,7 +242,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
             if (hours.isNotEmpty()) {
                 item {
                     HorizontalDividerMMD()
-                    Hours(hours, state.inches, rainingNow(state))
+                    Hours(hours, after, state.inches, rainingNow(state))
                 }
             }
         } else {
@@ -268,7 +276,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
             if (hours.isNotEmpty()) {
                 item {
                     HorizontalDividerMMD()
-                    Hours(hours, state.inches, rainingNow(state))
+                    Hours(hours, after, state.inches, rainingNow(state))
                 }
             }
         }
@@ -804,33 +812,7 @@ private fun DayHeadline(day: Day) {
 private fun DayHours(hours: List<Hour>) {
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
         TextMMD(
-            text = when (val change = Change.of(hours)) {
-                Change.Dry -> stringResource(R.string.sky_day_dry)
-                // A whole day is read to plan it, so where the wet spell ends inside the day
-                // it is said too; Today's next twelve hours tell only the first turn.
-                is Change.From -> {
-                    val end = hours.firstOrNull { it.time.isAfter(change.at) && !Change.wet(it) }
-                    if (end != null) {
-                        stringResource(
-                            if (change.snow) R.string.sky_day_snow_between else R.string.sky_day_rain_between,
-                            clock(change.at),
-                            clock(end.time),
-                        )
-                    } else {
-                        stringResource(
-                            if (change.snow) R.string.sky_hours_snow_from else R.string.sky_hours_rain_from,
-                            clock(change.at),
-                        )
-                    }
-                }
-                is Change.Until -> stringResource(
-                    if (change.snow) R.string.sky_hours_snow_until else R.string.sky_hours_rain_until,
-                    clock(change.at),
-                )
-                is Change.Throughout -> stringResource(
-                    if (change.snow) R.string.sky_day_snow_all else R.string.sky_day_rain_all,
-                )
-            },
+            text = spellLine(hours),
             style = MaterialTheme.typography.bodyMedium,
         )
         // Split at noon rather than every twelve, so a day the clocks change on (23 or 25
@@ -840,6 +822,43 @@ private fun DayHours(hours: List<Hour>) {
             Strip(half)
         }
     }
+}
+
+/**
+ * What a run of hours read to plan by says about rain: when a wet spell starts, and where it
+ * ends inside them, or that there is none. A day's page says so of the whole day, Today's
+ * later hours of just those.
+ */
+@Composable
+private fun spellLine(hours: List<Hour>, wholeDay: Boolean = true): String = when (val change = Change.of(hours)) {
+    Change.Dry -> stringResource(R.string.sky_day_dry)
+    // Hours read to plan by, a day or Today's later twelve, say where the wet spell ends
+    // too; Today's next twelve hours tell only the first turn.
+    is Change.From -> {
+        val end = hours.firstOrNull { it.time.isAfter(change.at) && !Change.wet(it) }
+        if (end != null) {
+            stringResource(
+                if (change.snow) R.string.sky_day_snow_between else R.string.sky_day_rain_between,
+                clock(change.at),
+                clock(end.time),
+            )
+        } else {
+            stringResource(
+                if (change.snow) R.string.sky_hours_snow_from else R.string.sky_hours_rain_from,
+                clock(change.at),
+            )
+        }
+    }
+    is Change.Until -> stringResource(
+        if (change.snow) R.string.sky_hours_snow_until else R.string.sky_hours_rain_until,
+        clock(change.at),
+    )
+    is Change.Throughout -> stringResource(
+        when {
+            wholeDay -> if (change.snow) R.string.sky_day_snow_all else R.string.sky_day_rain_all
+            else -> if (change.snow) R.string.sky_later_snow_all else R.string.sky_later_rain_all
+        },
+    )
 }
 
 /** The day's rows, each only where the forecast gave it. */
@@ -911,7 +930,35 @@ private fun dayRows(day: Day, inches: Boolean, metric: Boolean): List<@Composabl
  * the Kompakt's panel the figures ran together into one string.
  */
 @Composable
-private fun Hours(hours: List<Hour>, inches: Boolean, raining: Boolean) {
+private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining: Boolean) {
+    if (after.isEmpty()) {
+        NextHours(hours, inches, raining)
+        return
+    }
+    // The twelve hours after these, a swipe across the strip away. The word under it jumps
+    // there too, without a slide, for anyone who does not think to swipe: on this panel a
+    // half-drawn page is only smear.
+    val pager = rememberPagerState { 2 }
+    val scope = rememberCoroutineScope()
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HorizontalPager(state = pager, verticalAlignment = Alignment.Top) { page ->
+            if (page == 0) NextHours(hours, inches, raining) else LaterHours(after)
+        }
+        TextMMD(
+            text = stringResource(if (pager.currentPage == 0) R.string.sky_hours_later else R.string.sky_hours_sooner),
+            style = MaterialTheme.typography.labelSmall,
+            textAlign = if (pager.currentPage == 0) TextAlign.End else TextAlign.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { scope.launch { pager.scrollToPage(1 - pager.currentPage) } }
+                .padding(bottom = 12.dp),
+        )
+    }
+}
+
+/** The next twelve hours, as Today first shows them. */
+@Composable
+private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean) {
     val now = stringResource(R.string.sky_now)
     val count = hours.size
     val change = Change.of(hours)
@@ -958,6 +1005,23 @@ private fun Hours(hours: List<Hour>, inches: Boolean, raining: Boolean) {
 }
 
 /**
+ * The twelve hours after the next twelve: the line as a day's page words it, with where
+ * these hours start and end under it, since "no rain likely" alone would not say when.
+ */
+@Composable
+private fun LaterHours(hours: List<Hour>) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+        TextMMD(text = spellLine(hours, wholeDay = false), style = MaterialTheme.typography.bodyMedium)
+        TextMMD(
+            text = stringResource(R.string.sky_hours_span, clock(hours.first().time), clock(hours.last().time.plusHours(1))),
+            style = MaterialTheme.typography.labelSmall,
+        )
+        Spacer(Modifier.height(10.dp))
+        Strip(hours)
+    }
+}
+
+/**
  * The strip itself: an hour to a column, the chance of rain as a bar standing on a rule, a
  * dotted line where it becomes likely, and the temperature and hour every third column. The
  * first column's label is [first] where given ("Now"), else its hour.
@@ -970,15 +1034,22 @@ private fun Strip(hours: List<Hour>, first: String? = null) {
     Row(modifier = Modifier.fillMaxWidth().semantics { contentDescription = described }) {
         hours.forEachIndexed { i, hour ->
             val written = i % 3 == 0
+            // Written past the column's edges if it needs to: its neighbours are empty. The
+            // first column's run right from its left edge instead, since left of it is the
+            // edge of the screen, where "8 AM" lost its 8.
+            val label = if (i == 0) {
+                Modifier.fillMaxWidth().wrapContentWidth(Alignment.Start, unbounded = true)
+            } else {
+                Modifier.wrapContentWidth(unbounded = true)
+            }
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                // Written past the column's edges if it needs to: its neighbours are empty.
                 TextMMD(
                     text = if (written) "${hour.temperature}°" else "",
                     style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.wrapContentWidth(unbounded = true),
+                    modifier = label,
                 )
                 Spacer(Modifier.height(4.dp))
                 // The bar stands on a rule drawn across the whole strip, so an hour with
@@ -1018,7 +1089,7 @@ private fun Strip(hours: List<Hour>, first: String? = null) {
                         else -> ""
                     },
                     style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.wrapContentWidth(unbounded = true),
+                    modifier = label,
                 )
             }
         }
