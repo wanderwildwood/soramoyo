@@ -13,7 +13,7 @@ the station and the forecast are added here.
 
 | | |
 |---|---|
-| ![Today: now, today, and the next twelve hours](screenshots/1-today.png) | ![Forecast: the five days after today, and what they feel like](screenshots/2-forecast.png) |
+| ![Today: now, today, and the next twelve hours](screenshots/1-today.png) | ![Almanac: the moon tonight, its rise and set, and the sun's dawn and dusk](screenshots/2-almanac.png) |
 | ![A day of its own: its hours and its snow](screenshots/3-day.png) | ![Radar, with the state lines](screenshots/4-radar.png) |
 
 ## What it shows
