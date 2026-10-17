@@ -189,8 +189,12 @@ private suspend fun LazyListState.pageBack() {
     val from = firstVisibleItemIndex
     scrollBy(-layoutInfo.viewportSize.height.toFloat())
     // A row cut by the top edge waits for the page before; unless it is the one row being
-    // gone back to, taller than the screen.
-    if (firstVisibleItemScrollOffset > 0 && firstVisibleItemIndex + 1 < from) {
-        scrollToItem(firstVisibleItemIndex + 1)
+    // gone back to, taller than the screen, or it is cut by no more than the room left under
+    // that row. A spaced list leaves its gap there, and the row still fits whole.
+    val cut = firstVisibleItemScrollOffset
+    if (cut > 0 && firstVisibleItemIndex + 1 < from) {
+        val before = layoutInfo.visibleItemsInfo.firstOrNull { it.index == from - 1 }
+        val room = before?.let { layoutInfo.viewportSize.height - (it.offset + it.size) } ?: 0
+        scrollToItem(if (cut <= room) firstVisibleItemIndex else firstVisibleItemIndex + 1)
     }
 }
