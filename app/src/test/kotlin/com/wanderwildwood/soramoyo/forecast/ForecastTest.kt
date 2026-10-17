@@ -231,4 +231,35 @@ class ForecastTest {
         assertTrue(Forecast.urlFor(50.0, 14.0, metric = false).contains("wind_speed_unit=mph"))
         assertEquals(null, Forecast.parse(fixture("open-meteo-prague.json")).current)
     }
+
+    /**
+     * A real answer (Berlin, 2026-10-17) to the request as it is made since yesterday came
+     * into it: seven days from yesterday, each with its wind, its gusts and where the wind
+     * comes from, at the same index as its date.
+     */
+    @Test
+    fun windAndGustsLineUpWithTheirDaysFromYesterday() {
+        val predicted = Forecast.parse(fixture("open-meteo-berlin-past-day.json"))
+        val days = predicted.days
+
+        assertEquals(7, days.size)
+        assertEquals(LocalDate.of(2026, 10, 16), days[0].date)
+        assertEquals(LocalDate.of(2026, 10, 17), days[1].date)
+        assertEquals(9.8, days[0].windMax!!, 0.0)
+        assertEquals(23.8, days[0].gustMax!!, 0.0)
+        assertEquals(158, days[0].windFrom)
+        assertEquals(13.4, days[1].windMax!!, 0.0)
+        assertEquals(31.3, days[1].gustMax!!, 0.0)
+        assertEquals(318, days[1].windFrom)
+        assertEquals(LocalDate.of(2026, 10, 22), days[6].date)
+        assertEquals(15.9, days[6].windMax!!, 0.0)
+        assertEquals(41.4, days[6].gustMax!!, 0.0)
+        assertEquals(255, days[6].windFrom)
+        assertTrue(days.all { it.windMax != null && it.gustMax != null && it.windFrom != null })
+
+        val now = predicted.current!!
+        assertEquals(9.0, now.windSpeed!!, 0.0)
+        assertEquals(22.0, now.windGust!!, 0.0)
+        assertEquals(323, now.windFrom)
+    }
 }

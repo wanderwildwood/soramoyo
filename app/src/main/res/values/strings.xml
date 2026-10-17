@@ -22,6 +22,7 @@
     <string name="sky_last_read">Not answering. Last read at %1$s</string>
     <string name="sky_wind">Wind</string>
     <string name="sky_gusts">Gusts</string>
+    <string name="sky_gusts_to">Gusts to %1$d %2$s</string>
     <string name="sky_rain_today">Rain today</string>
     <string name="sky_rain_falling">Falling now</string>
     <!-- %1$s is a number, %2$s its unit as the gateway gives it, e.g. in/Hr -->
@@ -98,6 +99,7 @@
         <item quantity="other">%1$d%% chance, over about %2$d hours</item>
     </plurals>
     <string name="sky_wind_strongest">At its strongest</string>
+    <string name="sky_wind_strongest_gusts">At its strongest, with gusts to %1$d %2$s</string>
     <string name="sky_sunrise">Sunrise</string>
     <string name="sky_sunset">Sunset</string>
     <!-- Today's high against yesterday's: %1$d is the difference in degrees -->
