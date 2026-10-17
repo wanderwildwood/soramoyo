@@ -43,8 +43,6 @@ import androidx.compose.ui.unit.sp
 import com.mudita.mmd.components.buttons.OutlinedButtonMMD
 import com.mudita.mmd.components.divider.HorizontalDividerMMD
 import com.mudita.mmd.components.lazy.LazyColumnMMD
-import com.mudita.mmd.components.tabs.TabMMD
-import com.mudita.mmd.components.tabs.TabRowMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.soramoyo.R
@@ -112,52 +110,20 @@ fun SkyTabs(
                     },
                     actions = { BarButton(Icons.Settings, stringResource(R.string.sky_cd_settings), onSettings) },
                 )
-                // MMD's plain tab row, which does not slide between tabs. Its own underline is
-                // left out: in this row it measures to the row's full height and draws a black
-                // block over the tabs beside the chosen one. The chosen tab is its label in
-                // bold with a rule under it instead, drawn by the tab itself.
-                TabRowMMD(
-                    selectedTabIndex = tab.ordinal,
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    indicator = {},
-                ) {
-                    Tab.entries.forEach { t ->
-                        val chosen = t == tab
-                        val rule = MaterialTheme.colorScheme.onSurface
-                        TabMMD(
-                            selected = chosen,
-                            onClick = { onTab(t) },
-                            text = {
-                                TextMMD(
-                                    text = stringResource(
-                                        when (t) {
-                                            Tab.TODAY -> R.string.tab_today
-                                            Tab.FORECAST -> R.string.tab_forecast
-                                            Tab.RADAR -> R.string.tab_radar
-                                            Tab.ALMANAC -> R.string.tab_almanac
-                                        },
-                                    ),
-                                    fontWeight = if (chosen) FontWeight.Bold else FontWeight.Normal,
-                                    // Four to a row, "Forecast" and "Almanac" are wider than a
-                                    // tab less its padding, and broke onto two lines. One line,
-                                    // running into the padding, which has nothing else in it.
-                                    maxLines = 1,
-                                    softWrap = false,
-                                    modifier = Modifier
-                                        .wrapContentWidth(unbounded = true)
-                                        .padding(vertical = 10.dp)
-                                        .drawBehind {
-                                            if (chosen) {
-                                                val y = size.height + 4.dp.toPx()
-                                                drawLine(rule, Offset(0f, y), Offset(size.width, y), strokeWidth = 3.dp.toPx())
-                                            }
-                                        },
-                                )
+                StoneTabs(
+                    labels = Tab.entries.map { t ->
+                        stringResource(
+                            when (t) {
+                                Tab.TODAY -> R.string.tab_today
+                                Tab.FORECAST -> R.string.tab_forecast
+                                Tab.RADAR -> R.string.tab_radar
+                                Tab.ALMANAC -> R.string.tab_almanac
                             },
                         )
-                    }
-                }
+                    },
+                    selected = tab.ordinal,
+                    onSelect = { onTab(Tab.entries[it]) },
+                )
             }
         },
     ) { contentPadding ->
