@@ -36,7 +36,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.mudita.mmd.components.divider.HorizontalDividerMMD
-import com.mudita.mmd.components.lazy.LazyColumnMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.wanderwildwood.soramoyo.R
 import com.wanderwildwood.soramoyo.almanac.Almanac
@@ -65,7 +64,7 @@ import kotlin.math.roundToInt
 @Composable
 internal fun AlmanacTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Modifier) {
     val at = state.at
-    LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp), isScrollbarVisible = false) {
+    PagedColumn(modifier = modifier.padding(horizontal = 20.dp)) {
         if (at == null) {
             item {
                 Spacer(Modifier.height(12.dp))
@@ -77,7 +76,7 @@ internal fun AlmanacTab(state: SkyState, onAllowLocation: () -> Unit, modifier: 
                     TextMMD(text = stringResource(R.string.sky_almanac_waiting), style = MaterialTheme.typography.bodySmall)
                 }
             }
-            return@LazyColumnMMD
+            return@PagedColumn
         }
         val zone = state.almanacZone()
         val today = LocalDate.now(zone)
@@ -102,7 +101,6 @@ internal fun AlmanacTab(state: SkyState, onAllowLocation: () -> Unit, modifier: 
             HorizontalDividerMMD()
             MoonMonth(today, zone, south)
         }
-        item { Spacer(Modifier.height(24.dp)) }
     }
 }
 

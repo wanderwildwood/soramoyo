@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mudita.mmd.components.buttons.OutlinedButtonMMD
 import com.mudita.mmd.components.divider.HorizontalDividerMMD
-import com.mudita.mmd.components.lazy.LazyColumnMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.soramoyo.R
@@ -194,8 +193,8 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
     // A station that is set but cannot be reached, with nothing recent from it to show.
     val fallback = !noStation && stationGone(state)
     // No rail here: it took a strip off the right of every row, and Today is read top down
-    // with a swipe, which still moves it four rows at a time.
-    LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp), isScrollbarVisible = false) {
+    // with a swipe, a page of whole rows at a time.
+    PagedColumn(modifier = modifier.padding(horizontal = 20.dp)) {
         // The next twelve hours, and the twelve after them a swipe away: going out in the
         // morning, the evening you come back in is past the first twelve.
         val next = upcoming(state.hours, state.offset, count = HOURS * 2)
@@ -292,7 +291,6 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
         if (today != null) {
             item { Credit(state) }
         }
-        item { Spacer(Modifier.height(24.dp)) }
     }
 }
 
@@ -301,7 +299,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
 private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, onDay: (LocalDate) -> Unit, modifier: Modifier) {
     val placeToday = state.placeToday()
     val ahead = state.days.filter { it.date.isAfter(placeToday) }
-    LazyColumnMMD(modifier = modifier.padding(horizontal = 20.dp), isScrollbarVisible = false) {
+    PagedColumn(modifier = modifier.padding(horizontal = 20.dp)) {
         item {
             Spacer(Modifier.height(12.dp))
             ForecastTrouble(state.forecastTrouble, ahead.isEmpty(), onAllowLocation)
@@ -315,7 +313,6 @@ private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, onDay: (Lo
         if (ahead.isNotEmpty()) {
             item { Credit(state, air = false) }
         }
-        item { Spacer(Modifier.height(24.dp)) }
     }
 }
 
@@ -730,9 +727,8 @@ fun DayScreen(date: LocalDate, state: SkyState, onClose: () -> Unit) {
             )
         },
     ) { contentPadding ->
-        LazyColumnMMD(
+        PagedColumn(
             modifier = Modifier.fillMaxSize().padding(contentPadding).padding(horizontal = 20.dp),
-            isScrollbarVisible = false,
         ) {
             // A forecast refreshed past midnight no longer has yesterday's tomorrow in it.
             if (day == null) {
@@ -740,7 +736,7 @@ fun DayScreen(date: LocalDate, state: SkyState, onClose: () -> Unit) {
                     Spacer(Modifier.height(12.dp))
                     TextMMD(text = stringResource(R.string.sky_day_gone), style = MaterialTheme.typography.bodySmall)
                 }
-                return@LazyColumnMMD
+                return@PagedColumn
             }
             item { DayHeadline(day) }
 
@@ -775,7 +771,6 @@ fun DayScreen(date: LocalDate, state: SkyState, onClose: () -> Unit) {
                 }
             }
             item { Credit(state, air = false) }
-            item { Spacer(Modifier.height(24.dp)) }
         }
     }
 }
