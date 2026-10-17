@@ -584,6 +584,9 @@ private fun Now(state: SkyState) {
 private fun readingRows(reading: StationReading): List<@Composable () -> Unit> {
     val rows = ArrayList<@Composable () -> Unit>()
 
+    // The gusts go in the wind's own row: as two rows, a scroll could leave the wind under
+    // the top bar and only the gusts on the screen.
+    val gust = reading.windGust
     reading.windSpeed?.let { wind ->
         rows += {
             val compass = stringArrayResource(R.array.compass_16)
@@ -594,11 +597,11 @@ private fun readingRows(reading: StationReading): List<@Composable () -> Unit> {
                 label = stringResource(R.string.sky_wind),
                 value = listOfNotNull(from, speed.toString()).joinToString(" "),
                 unit = wind.unit,
+                note = gust?.let { stringResource(R.string.sky_gusts_to, it.number.roundToInt(), it.unit) },
             )
         }
-    }
-    reading.windGust?.let { gust ->
-        rows += { Reading(stringResource(R.string.sky_gusts), gust.number.roundToInt().toString(), gust.unit) }
+    } ?: gust?.let {
+        rows += { Reading(stringResource(R.string.sky_gusts), it.number.roundToInt().toString(), it.unit) }
     }
     reading.rainToday?.let { rain ->
         val rate = reading.rainRate
@@ -904,6 +907,10 @@ private fun dayRows(day: Day, inches: Boolean, metric: Boolean): List<@Composabl
         }
     }
     val speed = if (metric) "km/h" else "mph"
+    // One row for the wind and its gusts, as on Today: the sun and moon rows under them made
+    // the page long enough for a scroll to stop with the wind under the top bar and only the
+    // gusts showing.
+    val gust = day.gustMax
     day.windMax?.let { wind ->
         rows += {
             val compass = stringArrayResource(R.array.compass_16)
@@ -913,12 +920,15 @@ private fun dayRows(day: Day, inches: Boolean, metric: Boolean): List<@Composabl
                 label = stringResource(R.string.sky_wind),
                 value = listOfNotNull(from, strength.toString()).joinToString(" "),
                 unit = speed,
-                note = stringResource(R.string.sky_wind_strongest),
+                note = if (gust != null) {
+                    stringResource(R.string.sky_wind_strongest_gusts, gust.roundToInt(), speed)
+                } else {
+                    stringResource(R.string.sky_wind_strongest)
+                },
             )
         }
-    }
-    day.gustMax?.let { gust ->
-        rows += { Reading(stringResource(R.string.sky_gusts), gust.roundToInt().toString(), speed) }
+    } ?: gust?.let {
+        rows += { Reading(stringResource(R.string.sky_gusts), it.roundToInt().toString(), speed) }
     }
     day.uvMax?.let { uv ->
         rows += { Reading(stringResource(R.string.sky_uv), uv.roundToInt().toString(), "") }
