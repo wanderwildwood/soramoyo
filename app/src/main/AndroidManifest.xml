@@ -66,6 +66,12 @@
             android:name=".glance.ForTheAlarm"
             android:authorities="com.wanderwildwood.soramoyo.alarm"
             android:exported="true" />
+
+        <!-- Today's weather in plain words for the Wander game; it answers Wander alone. -->
+        <provider
+            android:name=".glance.ForTheWalk"
+            android:authorities="com.wanderwildwood.soramoyo.sanpo"
+            android:exported="true" />
     </application>
 
 </manifest>

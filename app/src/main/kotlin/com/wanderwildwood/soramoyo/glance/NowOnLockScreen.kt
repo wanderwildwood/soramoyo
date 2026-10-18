@@ -126,10 +126,25 @@ internal object Weather {
         ).joinToString(" · ")
         val lines = mutableListOf(GlanceProvider.Line(text = first.ifEmpty { " " }, lead = "${now.roundToInt()}°"))
         val hours = upcoming(predicted.hours, predicted.offset)
+        val change = Change.of(hours)
+        // the same, in plain words, for the Wander game (ForTheWalk)
+        val sky = when (code) {
+            null -> ""
+            45, 48 -> "fog"
+            in 51..67, in 80..82, in 95..99 -> "rain"
+            in 71..77, 85, 86 -> "snow"
+            else -> "clear"
+        }
+        val minutesTo = { at: LocalDateTime -> java.time.Duration.between(LocalDateTime.now(predicted.offset), at).toMinutes() }
+        cache(context).edit()
+            .putString(SKY, sky)
+            .putString(CHANGE, when (change) { is Change.From -> "starts"; is Change.Until -> "stops"; else -> "" })
+            .putLong(CHANGE_IN, when (change) { is Change.From -> minutesTo(change.at); is Change.Until -> minutesTo(change.at); else -> -1L })
+            .apply()
         val clock = DateTimeFormatter.ofPattern(
             DateFormat.getBestDateTimePattern(Locale.getDefault(), if (DateFormat.is24HourFormat(context)) "Hm" else "hm"),
         )
-        when (val change = Change.of(hours)) {
+        when (change) {
             Change.Dry -> Unit
             is Change.From -> lines += GlanceProvider.Line(context.getString(
                 if (change.snow) R.string.sky_hours_snow_from else R.string.sky_hours_rain_from, clock.format(change.at)))
@@ -142,6 +157,18 @@ internal object Weather {
     }
 
     private fun cache(context: Context) = context.getSharedPreferences("lock_screen", Context.MODE_PRIVATE)
+
+    /** The sky in a word (clear, fog, rain, snow), and whether rain or snow starts or stops soon, and in how
+     *  many minutes; from the last fetch. */
+    fun walk(context: Context): Triple<String, String, Long>? {
+        val c = cache(context)
+        val sky = c.getString(SKY, null)?.takeIf { it.isNotEmpty() } ?: return null
+        return Triple(sky, c.getString(CHANGE, "") ?: "", c.getLong(CHANGE_IN, -1L))
+    }
+
+    private const val SKY = "sky"
+    private const val CHANGE = "change"
+    private const val CHANGE_IN = "change_in"
 
     private const val LINES = "lines"
     private const val AT = "at"

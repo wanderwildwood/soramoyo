@@ -116,6 +116,10 @@ With [Clock](https://github.com/wanderwildwood/tokei) installed and its setting 
 on, an alarm ringing shows the same first line: the temperature, the sky and the day's high and
 low. That line goes to Clock alone, and only when Clock asks.
 
+Wander, a small walking game, can ask what the sky is doing so the weather in its wood follows
+the real one: clear, fog, rain or snow, and whether rain or snow starts or stops in the next few
+hours. That answer goes to Wander alone, from the last forecast fetched.
+
 With no place set, if the phone's cached position is more than fifteen minutes old, a fresh
 one is asked for before either is fetched, rather than showing the weather for wherever the
 phone last was.
