@@ -112,6 +112,10 @@ the lock screen fetches the forecast the same way opening the app does, at most 
 hour, and nothing runs on a timer. Settings → The weather on the lock screen turns it off; the
 lines go to Glance alone.
 
+With [Clock](https://github.com/wanderwildwood/tokei) installed and its setting for it switched
+on, an alarm ringing shows the same first line: the temperature, the sky and the day's high and
+low. That line goes to Clock alone, and only when Clock asks.
+
 With no place set, if the phone's cached position is more than fifteen minutes old, a fresh
 one is asked for before either is fetched, rather than showing the weather for wherever the
 phone last was.

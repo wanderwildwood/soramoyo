@@ -41,7 +41,9 @@ object LocationProvider {
     suspend fun here(context: Context): LatLon? {
         if (!hasPermission(context)) return null
         val cached = newestCached(context)
-        if (cached != null && ageMs(cached) < FRESH_MS) return rounded(cached)
+        // Remembered either way, for the weather asked for out of sight (lastFound): kept only
+        // when a new fix was fetched, a phone whose cached fix was always fresh had none.
+        if (cached != null && ageMs(cached) < FRESH_MS) return rounded(cached).also { remember(context, it) }
         // The network first, because it answers in seconds where it answers at all; but a
         // phone without Google's location service may list a network provider that never
         // answers, so it gets a short turn before the GPS gets a long one.
