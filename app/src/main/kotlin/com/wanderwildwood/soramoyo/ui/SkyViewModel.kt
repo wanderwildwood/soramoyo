@@ -4,6 +4,10 @@ import android.app.Application
 import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.wanderwildwood.soramoyo.alerts.Alert
+import com.wanderwildwood.soramoyo.alerts.AlertAnswer
+import com.wanderwildwood.soramoyo.alerts.AlertNotices
+import com.wanderwildwood.soramoyo.alerts.Alerts
 import com.wanderwildwood.soramoyo.forecast.Air
 import com.wanderwildwood.soramoyo.forecast.AirQuality
 import com.wanderwildwood.soramoyo.forecast.Current
@@ -62,6 +66,8 @@ data class SkyState(
     val metric: Boolean = true,
     /** The air now; null until it arrives, and left null if it never does. */
     val air: Air? = null,
+    /** The Weather Service's alerts in effect where the forecast is for; empty outside the US. */
+    val alerts: List<Alert> = emptyList(),
     val units: Units.Choice = Units.Choice.AUTOMATIC,
     val forecastTrouble: ForecastTrouble = ForecastTrouble.NONE,
     /** Where the forecast and radar are for, when a place has been chosen rather than the phone's position. */
@@ -149,6 +155,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         val at: LatLon?,
         val metric: Boolean,
         val air: Air?,
+        val alerts: List<Alert>,
         val atMs: Long,
         val forWhat: Pair<LatLon, Boolean>?,
     )
@@ -209,7 +216,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         asking = null
         val s = _state.value
         val leaving = if (s.days.isEmpty()) null else Held(
-            s.current, s.days, s.hours, s.inches, s.offset, s.zone, s.at, s.metric, s.air, forecastAtMs, forecastFor,
+            s.current, s.days, s.hours, s.inches, s.offset, s.zone, s.at, s.metric, s.air, s.alerts, forecastAtMs, forecastFor,
         )
         val coming = other
         other = leaving
@@ -230,6 +237,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                 at = coming.at,
                 metric = coming.metric,
                 air = coming.air,
+                alerts = coming.alerts,
                 forecastTrouble = ForecastTrouble.NONE,
             )
         }
@@ -248,6 +256,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                 zone = null,
                 at = null,
                 air = null,
+                alerts = emptyList(),
                 forecastTrouble = ForecastTrouble.NONE,
             )
         }
@@ -334,6 +343,23 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                 try {
                     val air = AirQuality.fetch(here.lat, here.lon)
                     _state.update { it.copy(air = air) }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                }
+            }
+            // The alerts the same way, and for the same place. Outside the US there are none to
+            // show; a failed fetch keeps whatever was shown before rather than blanking it.
+            val first = !_state.value.showingSecond
+            launch {
+                try {
+                    val alerts = when (val answer = Alerts.fetch(here.lat, here.lon)) {
+                        is AlertAnswer.Found -> answer.alerts
+                        AlertAnswer.NotCovered -> emptyList()
+                    }
+                    _state.update { it.copy(alerts = alerts) }
+                    // Seen on the screen now, so the background check need not notify of them.
+                    if (first) AlertNotices.note(context, alerts, notify = false)
                 } catch (e: CancellationException) {
                     throw e
                 } catch (_: Exception) {

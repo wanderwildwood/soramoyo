@@ -288,13 +288,45 @@
     <string name="settings_cancel">Cancel</string>
     <string name="settings_save">Save</string>
 
+    <!-- Weather alerts, from the US National Weather Service -->
+    <!-- The line at the top of Today; %1$s is an alert's name such as "Red Flag Warning", %2$s a time such as "8:00 PM" or "Tue 8:00 PM" -->
+    <string name="alerts_line_until">%1$s until %2$s</string>
+    <!-- After the line at the top of Today when several alerts are in effect -->
+    <plurals name="alerts_line_more">
+        <item quantity="one">and %1$d more</item>
+        <item quantity="other">and %1$d more</item>
+    </plurals>
+    <string name="alerts_cd_open">Open the alerts</string>
+    <string name="alerts_title">Alerts</string>
+    <!-- %1$s is a list of counties or zones -->
+    <string name="alerts_areas">For %1$s</string>
+    <!-- %1$s and %2$s are times such as "8:00 PM" or "Tue 8:00 PM" -->
+    <string name="alerts_from_until">From %1$s until %2$s</string>
+    <!-- %1$s is a time such as "8:00 PM" or "Tue 8:00 PM" -->
+    <string name="alerts_until">Until %1$s</string>
+    <string name="alerts_what_to_do">What to do</string>
+    <string name="alerts_none">No alerts are in effect here now.</string>
+    <string name="alerts_coverage">Alerts come from the US National Weather Service and cover the United States.</string>
+    <!-- The notification channel's name and its description in the phone's settings -->
+    <string name="alerts_channel">Weather alerts</string>
+    <string name="alerts_channel_about">Serious warnings from the US National Weather Service for your place: severe and extreme weather, fire weather and evacuations.</string>
+    <!-- The notification's title when several alerts arrive together; %1$s is the first one's name, %2$d how many more -->
+    <plurals name="alerts_and_more">
+        <item quantity="one">%1$s and %2$d more</item>
+        <item quantity="other">%1$s and %2$d more</item>
+    </plurals>
+    <!-- Settings: notifications for serious alerts -->
+    <string name="settings_alerts">Notifications for serious weather alerts</string>
+    <string name="settings_alerts_note">Severe weather, fire weather and evacuations, from the US National Weather Service; the United States only. Checked every half hour while this is on.</string>
+    <string name="settings_alerts_blocked">Notifications for Sky are turned off in the phone\'s settings.</string>
+
     <!-- About -->
     <!-- %1$s is the version -->
     <string name="about_title">Sky %1$s</string>
-    <string name="about_privacy">An Ecowitt, Tempest or Davis station is read on your own network. A Weather Underground station is read from Weather Underground, with your API key. The phone\'s position, to about a kilometre, or the places you chose, goes to Open-Meteo for the forecast and to RainViewer for the radar; a place you search for goes to Open-Meteo. Nothing else leaves the phone.</string>
+    <string name="about_privacy">An Ecowitt, Tempest or Davis station is read on your own network. A Weather Underground station is read from Weather Underground, with your API key. The phone\'s position, to about a kilometre, or the places you chose, goes to Open-Meteo for the forecast, to RainViewer for the radar and to the US National Weather Service for alerts; a place you search for goes to Open-Meteo. Nothing else leaves the phone.</string>
     <string name="about_licence">GNU General Public License v3</string>
     <string name="about_after">The radar and its map are kRadar\'s, by Ondřej Koloničný, GPL 3.</string>
-    <string name="about_data">Radar by RainViewer. Forecast by Open-Meteo, CC BY 4.0. Borders and cities from Natural Earth, public domain.</string>
+    <string name="about_data">Radar by RainViewer. Forecast by Open-Meteo, CC BY 4.0. Alerts by the US National Weather Service. Borders and cities from Natural Earth, public domain.</string>
     <string name="about_icons">Icons from Material Symbols, Apache 2.0</string>
     <string name="about_feed_the_llamas">feed the llamas</string>
     <!-- Shown in place of the llama row when nothing on the phone opens web pages; %1$s is the address -->

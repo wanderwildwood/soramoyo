@@ -1,0 +1,117 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.aaaa.001.1",
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "id": "urn:oid:2.49.0.1.840.0.aaaa.001.1",
+        "areaDesc": "Lower Valley; Eastern Foothills",
+        "references": [
+          {"identifier": "urn:oid:2.49.0.1.840.0.0000.001.1", "sender": "w-nws.webmaster@noaa.gov", "sent": "2026-10-19T04:00:00-07:00"}
+        ],
+        "sent": "2026-10-19T09:00:00-07:00",
+        "effective": "2026-10-19T09:00:00-07:00",
+        "onset": "2026-10-19T11:00:00-07:00",
+        "expires": "2026-10-19T17:00:00-07:00",
+        "ends": "2026-10-19T20:00:00-07:00",
+        "status": "Actual",
+        "messageType": "Update",
+        "severity": "Moderate",
+        "event": "Red Flag Warning",
+        "senderName": "NWS Example Office",
+        "headline": "Red Flag Warning issued October 19 at 9:00AM PDT until October 19 at 8:00PM PDT by NWS Example Office",
+        "description": "* AFFECTED AREA...Lower Valley and Eastern\nFoothills.\n\n* WINDS...Northeast 15 to 25 mph with gusts\nup to 45 mph.\n\n* RELATIVE HUMIDITY...As low as 8 percent.",
+        "instruction": "A Red Flag Warning means that critical fire weather conditions\nare either occurring now or will shortly.",
+        "parameters": {
+          "VTEC": ["/O.CON.KXXX.FW.W.0042.000000T0000Z-261020T0300Z/"]
+        }
+      }
+    },
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.bbbb.001.1",
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "id": "urn:oid:2.49.0.1.840.0.bbbb.001.1",
+        "areaDesc": "Lower Valley",
+        "references": [],
+        "onset": "2026-10-19T08:00:00-07:00",
+        "expires": "2026-10-19T14:00:00-07:00",
+        "ends": null,
+        "status": "Actual",
+        "messageType": "Alert",
+        "severity": "Minor",
+        "event": "Wind Advisory",
+        "senderName": "NWS Example Office",
+        "headline": "Wind Advisory issued October 19",
+        "description": "Gusty winds.",
+        "instruction": null,
+        "parameters": {}
+      }
+    },
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.cccc.001.1",
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "id": "urn:oid:2.49.0.1.840.0.cccc.001.1",
+        "areaDesc": "Lower Valley",
+        "references": [],
+        "onset": "2026-10-19T05:00:00-07:00",
+        "expires": "2026-10-19T09:00:00-07:00",
+        "ends": "2026-10-19T09:30:00-07:00",
+        "status": "Actual",
+        "messageType": "Alert",
+        "severity": "Severe",
+        "event": "Flood Warning",
+        "senderName": "NWS Example Office",
+        "headline": "Over already",
+        "description": "Over.",
+        "instruction": null,
+        "parameters": {}
+      }
+    },
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.dddd.001.1",
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "id": "urn:oid:2.49.0.1.840.0.dddd.001.1",
+        "areaDesc": "Lower Valley",
+        "references": [],
+        "expires": "2026-10-19T23:00:00-07:00",
+        "status": "Test",
+        "messageType": "Alert",
+        "severity": "Unknown",
+        "event": "Test Message",
+        "senderName": "NWS Example Office",
+        "headline": "",
+        "description": "This is a test.",
+        "instruction": null,
+        "parameters": {}
+      }
+    },
+    {
+      "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.eeee.001.1",
+      "type": "Feature",
+      "geometry": null,
+      "properties": {
+        "id": "urn:oid:2.49.0.1.840.0.eeee.001.1",
+        "areaDesc": "Lower Valley",
+        "references": [],
+        "expires": "2026-10-19T23:00:00-07:00",
+        "status": "Actual",
+        "messageType": "Cancel",
+        "severity": "Severe",
+        "event": "Flash Flood Warning",
+        "senderName": "NWS Example Office",
+        "headline": "Cancelled",
+        "description": "Cancelled.",
+        "instruction": null,
+        "parameters": {}
+      }
+    }
+  ]
+}

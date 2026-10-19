@@ -74,6 +74,20 @@ locally estimated half hour ahead, marked `≈`, and zoom. State and province li
 where Natural Earth has them — the US, Canada, Australia and the other large federations —
 which kRadar's map leaves out.
 
+**Alerts.** In the United States, the warnings, watches and advisories the National Weather
+Service has issued for the place: Red Flag Warnings and Fire Weather Watches, evacuation and
+fire warnings where they are issued, and the rest — tornado, flood, winter storm, heat. While
+one is in effect a line at the top of Today names it and says until when; a press opens them
+all, each with its headline, the areas it covers, its times and what it says to do. Outside the
+US there are none: the Weather Service covers only the United States.
+
+A notification can come too, once, when a new alert that is severe or extreme, or one for fire
+weather or an evacuation, is issued for the first place (the one chosen, else wherever the app
+last found the phone). Settings → Notifications for serious weather alerts; on at first only if
+the phone already lets Sky notify. While it is on, the Weather Service is asked every half hour
+when the phone has a network, at a time Android picks to suit the battery. It is the one thing in
+Sky that runs on a timer, and it stops when the setting is off.
+
 **Where it is for.** A Kompakt has no network location, only its GPS, and indoors on a
 phone that has never had a fix the GPS may not find itself at all. So in settings the
 forecast and the radar can be given a place by name instead — "Portland, Maine",
@@ -91,7 +105,7 @@ keeping the last reading and the time it was taken.
 
 ## What it does not do
 
-No history, no charts, no alerts and no widget. It shows what the station reads when you
+No history, no charts and no widget. It shows what the station reads when you
 open it. For a record, most stations can already upload to Weather Underground, Ecowitt and
 others.
 
@@ -103,7 +117,9 @@ the phone. A Weather Underground station is read from Weather Underground, with 
 The radar, the forecast and the air all need to know roughly where the phone is, or the
 places you chose. Each is rounded to two decimal places — about a kilometre — before it
 leaves the phone, and it goes to Open-Meteo for the forecast and the air, and to RainViewer
-for the radar tiles. A place you search for is sent, as typed, to Open-Meteo's place search.
+for the radar tiles, and to the US National Weather Service (api.weather.gov) for alerts — with
+the app's name and the address of this repository, which the Weather Service asks callers to
+give, and nothing else. A place you search for is sent, as typed, to Open-Meteo's place search.
 The almanac sends nothing; it is worked out on the phone.
 
 With [Glance](https://github.com/wanderwildwood/hitome) installed, the weather also shows on

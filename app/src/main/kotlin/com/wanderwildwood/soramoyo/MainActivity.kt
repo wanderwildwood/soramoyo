@@ -1,6 +1,7 @@
 package com.wanderwildwood.soramoyo
 
 import android.Manifest
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -9,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
@@ -20,6 +22,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mudita.mmd.ThemeMMD
+import com.wanderwildwood.soramoyo.alerts.AlertNotices
+import com.wanderwildwood.soramoyo.ui.AlertsScreen
 import com.wanderwildwood.soramoyo.ui.DayScreen
 import com.wanderwildwood.soramoyo.ui.RadarViewModel
 import com.wanderwildwood.soramoyo.ui.SettingsScreen
@@ -30,21 +34,32 @@ import com.wanderwildwood.soramoyo.ui.monochrome
 import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
+    /** Set by a press on an alert notification: open the alerts. */
+    private var openAlerts by mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) openAlerts = intent.getBooleanExtra(AlertNotices.OPEN_EXTRA, false)
+        // Brought back after an update or a cleared app, while the setting is on.
+        AlertNotices.schedule(applicationContext)
         setContent {
             ThemeMMD(colorScheme = monochrome) {
-                Sky()
+                Sky(openAlerts = openAlerts, onAlertsOpened = { openAlerts = false })
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra(AlertNotices.OPEN_EXTRA, false)) openAlerts = true
+    }
 }
 
-/** The tabs, or settings or one day's forecast over them. */
-private enum class Screen { TABS, SETTINGS, DAY }
+/** The tabs, or settings, one day's forecast or the alerts over them. */
+private enum class Screen { TABS, SETTINGS, DAY, ALERTS }
 
 @Composable
-private fun Sky(sky: SkyViewModel = viewModel()) {
+private fun Sky(openAlerts: Boolean, onAlertsOpened: () -> Unit, sky: SkyViewModel = viewModel()) {
     val state by sky.state.collectAsStateWithLifecycle()
     var screen by rememberSaveable { mutableStateOf(Screen.TABS) }
     var tab by rememberSaveable { mutableStateOf(Tab.TODAY) }
@@ -82,6 +97,17 @@ private fun Sky(sky: SkyViewModel = viewModel()) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(watcher) }
     }
 
+    // A notification's alert is for the first place: go back to it if the second is shown.
+    LaunchedEffect(openAlerts) {
+        if (!openAlerts) return@LaunchedEffect
+        if (sky.state.value.showingSecond) {
+            sky.switchPlace()
+            radar.placeChanged()
+        }
+        screen = Screen.ALERTS
+        onAlertsOpened()
+    }
+
     // Back leaves settings or a day, then goes to Today, and only from Today leaves the app.
     BackHandler(enabled = screen != Screen.TABS || tab != Tab.TODAY) {
         if (screen != Screen.TABS) screen = Screen.TABS else tab = Tab.TODAY
@@ -105,6 +131,12 @@ private fun Sky(sky: SkyViewModel = viewModel()) {
                 day = it.toString()
                 screen = Screen.DAY
             },
+            onAlerts = { screen = Screen.ALERTS },
+        )
+
+        Screen.ALERTS -> AlertsScreen(
+            alerts = state.alerts,
+            onClose = { screen = Screen.TABS },
         )
 
         Screen.DAY -> DayScreen(

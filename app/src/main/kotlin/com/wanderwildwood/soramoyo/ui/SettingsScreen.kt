@@ -2,6 +2,7 @@ package com.wanderwildwood.soramoyo.ui
 
 import androidx.compose.ui.Alignment
 import com.wanderwildwood.soramoyo.glance.LockScreen
+import com.wanderwildwood.soramoyo.alerts.AlertNotices
 import com.mudita.mmd.components.switcher.SwitchMMD
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
@@ -44,7 +45,7 @@ import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * The things there are to set: which station, where the forecast and radar are for (and a
- * second place to switch to), the units, and the lock screen.
+ * second place to switch to), the units, the lock screen and alert notifications.
  *
  * Units follow the station, else the phone's country, until told otherwise. They were left
  * out at first, on the grounds that the gateway already knows how its owner counts; but a
@@ -134,6 +135,34 @@ fun SettingsScreen(
                         modifier = Modifier.weight(1f),
                     )
                     SwitchMMD(checked = onLock, onCheckedChange = null)
+                }
+            }
+            item {
+                // Read and written here too. Switching it on is what asks the phone for leave to
+                // notify, where the phone asks at all.
+                val context = LocalContext.current
+                var notify by remember { mutableStateOf(AlertNotices.on(context)) }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            notify = !notify
+                            AlertNotices.set(context, notify)
+                        }
+                        .padding(vertical = 12.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TextMMD(
+                            text = stringResource(R.string.settings_alerts),
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f),
+                        )
+                        SwitchMMD(checked = notify, onCheckedChange = null)
+                    }
+                    TextMMD(text = stringResource(R.string.settings_alerts_note), style = MaterialTheme.typography.labelSmall)
+                    if (notify && !AlertNotices.allowed(context)) {
+                        TextMMD(text = stringResource(R.string.settings_alerts_blocked), style = MaterialTheme.typography.labelSmall)
+                    }
                 }
             }
         }

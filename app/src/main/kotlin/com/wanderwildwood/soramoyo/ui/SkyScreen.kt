@@ -89,6 +89,7 @@ fun SkyTabs(
     onSettings: () -> Unit,
     onAllowLocation: () -> Unit,
     onDay: (LocalDate) -> Unit,
+    onAlerts: () -> Unit,
 ) {
     val shown = state.forScreen()
     Scaffold(
@@ -128,7 +129,7 @@ fun SkyTabs(
     ) { contentPadding ->
         val inside = Modifier.fillMaxSize().padding(contentPadding)
         when (tab) {
-            Tab.TODAY -> TodayTab(shown, onAllowLocation, inside)
+            Tab.TODAY -> TodayTab(shown, onAllowLocation, onAlerts, inside)
             Tab.FORECAST -> ForecastTab(shown, onAllowLocation, onDay, inside)
             Tab.RADAR -> RadarTab(radar, onAllowLocation, state.metric, inside)
             Tab.ALMANAC -> AlmanacTab(shown, onAllowLocation, inside)
@@ -182,7 +183,7 @@ private fun PlaceSwitch(first: Place?, second: Place, onSecond: Boolean, onSwitc
  * rows because they are read deliberately or not at all.
  */
 @Composable
-private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Modifier) {
+private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () -> Unit, modifier: Modifier) {
     // The rest of today, not the whole of it: its morning's rain is over by the afternoon.
     val today = state.days.firstOrNull { it.date == state.placeToday() }?.restOf(state.hours, state.offset)
     val yesterday = state.days.firstOrNull { it.date == state.placeToday().minusDays(1) }
@@ -195,6 +196,15 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Mod
     // No rail here: it took a strip off the right of every row, and Today is read top down
     // with a swipe, a page of whole rows at a time.
     PagedColumn(modifier = modifier.padding(horizontal = 20.dp)) {
+        // An official warning comes before anything else, and only while there is one.
+        if (state.alerts.isNotEmpty()) {
+            item {
+                Column {
+                    AlertLine(state.alerts, onAlerts)
+                    HorizontalDividerMMD()
+                }
+            }
+        }
         // The next twelve hours, and the twelve after them a swipe away: going out in the
         // morning, the evening you come back in is past the first twelve.
         val next = upcoming(state.hours, state.offset, count = HOURS * 2)

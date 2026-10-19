@@ -15,6 +15,10 @@
          while Sky is listening for one. -->
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
 
+    <!-- A notification when a serious weather alert is issued for your place; only while that
+         setting is on. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
     <!-- What this app means to look for on the phone. Without it, asking whether anything
@@ -31,7 +35,7 @@
         usesCleartextTraffic: an Ecowitt gateway or a Davis WeatherLink Live serves plain
         HTTP and nothing else, on the home network at an address only its owner knows, so it
         cannot be named in a network security config ahead of time. Everything on the
-        internet - Open-Meteo, RainViewer, Weather Underground - is asked over HTTPS
+        internet - Open-Meteo, RainViewer, Weather Underground, the Weather Service - is asked over HTTPS
         regardless; those addresses are written into the app that way.
     -->
     <application
