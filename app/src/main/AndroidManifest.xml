@@ -71,7 +71,7 @@
             android:authorities="com.wanderwildwood.soramoyo.alarm"
             android:exported="true" />
 
-        <!-- Today's weather in plain words for the Wander game; it answers Wander alone. -->
+        <!-- Today's weather in plain words, for one other app of ours alone. -->
         <provider
             android:name=".glance.ForTheWalk"
             android:authorities="com.wanderwildwood.soramoyo.sanpo"
