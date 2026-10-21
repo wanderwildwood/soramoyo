@@ -7,12 +7,11 @@ import android.database.MatrixCursor
 import android.net.Uri
 
 /**
- * Today's weather in plain words for Wander (com.wanderwildwood.sanpo), the walking game, which lets
- * the sky in its wood follow the real one: clear, fog, rain or snow, and whether rain or snow starts or
- * stops in the next hours.
+ * Today's weather in plain words for one other app of ours ([READER]): clear, fog, rain or snow, and
+ * whether rain or snow starts or stops in the next hours.
  *
- * It answers Wander alone, from the last fetch, at once; a fetch more than half an hour old is renewed
- * for next time. An answer older than [STALE_MS] is not handed over, and the game picks a likely day.
+ * It answers that app alone, from the last fetch, at once; a fetch more than half an hour old is renewed
+ * for next time. An answer older than [STALE_MS] is not handed over, and the asking app does without it.
  */
 class ForTheWalk : ContentProvider() {
 
@@ -34,7 +33,7 @@ class ForTheWalk : ContentProvider() {
                 Weather.walk(context)?.let { (sky, change, minutes) -> cursor.addRow(arrayOf<Any?>(sky, change, minutes)) }
             }
         } catch (_: Exception) {
-            // No answer: the game picks a likely day.
+            // No answer: the asking app does without it.
         }
         return cursor
     }

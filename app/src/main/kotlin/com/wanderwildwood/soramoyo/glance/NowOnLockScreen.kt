@@ -127,7 +127,7 @@ internal object Weather {
         val lines = mutableListOf(GlanceProvider.Line(text = first.ifEmpty { " " }, lead = "${now.roundToInt()}°"))
         val hours = upcoming(predicted.hours, predicted.offset)
         val change = Change.of(hours)
-        // the same, in plain words, for the Wander game (ForTheWalk)
+        // the same, in plain words, for ForTheWalk
         val sky = when (code) {
             null -> ""
             45, 48 -> "fog"
