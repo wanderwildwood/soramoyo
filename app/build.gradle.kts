@@ -12,11 +12,12 @@ android {
 
     defaultConfig {
         applicationId = "com.wanderwildwood.soramoyo"
-        // The Kompakt runs Android 12 (API 31); nothing here needs anything newer.
-        minSdk = 31
+        // The Kompakt runs Android 12 (API 31); nothing here needs anything newer, or even
+        // that: Supernote's tablets run Android 11 (API 30), and it installs there too.
+        minSdk = 30
         targetSdk = 31
-        versionCode = 31
-        versionName = "0.10.0"
+        versionCode = 32
+        versionName = "0.10.1"
     }
 
     // A real keystore in signing/ signs every build type when it is present, so the

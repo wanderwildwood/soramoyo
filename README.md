@@ -2,7 +2,7 @@
 
 The days ahead, the rain radar, and your own weather station if you have one, on an
 E Ink phone. Built for the [Mudita Kompakt](https://mudita.com/products/kompakt/), and it
-will install on any Android 12 device.
+will install on any device with Android 11 or later, Supernote's tablets among them.
 
 *Soramoyō* is 空模様 — the look of the sky, which is how Japanese asks what the weather is
 doing. It covers the station and the radar alike, and says no more than either of them
