@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.format.DateFormat
 import android.util.Log
 import com.wanderwildwood.soramoyo.R
+import com.wanderwildwood.soramoyo.almanac.Almanac
 import com.wanderwildwood.soramoyo.forecast.Change
 import com.wanderwildwood.soramoyo.forecast.Forecast
 import com.wanderwildwood.soramoyo.forecast.upcoming
@@ -23,7 +24,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONArray
 import org.json.JSONObject
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -135,11 +138,24 @@ internal object Weather {
             in 71..77, 85, 86 -> "snow"
             else -> "clear"
         }
+        val soon = upcoming(predicted.hours, predicted.offset, count = SOON_HOURS)
+        val day = upcoming(predicted.hours, predicted.offset, count = 24)
         val minutesTo = { at: LocalDateTime -> java.time.Duration.between(LocalDateTime.now(predicted.offset), at).toMinutes() }
         cache(context).edit()
             .putString(SKY, sky)
             .putString(CHANGE, when (change) { is Change.From -> "starts"; is Change.Until -> "stops"; else -> "" })
             .putLong(CHANGE_IN, when (change) { is Change.From -> minutesTo(change.at); is Change.Until -> minutesTo(change.at); else -> -1L })
+            // the wind, the snow and the place, for ForTheWalk too
+            .putFloat(WIND, WalkFacts.metresPerSecond(predicted.current?.windSpeed, metric))
+            .putFloat(GUST, WalkFacts.metresPerSecond(predicted.current?.windGust, metric))
+            .putBoolean(HEAVY, WalkFacts.heavySnow(
+                soon.map { WalkFacts.centimetres(it.snow, predicted.inches) },
+                listOfNotNull(predicted.current?.code) + soon.map { it.code },
+            ))
+            .putFloat(SNOWFALL, day.sumOf { WalkFacts.centimetres(it.snow, predicted.inches) }.toFloat())
+            .putString(PLACE_LAT, (Math.round(here.lat * 100) / 100.0).toString())
+            .putString(PLACE_LON, (Math.round(here.lon * 100) / 100.0).toString())
+            .putString(PLACE_ZONE, (predicted.zone ?: predicted.offset).id)
             .apply()
         val clock = DateTimeFormatter.ofPattern(
             DateFormat.getBestDateTimePattern(Locale.getDefault(), if (DateFormat.is24HourFormat(context)) "Hm" else "hm"),
@@ -166,9 +182,51 @@ internal object Weather {
         return Triple(sky, c.getString(CHANGE, "") ?: "", c.getLong(CHANGE_IN, -1L))
     }
 
+    /** The rest of what [ForTheWalk] hands over, from the last fetch and the sky worked out now. */
+    data class More(
+        val wind: Float,
+        val gust: Float,
+        val moonPhase: Float,
+        val moonrise: Long,
+        val moonset: Long,
+        val heavy: Int,
+        val snowfall: Float,
+        val hemisphere: String?,
+    )
+
+    fun walkMore(context: Context, now: Instant = Instant.now()): More {
+        val c = cache(context)
+        val lat = c.getString(PLACE_LAT, null)?.toDoubleOrNull()
+        val lon = c.getString(PLACE_LON, null)?.toDoubleOrNull()
+        val zone = c.getString(PLACE_ZONE, null)?.let { runCatching { ZoneId.of(it) }.getOrNull() } ?: ZoneId.systemDefault()
+        val moon = if (lat != null && lon != null) {
+            runCatching { Almanac.moon(now.atZone(zone).toLocalDate(), zone, lat, lon) }.getOrNull()
+        } else null
+        val epoch = { t: LocalDateTime? -> t?.atZone(zone)?.toInstant()?.toEpochMilli() ?: -1L }
+        return More(
+            wind = c.getFloat(WIND, -1f),
+            gust = c.getFloat(GUST, -1f),
+            moonPhase = WalkFacts.moonPhase(Almanac.phase(now).angle),
+            moonrise = epoch(moon?.rise),
+            moonset = epoch(moon?.set),
+            heavy = if (c.getBoolean(HEAVY, false)) 1 else 0,
+            snowfall = c.getFloat(SNOWFALL, 0f),
+            hemisphere = lat?.let(WalkFacts::hemisphere),
+        )
+    }
+
     private const val SKY = "sky"
     private const val CHANGE = "change"
     private const val CHANGE_IN = "change_in"
+    private const val WIND = "wind"
+    private const val GUST = "gust"
+    private const val HEAVY = "heavy"
+    private const val SNOWFALL = "snowfall"
+    private const val PLACE_LAT = "place_lat"
+    private const val PLACE_LON = "place_lon"
+    private const val PLACE_ZONE = "place_zone"
+    /** Now and the next few hours, for heavy snow. */
+    private const val SOON_HOURS = 3
 
     private const val LINES = "lines"
     private const val AT = "at"

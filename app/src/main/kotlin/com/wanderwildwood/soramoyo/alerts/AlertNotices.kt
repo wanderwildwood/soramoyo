@@ -18,8 +18,10 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.wanderwildwood.soramoyo.MainActivity
 import com.wanderwildwood.soramoyo.R
+import com.wanderwildwood.soramoyo.glance.WalkFacts
 import com.wanderwildwood.soramoyo.location.LocationProvider
 import com.wanderwildwood.soramoyo.location.Places
+import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -45,6 +47,8 @@ object AlertNotices {
     private const val PREFS = "alerts"
     private const val ON = "notify"
     private const val KNOWN = "known"
+    private const val IN_FORCE = "in_force"
+    private const val IN_FORCE_AT = "in_force_at"
     private const val CHANNEL = "weather_alerts"
     private const val WORK = "alerts"
     private const val NOTIFICATION = 1
@@ -102,8 +106,48 @@ object AlertNotices {
             val until = a.until?.toInstant()?.toEpochMilli() ?: (now + KEEP_MS)
             a.names.forEach { known[it] = maxOf(until, known[it] ?: 0L) }
         }
-        prefs(context).edit().putString(KNOWN, JSONObject(known as Map<*, *>).toString()).apply()
+        prefs(context).edit()
+            .putString(KNOWN, JSONObject(known as Map<*, *>).toString())
+            .putString(IN_FORCE, inForce(alerts).toString())
+            .putLong(IN_FORCE_AT, now)
+            .apply()
         if (notify && fresh.isNotEmpty() && on(context) && allowed(context)) post(context, fresh)
+    }
+
+    /** The alerts as [WalkFacts] wants them: each one's kind, severity and times, and nothing of its text. */
+    private fun inForce(alerts: List<Alert>): JSONArray {
+        val rows = JSONArray()
+        alerts.forEach { a ->
+            rows.put(
+                JSONObject()
+                    .put("kind", WalkFacts.alertKind(a.event))
+                    .put("rank", WalkFacts.severityRank(a.severity))
+                    .put("from", a.onset?.toInstant()?.toEpochMilli() ?: -1L)
+                    .put("until", a.until?.toInstant()?.toEpochMilli() ?: -1L),
+            )
+        }
+        return rows
+    }
+
+    /**
+     * The kind of the most significant alert in force at the first place now, from the last
+     * alerts fetched there; [WalkFacts.NONE] when none is, or when they were fetched more than
+     * [staleMs] ago.
+     */
+    internal fun kindInForce(context: Context, staleMs: Long, now: Long = System.currentTimeMillis()): String {
+        val p = prefs(context)
+        if (now - p.getLong(IN_FORCE_AT, 0L) > staleMs) return WalkFacts.NONE
+        val rows = runCatching { JSONArray(p.getString(IN_FORCE, "[]") ?: "[]") }.getOrDefault(JSONArray())
+        val alerts = (0 until rows.length()).mapNotNull { i ->
+            val o = rows.optJSONObject(i) ?: return@mapNotNull null
+            WalkFacts.InForce(
+                kind = o.optString("kind", WalkFacts.OTHER),
+                rank = o.optInt("rank", 0),
+                from = o.optLong("from", -1L).takeIf { it >= 0 },
+                until = o.optLong("until", -1L).takeIf { it >= 0 },
+            )
+        }
+        return WalkFacts.mostSignificant(alerts, now)
     }
 
     /** The serious alerts none of whose names has been seen before. */
@@ -188,7 +232,8 @@ class AlertCheck(context: Context, params: WorkerParameters) : CoroutineWorker(c
         return try {
             when (val answer = Alerts.fetch(here.lat, here.lon)) {
                 is AlertAnswer.Found -> AlertNotices.note(context, answer.alerts, notify = true)
-                AlertAnswer.NotCovered -> Unit
+                // None to notify of, but that there are none is worth keeping too.
+                AlertAnswer.NotCovered -> AlertNotices.note(context, emptyList(), notify = false)
             }
             Result.success()
         } catch (e: CancellationException) {
