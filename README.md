@@ -168,6 +168,10 @@ Radar data by [RainViewer](https://www.rainviewer.com/api.html). Forecast by
 [Material Symbols](https://fonts.google.com/icons), Apache License 2.0. The interface is
 [MMD](https://github.com/mudita/MMD), Mudita's E Ink component library.
 
+## Privacy
+
+Privacy: what the app stores and what it sends is set out in [PRIVACY.md](PRIVACY.md).
+
 ## Licence
 
 GNU General Public License v3, as kRadar is. See [LICENSE](LICENSE).
