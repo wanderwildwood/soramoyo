@@ -332,4 +332,72 @@
     <!-- Shown in place of the llama row when nothing on the phone opens web pages; %1$s is the address -->
     <string name="about_no_browser">Nothing here opens web pages — %1$s</string>
     <string name="about_close">Close</string>
+
+    <!-- A pull down from the top of a list: one line of words at the top, never a spinner -->
+    <string name="sky_pull_updating">Updating…</string>
+    <string name="sky_pull_up_to_date">Up to date</string>
+
+    <!-- The day in a few words at the top of Today. The kind of weather, the time and the sky
+         come from the strings below; each part is left out when the forecast did not give it. -->
+    <string name="sky_summary_mostly_cloudy">Mostly cloudy</string>
+    <string name="sky_summary_foggy">Foggy</string>
+    <!-- %1$s is the sky such as "Mostly cloudy", %2$s what falls and when such as "showers after 3 pm" -->
+    <string name="sky_summary_sky_with">%1$s with %2$s.</string>
+    <string name="sky_summary_sky_alone">%1$s.</string>
+    <!-- %1$s is what falls and when, with its first letter made a capital -->
+    <string name="sky_summary_wet_alone">%1$s.</string>
+    <string name="sky_kind_rain">rain</string>
+    <string name="sky_kind_showers">showers</string>
+    <string name="sky_kind_drizzle">drizzle</string>
+    <string name="sky_kind_snow">snow</string>
+    <string name="sky_kind_snow_showers">snow showers</string>
+    <string name="sky_kind_freezing_rain">freezing rain</string>
+    <string name="sky_kind_sleet">rain and snow</string>
+    <string name="sky_kind_thunderstorms">thunderstorms</string>
+    <!-- %1$s is the kind such as "rain" or "showers", %2$s and %3$s times such as "3 pm" or "noon" -->
+    <string name="sky_when_all_day">%1$s all day</string>
+    <string name="sky_when_rest_of_day">%1$s for the rest of the day</string>
+    <string name="sky_when_after">%1$s after %2$s</string>
+    <string name="sky_when_early">%1$s early, clearing by %2$s</string>
+    <string name="sky_when_until">%1$s until %2$s</string>
+    <string name="sky_when_between">%1$s from %2$s to %3$s</string>
+    <string name="sky_when_on_and_off">%1$s on and off</string>
+    <string name="sky_when_likely">%1$s likely</string>
+    <string name="sky_time_noon">noon</string>
+    <!-- %1$d is the hour, 1 to 12; %2$s is am or pm -->
+    <string name="sky_time_12">%1$d %2$s</string>
+    <string name="sky_time_am">am</string>
+    <string name="sky_time_pm">pm</string>
+    <!-- 24-hour clock: %1$02d is the hour, %2$02d the minute -->
+    <string name="sky_time_24">%1$02d:%2$02d</string>
+    <!-- The high and low, in the units the screen already uses; %1$d and %2$d are degrees -->
+    <string name="sky_summary_high_low">High %1$d, low %2$d.</string>
+    <string name="sky_summary_high">High %1$d.</string>
+    <string name="sky_summary_low">Low %1$d.</string>
+    <string name="sky_wind_breezy">Breezy</string>
+    <string name="sky_wind_gusty">Gusty</string>
+    <string name="sky_wind_windy">Windy</string>
+    <!-- %1$s is Breezy, Gusty or Windy; %2$s a direction from the list below, such as "northwest" -->
+    <string name="sky_summary_wind_from">%1$s from the %2$s.</string>
+    <string name="sky_summary_wind">%1$s.</string>
+    <!-- North, then clockwise by eighths -->
+    <string-array name="sky_directions_8">
+        <item>north</item>
+        <item>northeast</item>
+        <item>east</item>
+        <item>southeast</item>
+        <item>south</item>
+        <item>southwest</item>
+        <item>west</item>
+        <item>northwest</item>
+    </string-array>
+
+    <!-- The next two hours, from the quarter-hour forecast; %1$d is minutes, to the nearest five -->
+    <string name="sky_soon_dry">Dry for the next two hours</string>
+    <string name="sky_soon_rain_in">Rain in about %1$d minutes</string>
+    <string name="sky_soon_snow_in">Snow in about %1$d minutes</string>
+    <string name="sky_soon_raining_easing">Raining now, easing in about %1$d minutes</string>
+    <string name="sky_soon_snowing_easing">Snowing now, easing in about %1$d minutes</string>
+    <string name="sky_soon_raining_lasting">Raining now, and not easing for two hours</string>
+    <string name="sky_soon_snowing_lasting">Snowing now, and not easing for two hours</string>
 </resources>

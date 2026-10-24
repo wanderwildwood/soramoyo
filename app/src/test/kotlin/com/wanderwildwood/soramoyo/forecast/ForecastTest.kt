@@ -262,4 +262,30 @@ class ForecastTest {
         assertEquals(22.0, now.windGust!!, 0.0)
         assertEquals(323, now.windFrom)
     }
+
+    @Test
+    fun readsTheQuarterHoursAndKeepsTheEmptyOnesEmpty() {
+        val json = """
+            {"minutely_15":{"time":["2026-05-06T10:15","2026-05-06T10:30","2026-05-06T10:45"],
+            "precipitation":[0.0,null,0.4]}}
+        """.trimIndent()
+        val quarters = Forecast.parse(json.replace("{\"minutely", "{\"daily\":{\"time\":[],\"weather_code\":[],\"temperature_2m_max\":[],\"temperature_2m_min\":[]},\"minutely")).quarters
+        assertEquals(3, quarters.size)
+        assertEquals(Quarter(LocalDateTime.of(2026, 5, 6, 10, 15), 0.0), quarters[0])
+        assertEquals(null, quarters[1].precipitation)
+        assertEquals(0.4, quarters[2].precipitation!!, 1e-9)
+    }
+
+    @Test
+    fun noQuarterHoursIsNone() {
+        assertTrue(Forecast.parse(fixture("open-meteo-prague.json")).quarters.isEmpty())
+    }
+
+    @Test
+    fun asksForTheQuarterHoursTooAndNothingElseNew() {
+        val url = Forecast.urlFor(51.5, -0.13, metric = true)
+        assertTrue(url.contains("minutely_15=precipitation"))
+        assertTrue(url.contains("forecast_minutely_15=16"))
+        assertTrue(url.startsWith("https://api.open-meteo.com/v1/forecast?"))
+    }
 }

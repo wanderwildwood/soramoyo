@@ -132,6 +132,7 @@ private fun Sky(openAlerts: Boolean, onAlertsOpened: () -> Unit, sky: SkyViewMod
                 screen = Screen.DAY
             },
             onAlerts = { screen = Screen.ALERTS },
+            onPull = sky::refresh,
         )
 
         Screen.ALERTS -> AlertsScreen(
@@ -143,6 +144,7 @@ private fun Sky(openAlerts: Boolean, onAlertsOpened: () -> Unit, sky: SkyViewMod
             date = LocalDate.parse(day),
             state = state.forScreen(),
             onClose = { screen = Screen.TABS },
+            onPull = sky::refresh,
         )
 
         Screen.SETTINGS -> SettingsScreen(

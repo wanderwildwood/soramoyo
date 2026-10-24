@@ -45,6 +45,8 @@ import com.mudita.mmd.components.divider.HorizontalDividerMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.soramoyo.R
+import com.wanderwildwood.soramoyo.forecast.DaySummary
+import com.wanderwildwood.soramoyo.forecast.RainSoon
 import com.wanderwildwood.soramoyo.forecast.Air
 import com.wanderwildwood.soramoyo.forecast.AirBand
 import com.wanderwildwood.soramoyo.forecast.AirQuality
@@ -90,6 +92,7 @@ fun SkyTabs(
     onAllowLocation: () -> Unit,
     onDay: (LocalDate) -> Unit,
     onAlerts: () -> Unit,
+    onPull: () -> Unit,
 ) {
     val shown = state.forScreen()
     Scaffold(
@@ -129,8 +132,8 @@ fun SkyTabs(
     ) { contentPadding ->
         val inside = Modifier.fillMaxSize().padding(contentPadding)
         when (tab) {
-            Tab.TODAY -> TodayTab(shown, onAllowLocation, onAlerts, inside)
-            Tab.FORECAST -> ForecastTab(shown, onAllowLocation, onDay, inside)
+            Tab.TODAY -> TodayTab(shown, onAllowLocation, onAlerts, onPull, inside)
+            Tab.FORECAST -> ForecastTab(shown, onAllowLocation, onDay, onPull, inside)
             Tab.RADAR -> RadarTab(radar, onAllowLocation, state.metric, inside)
             Tab.ALMANAC -> AlmanacTab(shown, onAllowLocation, inside)
         }
@@ -183,7 +186,7 @@ private fun PlaceSwitch(first: Place?, second: Place, onSecond: Boolean, onSwitc
  * rows because they are read deliberately or not at all.
  */
 @Composable
-private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () -> Unit, modifier: Modifier) {
+private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () -> Unit, onPull: () -> Unit, modifier: Modifier) {
     // The rest of today, not the whole of it: its morning's rain is over by the afternoon.
     val today = state.days.firstOrNull { it.date == state.placeToday() }?.restOf(state.hours, state.offset)
     val yesterday = state.days.firstOrNull { it.date == state.placeToday().minusDays(1) }
@@ -195,12 +198,27 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
     val fallback = !noStation && stationGone(state)
     // No rail here: it took a strip off the right of every row, and Today is read top down
     // with a swipe, a page of whole rows at a time.
-    PagedColumn(modifier = modifier.padding(horizontal = 20.dp)) {
+    // The day in a few words, and the next two hours' rain; each is left out when the forecast
+    // did not give what it needs.
+    val summary = DaySummary.of(
+        state.days.firstOrNull { it.date == state.placeToday() }, state.hours, state.metric, state.offset,
+    )
+    val soon = RainSoon.of(state.quarters, state.hours, state.inches, state.offset)
+    PagedColumn(modifier = modifier.padding(horizontal = 20.dp), onPullAtTop = onPull) {
+        pullLine(state.pull)
         // An official warning comes before anything else, and only while there is one.
         if (state.alerts.isNotEmpty()) {
             item {
                 Column {
                     AlertLine(state.alerts, onAlerts)
+                    HorizontalDividerMMD()
+                }
+            }
+        }
+        if (summary != null || soon != null) {
+            item {
+                Column {
+                    DayWords(summary, soon)
                     HorizontalDividerMMD()
                 }
             }
@@ -306,10 +324,11 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
 
 /** The days after today, as many as the forecast gives, which is five. Each opens its own page. */
 @Composable
-private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, onDay: (LocalDate) -> Unit, modifier: Modifier) {
+private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, onDay: (LocalDate) -> Unit, onPull: () -> Unit, modifier: Modifier) {
     val placeToday = state.placeToday()
     val ahead = state.days.filter { it.date.isAfter(placeToday) }
-    PagedColumn(modifier = modifier.padding(horizontal = 20.dp)) {
+    PagedColumn(modifier = modifier.padding(horizontal = 20.dp), onPullAtTop = onPull) {
+        pullLine(state.pull)
         item {
             Spacer(Modifier.height(12.dp))
             ForecastTrouble(state.forecastTrouble, ahead.isEmpty(), onAllowLocation)
@@ -726,7 +745,7 @@ internal fun dayName(date: LocalDate, today: LocalDate): String = when (date) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DayScreen(date: LocalDate, state: SkyState, onClose: () -> Unit) {
+fun DayScreen(date: LocalDate, state: SkyState, onClose: () -> Unit, onPull: () -> Unit) {
     val day = state.days.firstOrNull { it.date == date }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -739,7 +758,9 @@ fun DayScreen(date: LocalDate, state: SkyState, onClose: () -> Unit) {
     ) { contentPadding ->
         PagedColumn(
             modifier = Modifier.fillMaxSize().padding(contentPadding).padding(horizontal = 20.dp),
+            onPullAtTop = onPull,
         ) {
+            pullLine(state.pull)
             // A forecast refreshed past midnight no longer has yesterday's tomorrow in it.
             if (day == null) {
                 item {

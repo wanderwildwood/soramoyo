@@ -13,7 +13,7 @@ the station and the forecast are added here.
 
 | | |
 |---|---|
-| ![Today: now, today, and the next twelve hours](screenshots/1-today.png) | ![Almanac: the moon tonight, its rise and set, and the sun's dawn and dusk](screenshots/2-almanac.png) |
+| ![Today: the day in words, the next two hours' rain, now and today](screenshots/1-today.png) | ![Almanac: the moon tonight, its rise and set, and the sun's dawn and dusk](screenshots/2-almanac.png) |
 | ![A day of its own: its hours and its snow](screenshots/3-day.png) | ![Radar, with the borders and the cities](screenshots/4-radar.png) |
 
 ## What it shows
@@ -53,6 +53,12 @@ to start or stop, and how much, over a strip of the hours with their temperature
 chance of rain drawn as bars. If the station says it is raining and the forecast does not,
 the line says so. From [Open-Meteo](https://open-meteo.com/), for wherever the phone is or
 for a place you choose.
+
+**The day in words.** At the top of Today, a sentence or two worked out on the phone from the forecast already fetched: the sky, any rain or snow and when, the high and low, and the wind when it is worth a mention.
+
+**The next two hours.** Under it, one line from Open-Meteo's quarter-hour rain forecast: "Rain in about 40 minutes", "Dry for the next two hours", or "Raining now, easing in about 30 minutes". Where the model has nothing for a place, the line is left out rather than saying dry.
+
+**Pull down to refresh.** On Today, Forecast and a day's page, a swipe down from the top asks the station and the forecast again; a line at the top says "Updating…" and then "Up to date".
 
 **The air.** Air quality, on the US index with imperial units and the European one with
 metric, and in Europe the two heaviest pollens when there are any. From the Copernicus

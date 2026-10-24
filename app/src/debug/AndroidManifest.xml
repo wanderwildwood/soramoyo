@@ -7,5 +7,9 @@
             android:name=".alerts.FakeAlerts"
             android:authorities="com.wanderwildwood.soramoyo.fakealerts"
             android:exported="false" />
+        <provider
+            android:name=".alerts.FakeForecast"
+            android:authorities="com.wanderwildwood.soramoyo.fakeforecast"
+            android:exported="false" />
     </application>
 </manifest>

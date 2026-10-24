@@ -104,6 +104,8 @@ data class Predicted(
     val inches: Boolean = false,
     val offset: ZoneOffset = ZoneOffset.UTC,
     val zone: ZoneId? = null,
+    /** The next few hours in quarter-hours, for the line about rain in the next two hours. */
+    val quarters: List<Quarter> = emptyList(),
 )
 
 /**
@@ -153,8 +155,12 @@ object Forecast {
         .readTimeout(20, TimeUnit.SECONDS)
         .build()
 
+    /** Debug builds only: a made-up answer in the forecast's own format, in place of the network's. */
+    internal var fake: (() -> String?)? = null
+
     suspend fun fetch(lat: Double, lon: Double, metric: Boolean): Predicted =
         withContext(Dispatchers.IO) {
+            fake?.invoke()?.let { return@withContext parse(it) }
             val request = Request.Builder().url(urlFor(lat, lon, metric)).get().build()
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) throw IOException("forecast answered ${response.code}")
@@ -183,6 +189,10 @@ object Forecast {
             // Every hour of every day asked for: Today takes the next twelve, and each day's
             // own page takes its twenty-four.
             .addQueryParameter("hourly", "weather_code,temperature_2m,precipitation_probability,precipitation,snowfall")
+            // The next four hours in quarter-hours, for the line about rain in the next two; the
+            // other two are for the forecast being a little old by the time it is looked at.
+            .addQueryParameter("minutely_15", "precipitation")
+            .addQueryParameter("forecast_minutely_15", QUARTERS.toString())
             .addQueryParameter("temperature_unit", if (metric) "celsius" else "fahrenheit")
             .addQueryParameter("precipitation_unit", if (metric) "mm" else "inch")
             .addQueryParameter("wind_speed_unit", if (metric) "kmh" else "mph")
@@ -209,7 +219,7 @@ object Forecast {
         // almanac's month runs past the end of summer time.
         val zone = root.optString("timezone").takeIf { it.isNotEmpty() }
             ?.let { runCatching { ZoneId.of(it) }.getOrNull() }
-        return Predicted(current(root), days(root), hours(root), inches, offset, zone)
+        return Predicted(current(root), days(root), hours(root), inches, offset, zone, quarters(root))
     }
 
     private fun days(root: JSONObject): List<Day> {
@@ -280,6 +290,22 @@ object Forecast {
             windFrom = c.num("wind_direction_10m")?.roundToInt(),
         )
     }
+
+    /** The quarter-hours, if the model gave any; one it left empty is kept as unknown, not as dry. */
+    private fun quarters(root: JSONObject): List<Quarter> {
+        val quarterly = root.optJSONObject("minutely_15") ?: return emptyList()
+        val times = quarterly.optJSONArray("time") ?: return emptyList()
+        val amounts = quarterly.optJSONArray("precipitation") ?: return emptyList()
+        return (0 until times.length()).map { i ->
+            Quarter(
+                time = LocalDateTime.parse(times.getString(i)),
+                precipitation = if (amounts.isNull(i)) null else amounts.optDouble(i).takeIf { !it.isNaN() },
+            )
+        }
+    }
+
+    /** Sixteen quarter-hours: four hours, twice the two that are looked at. */
+    private const val QUARTERS = 16
 
     private fun JSONObject.num(name: String): Double? =
         if (!has(name) || isNull(name)) null else optDouble(name).takeIf { !it.isNaN() }

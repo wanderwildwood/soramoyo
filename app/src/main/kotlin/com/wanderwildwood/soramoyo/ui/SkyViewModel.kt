@@ -14,6 +14,7 @@ import com.wanderwildwood.soramoyo.forecast.Current
 import com.wanderwildwood.soramoyo.forecast.Day
 import com.wanderwildwood.soramoyo.forecast.Forecast
 import com.wanderwildwood.soramoyo.forecast.Hour
+import com.wanderwildwood.soramoyo.forecast.Quarter
 import com.wanderwildwood.soramoyo.location.LatLon
 import com.wanderwildwood.soramoyo.location.LocationProvider
 import com.wanderwildwood.soramoyo.location.Place
@@ -39,6 +40,9 @@ enum class StationTrouble { NONE, NOT_SET, NO_ANSWER }
 /** Why there is no forecast. */
 enum class ForecastTrouble { NONE, NO_PERMISSION, NO_LOCATION, NO_ANSWER }
 
+/** What a pull down from the top of a list is doing, for the one line of words that says so. */
+enum class Pull { IDLE, UPDATING, UP_TO_DATE, NO_ANSWER }
+
 data class SkyState(
     val source: Source = Source.None,
     val reading: StationReading? = null,
@@ -51,6 +55,8 @@ data class SkyState(
     val days: List<Day> = emptyList(),
     /** The forecast's hours, from yesterday's first; [upcoming] picks out those still to come. */
     val hours: List<Hour> = emptyList(),
+    /** The next hours in quarter-hours; empty where the model gave none. */
+    val quarters: List<Quarter> = emptyList(),
     /** Whether the forecast's rain amounts are in inches rather than millimetres. */
     val inches: Boolean = false,
     /** The forecast place's offset from UTC, which the hours' times are in. */
@@ -76,6 +82,8 @@ data class SkyState(
     val second: Place? = null,
     /** Whether the second place is the one shown; meaningless while there is none. */
     val onSecond: Boolean = false,
+    /** A pull down at the top of a list: asking, and then what came of it for a few seconds. */
+    val pull: Pull = Pull.IDLE,
 ) {
     /** Whether what is on the screen is for the second place. */
     val showingSecond: Boolean get() = onSecond && second != null
@@ -149,6 +157,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         val current: Current?,
         val days: List<Day>,
         val hours: List<Hour>,
+        val quarters: List<Quarter>,
         val inches: Boolean,
         val offset: ZoneOffset,
         val zone: ZoneId?,
@@ -216,7 +225,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         asking = null
         val s = _state.value
         val leaving = if (s.days.isEmpty()) null else Held(
-            s.current, s.days, s.hours, s.inches, s.offset, s.zone, s.at, s.metric, s.air, s.alerts, forecastAtMs, forecastFor,
+            s.current, s.days, s.hours, s.quarters, s.inches, s.offset, s.zone, s.at, s.metric, s.air, s.alerts, forecastAtMs, forecastFor,
         )
         val coming = other
         other = leaving
@@ -231,6 +240,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                 current = coming.current,
                 days = coming.days,
                 hours = coming.hours,
+                quarters = coming.quarters,
                 inches = coming.inches,
                 offset = coming.offset,
                 zone = coming.zone,
@@ -253,6 +263,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                 current = null,
                 days = emptyList(),
                 hours = emptyList(),
+                quarters = emptyList(),
                 zone = null,
                 at = null,
                 air = null,
@@ -274,6 +285,37 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun onPermissionResult() = readForecast(force = true)
+
+    private var pullJob: Job? = null
+
+    /**
+     * A pull down from the top of a list: the station and the forecast asked for again, as if the
+     * app had just come to the front but without the half hour's wait. The state says "updating"
+     * while they are on their way, then how it went for a few seconds, and then nothing. A
+     * forecast that cannot be had for want of a place or a permission already says so on the
+     * screen, so it is not said twice.
+     */
+    fun refresh() {
+        if (_state.value.pull == Pull.UPDATING) return
+        pullJob?.cancel()
+        pullJob = viewModelScope.launch {
+            val before = forecastAtMs
+            _state.update { it.copy(pull = Pull.UPDATING) }
+            readStation()
+            readForecast(force = true)
+            stationJob?.join()
+            // The station's answer may start the forecast over (new units); wait for the last.
+            forecastJob?.join()
+            val outcome = when {
+                forecastAtMs != before -> Pull.UP_TO_DATE
+                _state.value.forecastTrouble == ForecastTrouble.NO_ANSWER -> Pull.NO_ANSWER
+                else -> Pull.IDLE
+            }
+            _state.update { it.copy(pull = outcome) }
+            if (outcome != Pull.IDLE) kotlinx.coroutines.delay(SAID_FOR_MS)
+            _state.update { it.copy(pull = Pull.IDLE) }
+        }
+    }
 
     private fun readStation() {
         val source = _state.value.source
@@ -374,6 +416,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                         current = predicted.current,
                         days = predicted.days,
                         hours = predicted.hours,
+                        quarters = predicted.quarters,
                         inches = predicted.inches,
                         offset = predicted.offset,
                         zone = predicted.zone,
@@ -391,6 +434,9 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
 
     companion object {
         private const val FORECAST_EVERY_MS = 30 * 60 * 1000L
+
+        /** How long "Up to date" or the failure stays at the top of a list. */
+        private const val SAID_FOR_MS = 3_000L
 
         /** The three countries that still count in Fahrenheit. */
         private fun localeIsMetric(): Boolean =
