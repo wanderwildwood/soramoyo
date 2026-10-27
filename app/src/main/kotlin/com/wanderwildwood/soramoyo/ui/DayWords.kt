@@ -46,7 +46,7 @@ internal fun LazyListScope.pullLine(pull: Pull) {
     }
 }
 
-/** The day in a few plain words, and under it the next two hours' rain; either may be absent. */
+/** The day in a few plain words, and under it the next two hours' rain when any is near; either may be absent. */
 @Composable
 internal fun DayWords(summary: DaySummary?, soon: RainSoon?) {
     val words = summary?.let { daySentence(it) }
@@ -60,8 +60,9 @@ internal fun DayWords(summary: DaySummary?, soon: RainSoon?) {
 }
 
 @Composable
-private fun soonLine(soon: RainSoon): String = when (soon) {
-    RainSoon.Dry -> stringResource(R.string.sky_soon_dry)
+private fun soonLine(soon: RainSoon): String? = when (soon) {
+    // The next twelve hours' line says so, and for longer.
+    RainSoon.Dry -> null
     is RainSoon.Starts -> stringResource(
         if (soon.snow) R.string.sky_soon_snow_in else R.string.sky_soon_rain_in,
         soon.minutes,
@@ -75,7 +76,10 @@ private fun soonLine(soon: RainSoon): String = when (soon) {
     )
 }
 
-/** The sentences, joined with a space; null where there is nothing to say. */
+/**
+ * The sentences, joined with a space; null where there is nothing to say. The high and low are
+ * left to Today's row just under it, which gives them large: said twice, they were read twice.
+ */
 @Composable
 internal fun daySentence(s: DaySummary): String? {
     val sky = s.sky?.let { stringResource(skyName(it)) }
@@ -87,12 +91,6 @@ internal fun daySentence(s: DaySummary): String? {
             R.string.sky_summary_wet_alone,
             wet.replaceFirstChar { it.titlecase(Locale.getDefault()) },
         )
-        else -> null
-    }
-    val range = when {
-        s.high != null && s.low != null -> stringResource(R.string.sky_summary_high_low, s.high, s.low)
-        s.high != null -> stringResource(R.string.sky_summary_high, s.high)
-        s.low != null -> stringResource(R.string.sky_summary_low, s.low)
         else -> null
     }
     val wind = s.wind?.let { w ->
@@ -107,7 +105,7 @@ internal fun daySentence(s: DaySummary): String? {
         if (w.from != null) stringResource(R.string.sky_summary_wind_from, strength, directions[w.from])
         else stringResource(R.string.sky_summary_wind, strength)
     }
-    return listOfNotNull(first, range, wind).joinToString(" ").ifEmpty { null }
+    return listOfNotNull(first, wind).joinToString(" ").ifEmpty { null }
 }
 
 private fun skyName(sky: DaySummary.Sky): Int = when (sky) {

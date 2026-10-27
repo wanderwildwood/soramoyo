@@ -86,6 +86,10 @@
     <string name="sky_day_gone">This day is no longer in the forecast.</string>
     <string name="sky_day_dry">No rain likely</string>
     <string name="sky_condition_with_snow">%1$s, %2$d%% chance of snow</string>
+    <string name="sky_chance_rain">%1$d%% chance of rain</string>
+    <string name="sky_chance_rain_amount">%1$d%% chance of rain, %2$s\u00A0%3$s</string>
+    <string name="sky_chance_snow">%1$d%% chance of snow</string>
+    <string name="sky_chance_snow_amount">%1$d%% chance of snow, %2$s\u00A0%3$s</string>
     <string name="sky_condition_with_snow_amount">%1$s, %2$d%% chance of snow, %3$s\u00A0%4$s</string>
     <string name="sky_day_rain_between">Rain likely from %1$s until %2$s</string>
     <string name="sky_day_snow_between">Snow likely from %1$s until %2$s</string>
@@ -378,9 +382,6 @@
     <!-- 24-hour clock: %1$02d is the hour, %2$02d the minute -->
     <string name="sky_time_24">%1$02d:%2$02d</string>
     <!-- The high and low, in the units the screen already uses; %1$d and %2$d are degrees -->
-    <string name="sky_summary_high_low">High %1$d, low %2$d.</string>
-    <string name="sky_summary_high">High %1$d.</string>
-    <string name="sky_summary_low">Low %1$d.</string>
     <string name="sky_wind_breezy">Breezy</string>
     <string name="sky_wind_gusty">Gusty</string>
     <string name="sky_wind_windy">Windy</string>
@@ -400,7 +401,6 @@
     </string-array>
 
     <!-- The next two hours, from the quarter-hour forecast; %1$d is minutes, to the nearest five -->
-    <string name="sky_soon_dry">Dry for the next two hours</string>
     <string name="sky_soon_rain_in">Rain in about %1$d minutes</string>
     <string name="sky_soon_snow_in">Snow in about %1$d minutes</string>
     <string name="sky_soon_raining_easing">Raining now, easing in about %1$d minutes</string>

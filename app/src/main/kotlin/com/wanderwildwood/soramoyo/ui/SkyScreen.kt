@@ -237,7 +237,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
                 if (today != null) {
                     item {
                         HorizontalDividerMMD()
-                        DayRow(today, state.inches, today.date, yesterday = yesterday)
+                        DayRow(today, state.inches, today.date, yesterday = yesterday, sayCondition = summary?.sky == null && summary?.wet == null)
                     }
                 }
             } else {
@@ -270,7 +270,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
             item {
                 HorizontalDividerMMD()
                 if (today != null) {
-                    DayRow(today, state.inches, today.date, yesterday = yesterday)
+                    DayRow(today, state.inches, today.date, yesterday = yesterday, sayCondition = summary?.sky == null && summary?.wet == null)
                 } else {
                     Column(modifier = Modifier.padding(vertical = 12.dp)) {
                         ForecastTrouble(state.forecastTrouble, true, onAllowLocation)
@@ -685,7 +685,14 @@ internal fun ForecastTrouble(trouble: ForecastTrouble, nothingYet: Boolean, onAl
 }
 
 @Composable
-private fun DayRow(day: Day, inches: Boolean, today: LocalDate, modifier: Modifier = Modifier, yesterday: Day? = null) {
+private fun DayRow(
+    day: Day,
+    inches: Boolean,
+    today: LocalDate,
+    modifier: Modifier = Modifier,
+    yesterday: Day? = null,
+    sayCondition: Boolean = true,
+) {
     val name = dayName(day.date, today)
     val condition = stringResource(conditionFor(day.code))
 
@@ -701,8 +708,19 @@ private fun DayRow(day: Day, inches: Boolean, today: LocalDate, modifier: Modifi
             // snow melted to water, which is not how anyone measures a snowfall.
             val amount = if (day.snowy) snowDepth(day.snow, inches) else amount(day.rain, inches)
             val amountUnit = if (day.snowy) snowUnit(inches) else unit(inches)
-            TextMMD(
-                text = when {
+            // On Today the sentence above already says what the sky does, and the row's word for
+            // it (the worst of the hours left) could disagree with it, so only the chance is given.
+            val line = if (!sayCondition) {
+                when {
+                    day.snowy && chance != null && amount != null ->
+                        stringResource(R.string.sky_chance_snow_amount, chance, amount, amountUnit)
+                    day.snowy && chance != null -> stringResource(R.string.sky_chance_snow, chance)
+                    chance != null && amount != null -> stringResource(R.string.sky_chance_rain_amount, chance, amount, amountUnit)
+                    chance != null -> stringResource(R.string.sky_chance_rain, chance)
+                    else -> null
+                }
+            } else {
+                when {
                     day.snowy && chance != null && amount != null ->
                         stringResource(R.string.sky_condition_with_snow_amount, condition, chance, amount, amountUnit)
                     day.snowy && chance != null -> stringResource(R.string.sky_condition_with_snow, condition, chance)
@@ -710,9 +728,9 @@ private fun DayRow(day: Day, inches: Boolean, today: LocalDate, modifier: Modifi
                         stringResource(R.string.sky_condition_with_rain_amount, condition, chance, amount, amountUnit)
                     chance != null -> stringResource(R.string.sky_condition_with_rain, condition, chance)
                     else -> condition
-                },
-                style = MaterialTheme.typography.labelSmall,
-            )
+                }
+            }
+            line?.let { TextMMD(text = it, style = MaterialTheme.typography.labelSmall) }
             // Today's row only: how it compares is what yesterday is for.
             yesterday?.let {
                 TextMMD(text = againstYesterday(day, it, metric = !inches), style = MaterialTheme.typography.labelSmall)
