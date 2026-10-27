@@ -1039,12 +1039,13 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
                 .fillMaxWidth()
                 .heightIn(min = 48.dp)
                 .clickable { scope.launch { pager.scrollToPage(1 - pager.currentPage) } },
-            contentAlignment = if (pager.currentPage == 0) Alignment.CenterEnd else Alignment.CenterStart,
+            // In the same place either way, so the finger that pressed it can press it back.
+            contentAlignment = Alignment.CenterEnd,
         ) {
             TextMMD(
                 text = stringResource(if (pager.currentPage == 0) R.string.sky_hours_later else R.string.sky_hours_sooner),
                 style = MaterialTheme.typography.labelSmall,
-                textAlign = if (pager.currentPage == 0) TextAlign.End else TextAlign.Start,
+                textAlign = TextAlign.End,
             )
         }
     }
@@ -1087,12 +1088,16 @@ private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean) {
         )
         // Under "no rain likely", a trace spread over unlikely hours would contradict the
         // line above it rather than add to it.
-        amount(Change.total(hours), inches)?.takeIf { change != Change.Dry }?.let {
-            TextMMD(
-                text = stringResource(R.string.sky_hours_amount, it, unit(inches), count),
-                style = MaterialTheme.typography.labelSmall,
-            )
-        }
+        // Always a second line, as the later hours have, so Later and Now swap only the words
+        // and figures and the strip stays where it is: the amount where there is one, else the
+        // hours these are.
+        TextMMD(
+            text = amount(Change.total(hours), inches)?.takeIf { change != Change.Dry }
+                ?.let { stringResource(R.string.sky_hours_amount, it, unit(inches), count) }
+                ?: stringResource(R.string.sky_hours_span, clock(hours.first().time), clock(hours.last().time.plusHours(1))),
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+        )
         Spacer(Modifier.height(10.dp))
         Strip(hours, first = now)
     }
@@ -1109,6 +1114,7 @@ private fun LaterHours(hours: List<Hour>) {
         TextMMD(
             text = stringResource(R.string.sky_hours_span, clock(hours.first().time), clock(hours.last().time.plusHours(1))),
             style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
         )
         Spacer(Modifier.height(10.dp))
         Strip(hours)
