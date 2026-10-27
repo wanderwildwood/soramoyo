@@ -44,6 +44,8 @@ enum class ForecastTrouble { NONE, NO_PERMISSION, NO_LOCATION, NO_ANSWER }
 enum class Pull { IDLE, UPDATING, UP_TO_DATE, NO_ANSWER }
 
 data class SkyState(
+    /** Counts the returns to the front, so what was turned aside (the later hours) turns back. */
+    val returns: Int = 0,
     val source: Source = Source.None,
     val reading: StationReading? = null,
     /** Wall-clock time of the last reading that arrived, in milliseconds. */
@@ -170,9 +172,28 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
     )
 
     fun onForeground() {
+        _state.update { it.copy(returns = it.returns + 1) }
         readStation()
         readForecast(force = false)
+        // Left open on a table, the screen would otherwise keep the reading it opened with.
+        // The station is asked again every few minutes while Sky is in front, and the
+        // forecast whenever its own half hour is up; nothing is asked once it is put away.
+        watchJob?.cancel()
+        watchJob = viewModelScope.launch {
+            while (true) {
+                kotlinx.coroutines.delay(STATION_EVERY_MS)
+                readStation()
+                readForecast(force = false)
+            }
+        }
     }
+
+    fun onBackground() {
+        watchJob?.cancel()
+        watchJob = null
+    }
+
+    private var watchJob: Job? = null
 
     fun setSource(source: Source) {
         Source.save(getApplication(), source)
@@ -434,6 +455,9 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
 
     companion object {
         private const val FORECAST_EVERY_MS = 30 * 60 * 1000L
+
+        /** How often the station is asked again while Sky stays on the screen. */
+        private const val STATION_EVERY_MS = 5 * 60 * 1000L
 
         /** How long "Up to date" or the failure stays at the top of a list. */
         private const val SAID_FOR_MS = 3_000L

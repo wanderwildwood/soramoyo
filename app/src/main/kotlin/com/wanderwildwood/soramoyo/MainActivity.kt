@@ -98,6 +98,7 @@ private fun Sky(openAlerts: Boolean, onAlertsOpened: () -> Unit, sky: SkyViewMod
                 sky.onForeground()
                 if (showing == (Screen.TABS to Tab.RADAR)) radar.onForeground()
             }
+            if (event == Lifecycle.Event.ON_PAUSE) sky.onBackground()
         }
         lifecycleOwner.lifecycle.addObserver(watcher)
         onDispose { lifecycleOwner.lifecycle.removeObserver(watcher) }

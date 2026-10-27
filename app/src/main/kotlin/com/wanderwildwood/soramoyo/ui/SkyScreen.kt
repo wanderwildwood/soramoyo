@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -250,7 +251,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
             if (hours.isNotEmpty()) {
                 item {
                     HorizontalDividerMMD()
-                    Hours(hours, after, state.inches, rainingNow(state))
+                    Hours(hours, after, state.inches, rainingNow(state), state.returns)
                 }
             }
         } else {
@@ -284,7 +285,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
             if (hours.isNotEmpty()) {
                 item {
                     HorizontalDividerMMD()
-                    Hours(hours, after, state.inches, rainingNow(state))
+                    Hours(hours, after, state.inches, rainingNow(state), state.returns)
                 }
             }
         }
@@ -1012,7 +1013,7 @@ private fun dayRows(day: Day, inches: Boolean, metric: Boolean): List<@Composabl
  * the Kompakt's panel the figures ran together into one string.
  */
 @Composable
-private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining: Boolean) {
+private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining: Boolean, returns: Int) {
     if (after.isEmpty()) {
         NextHours(hours, inches, raining)
         return
@@ -1022,6 +1023,8 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
     // half-drawn page is only smear.
     val pager = rememberPagerState { 2 }
     val scope = rememberCoroutineScope()
+    // Back in Sky, the next hours again rather than the later ones left showing.
+    LaunchedEffect(returns) { pager.scrollToPage(0) }
     Column(modifier = Modifier.fillMaxWidth()) {
         // As tall as the taller of the two, whichever is showing: the later hours take a line
         // more, and the block growing under Later moved every row above it on the page.
