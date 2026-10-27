@@ -1,6 +1,7 @@
 package com.wanderwildwood.soramoyo.ui
 
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.width
 import com.wanderwildwood.soramoyo.glance.LockScreen
 import com.wanderwildwood.soramoyo.alerts.AlertNotices
 import com.mudita.mmd.components.switcher.SwitchMMD
@@ -138,6 +139,7 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.weight(1f),
                     )
+                    Spacer(Modifier.width(16.dp))
                     SwitchMMD(checked = onLock, onCheckedChange = null)
                 }
             }
@@ -161,6 +163,7 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.weight(1f),
                         )
+                        Spacer(Modifier.width(16.dp))
                         SwitchMMD(checked = notify, onCheckedChange = null)
                     }
                     TextMMD(text = stringResource(R.string.settings_alerts_note), style = MaterialTheme.typography.labelSmall)
