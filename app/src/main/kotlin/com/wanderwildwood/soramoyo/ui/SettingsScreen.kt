@@ -4,6 +4,7 @@ import androidx.compose.ui.Alignment
 import com.wanderwildwood.soramoyo.glance.LockScreen
 import com.wanderwildwood.soramoyo.alerts.AlertNotices
 import com.mudita.mmd.components.switcher.SwitchMMD
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -391,24 +392,36 @@ private fun StationDialog(source: Source, onSave: (Source) -> Unit, onDismiss: (
     EInkDialog(onDismiss = onDismiss) {
         TextMMD(text = stringResource(R.string.settings_station), style = MaterialTheme.typography.bodyLarge)
         Spacer(Modifier.height(8.dp))
-        Kind.entries.forEach { k ->
-            Choice(stringResource(k.label), chosen = k == kind) { kind = k }
-        }
-        Spacer(Modifier.height(8.dp))
-        when (kind) {
-            Kind.NONE -> Unit
-            Kind.TEMPEST -> Note(R.string.station_tempest_note)
-            Kind.ECOWITT, Kind.DAVIS -> {
-                Note(if (kind == Kind.ECOWITT) R.string.station_ecowitt_note else R.string.station_davis_note)
-                Field(address, { address = it }, KeyboardType.Uri, last = true, onDone = save)
+        // Five kinds in 48 dp rows, a note and two fields are more than a 4.3" panel holds over the
+        // buttons: the body pages on whole rows and the buttons stay where they are.
+        val room = (LocalConfiguration.current.screenHeightDp - 190).coerceIn(140, 520).dp
+        PagedColumn(Modifier.fillMaxWidth().height(room)) {
+            Kind.entries.forEach { k ->
+                item { Choice(stringResource(k.label), chosen = k == kind) { kind = k } }
             }
-            Kind.UNDERGROUND -> {
-                Note(R.string.station_wu_note)
-                TextMMD(text = stringResource(R.string.station_wu_id), style = MaterialTheme.typography.labelSmall)
-                Field(stationId, { stationId = it }, KeyboardType.Ascii, last = false, onDone = save)
-                Spacer(Modifier.height(4.dp))
-                TextMMD(text = stringResource(R.string.station_wu_key), style = MaterialTheme.typography.labelSmall)
-                Field(apiKey, { apiKey = it }, KeyboardType.Password, last = true, onDone = save)
+            item { Spacer(Modifier.height(8.dp)) }
+            when (kind) {
+                Kind.NONE -> Unit
+                Kind.TEMPEST -> item { Note(R.string.station_tempest_note) }
+                Kind.ECOWITT, Kind.DAVIS -> {
+                    item { Note(if (kind == Kind.ECOWITT) R.string.station_ecowitt_note else R.string.station_davis_note) }
+                    item { Field(address, { address = it }, KeyboardType.Uri, last = true, onDone = save) }
+                }
+                Kind.UNDERGROUND -> {
+                    item { Note(R.string.station_wu_note) }
+                    item {
+                        Column {
+                            TextMMD(text = stringResource(R.string.station_wu_id), style = MaterialTheme.typography.labelSmall)
+                            Field(stationId, { stationId = it }, KeyboardType.Ascii, last = false, onDone = save)
+                        }
+                    }
+                    item {
+                        Column(Modifier.padding(top = 4.dp)) {
+                            TextMMD(text = stringResource(R.string.station_wu_key), style = MaterialTheme.typography.labelSmall)
+                            Field(apiKey, { apiKey = it }, KeyboardType.Password, last = true, onDone = save)
+                        }
+                    }
+                }
             }
         }
         Spacer(Modifier.height(16.dp))
