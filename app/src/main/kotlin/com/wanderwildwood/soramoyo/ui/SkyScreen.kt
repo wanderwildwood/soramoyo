@@ -26,10 +26,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalContext
@@ -46,6 +48,7 @@ import com.mudita.mmd.components.divider.HorizontalDividerMMD
 import com.mudita.mmd.components.text.TextMMD
 import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.soramoyo.R
+import com.wanderwildwood.soramoyo.almanac.Almanac
 import com.wanderwildwood.soramoyo.forecast.DaySummary
 import com.wanderwildwood.soramoyo.forecast.RainSoon
 import com.wanderwildwood.soramoyo.forecast.Air
@@ -66,6 +69,7 @@ import com.wanderwildwood.soramoyo.station.Source
 import com.wanderwildwood.soramoyo.station.StationReading
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -308,14 +312,15 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
             }
         }
 
-        if (today?.sunrise != null && today.sunset != null) {
+        val (sunrise, sunset) = today?.let { sunTimes(it, state) } ?: (null to null)
+        if (sunrise != null && sunset != null) {
             item {
                 HorizontalDividerMMD()
-                Reading(stringResource(R.string.sky_sunrise), clock(today.sunrise), "", small = true)
+                Reading(stringResource(R.string.sky_sunrise), clock(sunrise), "", small = true)
             }
             item {
                 HorizontalDividerMMD()
-                Reading(stringResource(R.string.sky_sunset), clock(today.sunset), "", small = true)
+                Reading(stringResource(R.string.sky_sunset), clock(sunset), "", small = true)
             }
         }
         if (today != null) {
@@ -755,6 +760,17 @@ private fun DayRow(
     }
 }
 
+/**
+ * A day's sunrise and sunset as the Almanac works them out, so Today, the day's page and the
+ * Almanac give the same minute: the forecast's own were rounded differently and could be one
+ * off. The forecast's stand in where there is no place to work from, or the sun does not rise.
+ */
+private fun sunTimes(day: Day, state: SkyState): Pair<LocalDateTime?, LocalDateTime?> {
+    val at = state.at ?: return day.sunrise to day.sunset
+    val sun = Almanac.sun(day.date, state.almanacZone(), at.lat, at.lon)
+    return (sun.rise ?: day.sunrise) to (sun.set ?: day.sunset)
+}
+
 @Composable
 internal fun dayName(date: LocalDate, today: LocalDate): String = when (date) {
     today -> stringResource(R.string.sky_today)
@@ -810,14 +826,15 @@ fun DayScreen(date: LocalDate, state: SkyState, onClose: () -> Unit, onPull: () 
                     row()
                 }
             }
-            if (day.sunrise != null && day.sunset != null) {
+            val (sunrise, sunset) = sunTimes(day, state)
+            if (sunrise != null && sunset != null) {
                 item {
                     HorizontalDividerMMD()
-                    Reading(stringResource(R.string.sky_sunrise), clock(day.sunrise), "", small = true)
+                    Reading(stringResource(R.string.sky_sunrise), clock(sunrise), "", small = true)
                 }
                 item {
                     HorizontalDividerMMD()
-                    Reading(stringResource(R.string.sky_sunset), clock(day.sunset), "", small = true)
+                    Reading(stringResource(R.string.sky_sunset), clock(sunset), "", small = true)
                 }
             }
             almanacDayRows(day, state.at, state.almanacZone()).forEach { row ->
@@ -1006,8 +1023,16 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
     val pager = rememberPagerState { 2 }
     val scope = rememberCoroutineScope()
     Column(modifier = Modifier.fillMaxWidth()) {
-        HorizontalPager(state = pager, verticalAlignment = Alignment.Top) { page ->
-            if (page == 0) NextHours(hours, inches, raining) else LaterHours(after)
+        // As tall as the taller of the two, whichever is showing: the later hours take a line
+        // more, and the block growing under Later moved every row above it on the page.
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Box(modifier = Modifier.fillMaxWidth().alpha(0f).clearAndSetSemantics {}) {
+                NextHours(hours, inches, raining)
+                LaterHours(after)
+            }
+            HorizontalPager(state = pager, verticalAlignment = Alignment.Top, modifier = Modifier.matchParentSize()) { page ->
+                if (page == 0) NextHours(hours, inches, raining) else LaterHours(after)
+            }
         }
         Box(
             modifier = Modifier
