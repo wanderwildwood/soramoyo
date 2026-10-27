@@ -573,7 +573,9 @@ private fun Now(state: SkyState) {
         }
         reading ?: return@Column
 
-        Row(verticalAlignment = Alignment.Bottom) {
+        // What it feels like and how old the reading is sit beside the figure, not under it, so
+        // the block is no taller than the figure and leaves no blank to its right.
+        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
             // A figure the instrument reads, like a speedometer's, rather than type.
             TextMMD(
                 text = reading.temperature?.let { "${it.number.roundToInt()}°" } ?: "–",
@@ -586,22 +588,25 @@ private fun Now(state: SkyState) {
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 14.dp),
             )
+            Spacer(Modifier.weight(1f))
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(bottom = 14.dp)) {
+                reading.feelsLike?.let { feels ->
+                    TextMMD(
+                        text = stringResource(R.string.sky_feels_like, feels.number.roundToInt()),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                TextMMD(
+                    text = if (state.stationTrouble == StationTrouble.NO_ANSWER) {
+                        stringResource(R.string.sky_last_read, clock(state.readAt))
+                    } else {
+                        stringResource(R.string.sky_read_at, clock(state.readAt))
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
         }
-        reading.feelsLike?.let { feels ->
-            TextMMD(
-                text = stringResource(R.string.sky_feels_like, feels.number.roundToInt()),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-        Spacer(Modifier.height(4.dp))
-        TextMMD(
-            text = if (state.stationTrouble == StationTrouble.NO_ANSWER) {
-                stringResource(R.string.sky_last_read, clock(state.readAt))
-            } else {
-                stringResource(R.string.sky_read_at, clock(state.readAt))
-            },
-            style = MaterialTheme.typography.labelSmall,
-        )
     }
 }
 

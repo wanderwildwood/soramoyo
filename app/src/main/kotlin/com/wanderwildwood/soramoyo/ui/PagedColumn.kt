@@ -85,7 +85,8 @@ fun PagedColumn(
     // Only a list longer than its screen pages, and only that one gets the blank tail: a list
     // that fits keeps its arrangement, centred or at the foot as it was asked.
     val pages by remember(state) { derivedStateOf { state.overflows() } }
-    val spread by remember(state) { derivedStateOf(structuralEqualityPolicy()) { state.spread() } }
+    val gap = with(LocalDensity.current) { MAX_GAP.roundToPx() }
+    val spread by remember(state, gap) { derivedStateOf(structuralEqualityPolicy()) { state.spread(gap) } }
 
     LaunchedEffect(state) {
         // The tail at the top is a blank page: the rows under it were taken away, or something
@@ -153,6 +154,9 @@ fun PagedColumn(
 
 private const val TAIL = "paged-column-tail"
 
+/** The widest a gap between two rows opens when a full page spreads its rows to the foot. */
+private val MAX_GAP = 12.dp
+
 /** What one swipe does to the list. */
 internal enum class SwipeTurn { Forward, Back, Pull, None }
 
@@ -208,7 +212,7 @@ private data class Spread(val from: Int, val to: Int, val room: Int, val cut: In
 }
 
 /** How the rows on screen share out the room under them, while one runs off the foot. */
-private fun LazyListState.spread(): Spread? {
+private fun LazyListState.spread(maxGap: Int): Spread? {
     val bottom = layoutInfo.viewportSize.height
     val rows = rows()
     val cut = rows.firstOrNull { it.offset + it.size > bottom } ?: return null
@@ -221,7 +225,10 @@ private fun LazyListState.spread(): Spread? {
     // Room wider than any row on the page is not what a row that did not fit left behind, but
     // the start of one far taller than the rest: shared out, it would scatter a few rows over
     // the screen. They stay as they come, and only the tall row waits for the next page.
-    val share = if (room > whole.maxOf { it.size }) 0 else room
+    // A few tall rows sharing a lot of room stand apart with wide blanks between them (Today's
+    // temperature floated in the middle of the page), so no gap opens wider than [maxGap] and
+    // what is left over stays under the last row.
+    val share = if (room > whole.maxOf { it.size }) 0 else minOf(room, maxGap * (whole.size - 1))
     return Spread(whole.first().index, last.index, share, cut.index, bottom)
 }
 
