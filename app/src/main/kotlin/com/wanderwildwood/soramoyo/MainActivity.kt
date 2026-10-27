@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -16,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalCursorBlinkEnabled
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -43,8 +45,12 @@ class MainActivity : ComponentActivity() {
         // Brought back after an update or a cleared app, while the setting is on.
         AlertNotices.schedule(applicationContext)
         setContent {
-            ThemeMMD(colorScheme = monochrome) {
-                Sky(openAlerts = openAlerts, onAlertsOpened = { openAlerts = false })
+            // A steady cursor: a blinking one repaints the panel twice a second for as long as a
+            // field has focus.
+            CompositionLocalProvider(LocalCursorBlinkEnabled provides false) {
+                ThemeMMD(colorScheme = monochrome) {
+                    Sky(openAlerts = openAlerts, onAlertsOpened = { openAlerts = false })
+                }
             }
         }
     }
@@ -137,7 +143,9 @@ private fun Sky(openAlerts: Boolean, onAlertsOpened: () -> Unit, sky: SkyViewMod
 
         Screen.ALERTS -> AlertsScreen(
             alerts = state.alerts,
+            pull = state.pull,
             onClose = { screen = Screen.TABS },
+            onPull = sky::refresh,
         )
 
         Screen.DAY -> DayScreen(

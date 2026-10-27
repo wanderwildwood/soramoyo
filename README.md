@@ -58,7 +58,7 @@ for a place you choose.
 
 **The next two hours.** Under it, one line from Open-Meteo's quarter-hour rain forecast: "Rain in about 40 minutes", "Dry for the next two hours", or "Raining now, easing in about 30 minutes". Where the model has nothing for a place, the line is left out rather than saying dry.
 
-**Pull down to refresh.** On Today, Forecast and a day's page, a swipe down from the top asks the station and the forecast again; a line at the top says "Updating…" and then "Up to date".
+**Pull down to refresh.** On Today, Forecast, a day's page and the alerts, a swipe down from the top asks the station and the forecast again; a line at the top says "Updating…" and then "Up to date".
 
 **The air.** Air quality, on the US index with imperial units and the European one with
 metric, and in Europe the two heaviest pollens when there are any. From the Copernicus

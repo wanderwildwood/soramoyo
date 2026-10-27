@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -153,6 +154,7 @@ private fun PlaceSwitch(first: Place?, second: Place, onSecond: Boolean, onSwitc
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 48.dp)
             .clickable(onClick = onSwitch)
             .semantics { contentDescription = switchTo }
             .padding(vertical = 6.dp),
@@ -984,15 +986,19 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
         HorizontalPager(state = pager, verticalAlignment = Alignment.Top) { page ->
             if (page == 0) NextHours(hours, inches, raining) else LaterHours(after)
         }
-        TextMMD(
-            text = stringResource(if (pager.currentPage == 0) R.string.sky_hours_later else R.string.sky_hours_sooner),
-            style = MaterialTheme.typography.labelSmall,
-            textAlign = if (pager.currentPage == 0) TextAlign.End else TextAlign.Start,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { scope.launch { pager.scrollToPage(1 - pager.currentPage) } }
-                .padding(bottom = 12.dp),
-        )
+                .heightIn(min = 48.dp)
+                .clickable { scope.launch { pager.scrollToPage(1 - pager.currentPage) } },
+            contentAlignment = if (pager.currentPage == 0) Alignment.CenterEnd else Alignment.CenterStart,
+        ) {
+            TextMMD(
+                text = stringResource(if (pager.currentPage == 0) R.string.sky_hours_later else R.string.sky_hours_sooner),
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = if (pager.currentPage == 0) TextAlign.End else TextAlign.Start,
+            )
+        }
     }
 }
 

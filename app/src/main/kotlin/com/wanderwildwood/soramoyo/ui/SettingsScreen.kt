@@ -7,7 +7,9 @@ import com.mudita.mmd.components.switcher.SwitchMMD
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -126,6 +128,7 @@ fun SettingsScreen(
                             onLock = !onLock
                             LockScreen.set(context, onLock)
                         }
+                        .heightIn(min = 48.dp)
                         .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -228,6 +231,7 @@ private fun Setting(title: String, value: String, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 48.dp)
             .clickable(onClick = onClick)
             .padding(vertical = 14.dp),
     ) {
@@ -333,16 +337,20 @@ private fun PlaceDialog(
 
 /** One place to choose. The one in use is bold, the house's only emphasis. */
 @Composable
-private fun Choice(label: String, chosen: Boolean = false, padding: Int = 9, onClick: () -> Unit) {
-    TextMMD(
-        text = label,
-        style = MaterialTheme.typography.bodyMedium,
-        fontWeight = if (chosen) FontWeight.Bold else FontWeight.Normal,
+private fun Choice(label: String, chosen: Boolean = false, onClick: () -> Unit) {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = padding.dp),
-    )
+            .heightIn(min = 48.dp)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        TextMMD(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (chosen) FontWeight.Bold else FontWeight.Normal,
+        )
+    }
 }
 
 /**
@@ -383,10 +391,8 @@ private fun StationDialog(source: Source, onSave: (Source) -> Unit, onDismiss: (
     EInkDialog(onDismiss = onDismiss) {
         TextMMD(text = stringResource(R.string.settings_station), style = MaterialTheme.typography.bodyLarge)
         Spacer(Modifier.height(8.dp))
-        // Closer together than the place list's rows: five kinds, a note and two fields
-        // have to fit over the buttons on a 4.3" panel.
         Kind.entries.forEach { k ->
-            Choice(stringResource(k.label), chosen = k == kind, padding = 6) { kind = k }
+            Choice(stringResource(k.label), chosen = k == kind) { kind = k }
         }
         Spacer(Modifier.height(8.dp))
         when (kind) {

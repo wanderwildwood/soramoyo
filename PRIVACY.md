@@ -1,6 +1,6 @@
 # Sky — Privacy Policy
 
-Version 0.10.3. Last reviewed 23 October 2026.
+Version 0.11.1. Last reviewed 27 October 2026.
 
 ## The short version
 
@@ -45,7 +45,7 @@ These services receive a request from the app, and see your IP address as any we
 
 Hosts contacted:
 
-- **api.open-meteo.com** (Open-Meteo): the forecast, and its current conditions when your station cannot be reached. Sent: your position rounded to about a kilometre, or your chosen place, and the units.
+- **api.open-meteo.com** (Open-Meteo): the forecast, including its quarter-hour rain forecast for the next two hours, and its current conditions when your station cannot be reached. Sent: your position rounded to about a kilometre, or your chosen place, and the units.
 - **air-quality-api.open-meteo.com** (Open-Meteo): air quality and pollen, with each forecast. Sent: the same rounded position.
 - **geocoding-api.open-meteo.com** (Open-Meteo): only when you search for a place in settings. Sent: the words you typed and the phone's language.
 - **api.rainviewer.com**, and the tile server its response names: the radar. Sent: the same rounded position, in the address of the map tile.
@@ -63,7 +63,7 @@ On the phone, to three other apps of the author's, each answered by name and no 
 
 No analytics, advertising or crash-reporting service is contacted.
 
-In About, "feed the llamas" opens a donation page (square.link) and wanderthe.dev opens the author's website, in your browser and only when you press them. The app does not fetch either page and learns nothing about whether you went.
+In About, "feed the llamas" opens a donation page (square.link), wanderthe.dev opens the author's website and the source link opens its public repository (github.com), in your browser and only when you press them. The app does not fetch either page and learns nothing about whether you went.
 
 No data is sold, rented, or shared for advertising. There is no profiling, no personalization, and no automated decision-making about you.
 

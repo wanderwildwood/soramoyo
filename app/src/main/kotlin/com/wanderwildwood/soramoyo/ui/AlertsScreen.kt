@@ -71,7 +71,7 @@ internal fun AlertLine(alerts: List<Alert>, onOpen: () -> Unit) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlertsScreen(alerts: List<Alert>, onClose: () -> Unit) {
+fun AlertsScreen(alerts: List<Alert>, pull: Pull, onClose: () -> Unit, onPull: () -> Unit) {
     val context = LocalContext.current
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -84,7 +84,9 @@ fun AlertsScreen(alerts: List<Alert>, onClose: () -> Unit) {
     ) { contentPadding ->
         PagedColumn(
             modifier = Modifier.fillMaxSize().padding(contentPadding).padding(horizontal = 20.dp),
+            onPullAtTop = onPull,
         ) {
+            pullLine(pull)
             if (alerts.isEmpty()) {
                 item { Paragraph(stringResource(R.string.alerts_none)) }
             }
