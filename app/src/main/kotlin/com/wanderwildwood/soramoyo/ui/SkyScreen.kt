@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -771,7 +772,8 @@ private fun DayRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            TextMMD(text = name, style = MaterialTheme.typography.bodyMedium)
+            // Today's own row, under the reading, needs no name: the row is the day itself.
+            if (yesterday == null) TextMMD(text = name, style = MaterialTheme.typography.bodyMedium)
             val chance = day.rainChance?.takeIf { it > 0 }
             // A snowy day gives its snow, as deep as it lies; its rain amount would be the
             // snow melted to water, which is not how anyone measures a snowfall.
@@ -1104,21 +1106,25 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
     val scope = rememberCoroutineScope()
     // Back in Sky, the next hours again rather than the later ones left showing.
     LaunchedEffect(returns) { pager.scrollToPage(0) }
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // As tall as the taller of the two, whichever is showing: the later hours take a line
-        // more, and the block growing under Later moved every row above it on the page.
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.fillMaxWidth().alpha(0f).clearAndSetSemantics {}) {
-                NextHours(hours, inches, raining)
-                LaterHours(after)
-            }
-            HorizontalPager(state = pager, verticalAlignment = Alignment.Top, modifier = Modifier.matchParentSize()) { page ->
-                if (page == 0) NextHours(hours, inches, raining) else LaterHours(after)
-            }
+    // As tall as the taller of the two, whichever is showing: the later hours take a line
+    // more, and the block growing under Later moved every row above it on the page.
+    // The word to switch stands at the right of the line giving the hours' span, which is kept
+    // short of it, so the strip has no row of its own to take: the next twelve hours then fit
+    // under the day on the first page. Its touch area is the full 48 dp, over the empty end of
+    // the line above as well.
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.fillMaxWidth().alpha(0f).clearAndSetSemantics {}) {
+            NextHours(hours, inches, raining)
+            LaterHours(after)
+        }
+        HorizontalPager(state = pager, verticalAlignment = Alignment.Top, modifier = Modifier.matchParentSize()) { page ->
+            if (page == 0) NextHours(hours, inches, raining) else LaterHours(after)
         }
         Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .align(Alignment.TopEnd)
+                .offset(y = 7.dp)
+                .width(88.dp)
                 .heightIn(min = 48.dp)
                 .clickable { scope.launch { pager.scrollToPage(1 - pager.currentPage) } },
             // In the same place either way, so the finger that pressed it can press it back.
@@ -1179,6 +1185,7 @@ private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean) {
                 ?: stringResource(R.string.sky_hours_span, clock(hours.first().time), clock(hours.last().time.plusHours(1))),
             style = MaterialTheme.typography.labelSmall,
             maxLines = 1,
+            modifier = Modifier.padding(end = 92.dp),
         )
         Spacer(Modifier.height(6.dp))
         Strip(hours, first = now)
@@ -1197,6 +1204,7 @@ private fun LaterHours(hours: List<Hour>) {
             text = stringResource(R.string.sky_hours_span, clock(hours.first().time), clock(hours.last().time.plusHours(1))),
             style = MaterialTheme.typography.labelSmall,
             maxLines = 1,
+            modifier = Modifier.padding(end = 92.dp),
         )
         Spacer(Modifier.height(6.dp))
         Strip(hours)

@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mudita.mmd.components.text.TextMMD
@@ -62,44 +63,38 @@ internal fun TodayHead(f: HeadFigures, wide: Boolean = false) {
         TodayHeadNarrow(f)
         return
     }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
-            Row(verticalAlignment = Alignment.Bottom) {
-                TextMMD(
-                    text = f.temperature?.let { "$it°" } ?: "–",
-                    fontSize = 72.sp,
-                    lineHeight = 66.sp,
-                    fontWeight = FontWeight.Medium,
-                )
-                Spacer(Modifier.width(6.dp))
-                TextMMD(
-                    text = f.unit,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 14.dp),
-                )
-            }
-            f.feelsLike?.let {
-                TextMMD(text = stringResource(R.string.sky_feels_like, it), style = MaterialTheme.typography.bodyMedium)
-            }
-            f.humidity?.let {
-                TextMMD(text = stringResource(R.string.sky_humidity_pct, it), style = MaterialTheme.typography.bodyMedium)
-            }
-            f.pressure?.let {
-                TextMMD(text = stringResource(R.string.sky_pressure_line, it), style = MaterialTheme.typography.bodyMedium)
-            }
-            Spacer(Modifier.height(4.dp))
-            TextMMD(text = f.source, style = MaterialTheme.typography.labelSmall)
-        }
-        Column(horizontalAlignment = Alignment.End) {
-            val sky = stringResource(conditionFor(f.code))
-            WeatherMark(
-                weatherFor(f.code, f.night), 72.dp, 3.2f,
-                Modifier.semantics { contentDescription = sky },
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 4.dp)) {
+        // The figure with the sky drawn beside it, then under them two columns of the same height:
+        // what it feels like, humidity and pressure on the left, the wind and the source on the right.
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            TextMMD(
+                text = f.temperature?.let { "$it°" } ?: "–",
+                fontSize = 72.sp,
+                lineHeight = 66.sp,
+                fontWeight = FontWeight.Medium,
             )
-            f.windSpeed?.let { speed -> HeadWind(speed, f) }
+            Spacer(Modifier.width(6.dp))
+            TextMMD(text = f.unit, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 10.dp))
+            Spacer(Modifier.weight(1f))
+            val sky = stringResource(conditionFor(f.code))
+            WeatherMark(weatherFor(f.code, f.night), 64.dp, 3.2f, Modifier.semantics { contentDescription = sky })
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                f.feelsLike?.let {
+                    TextMMD(text = stringResource(R.string.sky_feels_like, it), style = MaterialTheme.typography.bodyMedium)
+                }
+                f.humidity?.let {
+                    TextMMD(text = stringResource(R.string.sky_humidity_pct, it), style = MaterialTheme.typography.bodyMedium)
+                }
+                f.pressure?.let {
+                    TextMMD(text = stringResource(R.string.sky_pressure_line, it), style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                f.windSpeed?.let { speed -> HeadWind(speed, f) }
+                TextMMD(text = f.source, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.End)
+            }
         }
     }
 }
@@ -138,7 +133,7 @@ private fun HeadWind(speed: Int, f: HeadFigures, side: Alignment.Horizontal = Al
         if (speed == 0) stringResource(R.string.sky_calm) else listOfNotNull(named, speed.toString(), f.windUnit).joinToString(" ")
     Column(
         horizontalAlignment = side,
-        modifier = Modifier.padding(top = if (side == Alignment.End) 12.dp else 2.dp).semantics(mergeDescendants = true) { contentDescription = words },
+        modifier = Modifier.padding(top = 2.dp).semantics(mergeDescendants = true) { contentDescription = words },
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (speed == 0) {
