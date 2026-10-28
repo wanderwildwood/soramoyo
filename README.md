@@ -43,6 +43,8 @@ If you have a Tempest or a Davis and it works, or does not, an issue here is the
 Without a station, Today leads with the forecast's estimate of now instead — temperature,
 feels-like, wind and humidity, marked as an estimate and for what time.
 
+The head of Today is the temperature and what it feels like on the left, with the humidity and (from a station) the pressure under them, and on the right the sky drawn as a mark and the wind under it; the next twelve hours fit on the same page. Short rows (dew point and UV, sunrise and sunset, pollen) share a line two to a row.
+
 **The forecast.** Today's high and low and chance of rain sit under the station reading,
 with sunrise and sunset and how the high compares with yesterday's; the Forecast tab has the five days after it, each with how much rain
 (or snow) is expected, and what the day will feel like where wind or damp make it colder or

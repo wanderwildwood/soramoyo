@@ -290,7 +290,7 @@ private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
         }
         val labelPaint = Paint().apply {
             color = android.graphics.Color.BLACK
-            textSize = 11f * density
+            textSize = 14f * density
             isAntiAlias = true
         }
         val haloPaint = Paint(labelPaint).apply {
@@ -316,7 +316,8 @@ private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
             if (labelCount >= labelBudget) continue
             val text = if (c.minZoom <= 5) c.name else c.abbr
             val w = labelPaint.measureText(text)
-            val lx = x + 4f
+            // Beside its dot, or on the other side of it when the map's edge would cut the name.
+            val lx = if (x + 4f + w > side) x - 4f - w else x + 4f
             val ly = y - 4f
             candidate.set(lx.toInt(), (ly - textH).toInt(), (lx + w).toInt(), ly.toInt())
             var collides = false

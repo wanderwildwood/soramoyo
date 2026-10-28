@@ -299,7 +299,7 @@ private fun TodayColumn(
         val current = state.current
         if (noStation) {
             if (current != null) {
-                item { Estimate(current, state.metric) }
+                item { Estimate(current, state, wide) }
                 if (today != null) {
                     item {
                         HorizontalDividerMMD()
@@ -322,7 +322,7 @@ private fun TodayColumn(
                 // than a message and nothing.
                 item {
                     Column {
-                        Estimate(current, state.metric)
+                        Estimate(current, state, wide)
                         TextMMD(
                             text = stringResource(R.string.sky_station_fallback),
                             style = MaterialTheme.typography.labelSmall,
@@ -331,7 +331,7 @@ private fun TodayColumn(
                     }
                 }
             } else {
-                item { Now(state) }
+                item { Now(state, wide) }
             }
             item {
                 HorizontalDividerMMD()
@@ -357,32 +357,17 @@ private fun TodayColumn(
         } else {
             state.reading ?: current?.takeIf { noStation }?.let { asReading(it, state.metric) }
         }
-        rows?.let { reading ->
-            readingRows(reading).forEach { row ->
-                item {
-                    HorizontalDividerMMD()
-                    row()
-                }
-            }
-        }
-        state.air?.let { air ->
-            airRows(air, state.metric).forEach { row ->
-                item {
-                    HorizontalDividerMMD()
-                    row()
-                }
-            }
-        }
-
+        val lines = ArrayList<ReadRow>()
+        rows?.let { lines += readingRows(it) }
+        state.air?.let { lines += airRows(it, state.metric) }
         val (sunrise, sunset) = today?.let { sunTimes(it, state) } ?: (null to null)
-        if (sunrise != null && sunset != null) {
+        if (sunrise != null && sunset != null) lines += sunRows(sunrise, sunset)
+        pairedRows(lines) { row ->
             item {
-                HorizontalDividerMMD()
-                Reading(stringResource(R.string.sky_sunrise), clock(sunrise), "", small = true)
-            }
-            item {
-                HorizontalDividerMMD()
-                Reading(stringResource(R.string.sky_sunset), clock(sunset), "", small = true)
+                Column {
+                    HorizontalDividerMMD()
+                    row()
+                }
             }
         }
         if (today != null) {
@@ -452,33 +437,30 @@ private fun Credit(state: SkyState, air: Boolean = state.air != null) {
 }
 
 /**
- * The forecast's estimate of now, for a phone with no station: the same large figure a
- * station's reading gets, and a line under it saying it is an estimate and for when.
+ * The forecast's estimate of now, for a phone with no station: the same head a station's
+ * reading gets, with a line under the figures saying it is an estimate and for when.
  */
 @Composable
-private fun Estimate(current: Current, metric: Boolean) {
-    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 14.dp)) {
-        Row(verticalAlignment = Alignment.Bottom) {
-            TextMMD(text = "${current.temperature.roundToInt()}°", fontSize = 72.sp, fontWeight = FontWeight.Medium)
-            Spacer(Modifier.width(6.dp))
-            TextMMD(
-                text = if (metric) "C" else "F",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 14.dp),
-            )
-        }
-        current.feelsLike?.let {
-            TextMMD(
-                text = stringResource(R.string.sky_feels_like, it.roundToInt()),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-        Spacer(Modifier.height(4.dp))
-        TextMMD(
-            text = stringResource(R.string.sky_estimate, stringResource(conditionFor(current.code)), clock(current.time)),
-            style = MaterialTheme.typography.labelSmall,
-        )
-    }
+private fun Estimate(current: Current, state: SkyState, wide: Boolean) {
+    val metric = state.metric
+    val speed = if (metric) "km/h" else "mph"
+    TodayHead(
+        HeadFigures(
+            temperature = current.temperature.roundToInt(),
+            unit = if (metric) "C" else "F",
+            feelsLike = current.feelsLike?.roundToInt(),
+            humidity = current.humidity,
+            pressure = null,
+            windSpeed = current.windSpeed?.roundToInt(),
+            windUnit = speed,
+            windFrom = current.windFrom,
+            gust = current.windGust?.roundToInt(),
+            code = current.code,
+            night = isNight(current.time, state.days),
+            source = stringResource(R.string.sky_estimate_at, clock(current.time)),
+        ),
+        wide,
+    )
 }
 
 /**
@@ -517,27 +499,29 @@ private fun asReading(c: Current, metric: Boolean): StationReading {
  * The air: its quality on the scale that goes with the units (the US index with imperial,
  * the European one with metric), and the two heaviest pollens where there are any.
  */
-private fun airRows(air: Air, metric: Boolean): List<@Composable () -> Unit> {
-    val rows = ArrayList<@Composable () -> Unit>()
+private fun airRows(air: Air, metric: Boolean): List<ReadRow> {
+    val rows = ArrayList<ReadRow>()
     val us = !metric || air.europeanAqi == null
     val aqi = if (us) air.usAqi else air.europeanAqi
     if (aqi != null) {
-        rows += {
+        rows += ReadRow(short = false) { paired ->
             val band = if (us) AirQuality.usBand(aqi) else AirQuality.europeanBand(aqi)
             Reading(
                 label = stringResource(R.string.sky_air),
                 value = aqi.toString(),
                 unit = stringResource(if (us) R.string.sky_air_us else R.string.sky_air_eu),
                 note = stringResource(bandName(band, us)),
+                paired = paired,
             )
         }
     }
     air.pollen.take(2).forEach { (kind, grains) ->
-        rows += {
+        rows += ReadRow(short = true) { paired ->
             Reading(
                 label = stringResource(pollenName(kind)),
                 value = grains.roundToInt().toString(),
                 unit = stringResource(R.string.sky_pollen_unit),
+                paired = paired,
             )
         }
     }
@@ -624,9 +608,9 @@ private fun againstYesterday(today: Day, yesterday: Day, metric: Boolean): Strin
 
 /** The temperature, what it feels like, and how old it is — or why there is none. */
 @Composable
-private fun Now(state: SkyState) {
+private fun Now(state: SkyState, wide: Boolean) {
     val reading = state.reading
-    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 14.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = if (reading == null) 12.dp else 0.dp)) {
         when {
             reading == null && state.stationTrouble == StationTrouble.NO_ANSWER -> {
                 TextMMD(
@@ -656,73 +640,49 @@ private fun Now(state: SkyState) {
         }
         reading ?: return@Column
 
-        // What it feels like and how old the reading is sit beside the figure, not under it, so
-        // the block is no taller than the figure and leaves no blank to its right.
-        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
-            // A figure the instrument reads, like a speedometer's, rather than type.
-            TextMMD(
-                text = reading.temperature?.let { "${it.number.roundToInt()}°" } ?: "–",
-                fontSize = 72.sp,
-                fontWeight = FontWeight.Medium,
-            )
-            Spacer(Modifier.width(6.dp))
-            TextMMD(
-                text = reading.temperature?.unit.orEmpty(),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 14.dp),
-            )
-            Spacer(Modifier.weight(1f))
-            Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(bottom = 14.dp)) {
-                reading.feelsLike?.let { feels ->
-                    TextMMD(
-                        text = stringResource(R.string.sky_feels_like, feels.number.roundToInt()),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Spacer(Modifier.height(4.dp))
-                TextMMD(
-                    text = if (state.stationTrouble == StationTrouble.NO_ANSWER) {
-                        stringResource(R.string.sky_last_read, clock(state.readAt))
-                    } else {
-                        stringResource(R.string.sky_read_at, clock(state.readAt))
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
-        }
+        val code = state.current?.code ?: state.days.firstOrNull { it.date == state.placeToday() }?.code ?: -1
+        val speed = reading.windSpeed
+        TodayHead(
+            HeadFigures(
+                temperature = reading.temperature?.number?.roundToInt(),
+                unit = reading.temperature?.unit.orEmpty(),
+                feelsLike = reading.feelsLike?.number?.roundToInt(),
+                humidity = reading.humidity,
+                pressure = reading.pressure?.let { "${it.text} ${it.unit}" },
+                windSpeed = speed?.number?.roundToInt(),
+                windUnit = speed?.unit.orEmpty(),
+                windFrom = reading.windFrom,
+                gust = reading.windGust?.number?.roundToInt(),
+                code = code,
+                night = isNight(state.current?.time ?: LocalDateTime.now(state.offset), state.days),
+                source = if (state.stationTrouble == StationTrouble.NO_ANSWER) {
+                    stringResource(R.string.sky_last_read, clock(state.readAt))
+                } else {
+                    stringResource(R.string.sky_read_at, clock(state.readAt))
+                },
+            ),
+            wide,
+        )
     }
 }
 
 /**
- * The rows under the temperature, each only if the station reported it. A station without a
+ * One row under the head. A [short] one has no note under it, so two of them can share a line
+ * ([pairedRows]); the rest take a line each.
+ */
+internal class ReadRow(val short: Boolean, val draw: @Composable (paired: Boolean) -> Unit)
+
+/**
+ * The rows under the head, each only if the station reported it: the rain, the dew point, the
+ * UV and the soil. The wind, humidity and pressure are in the head already. A station without a
  * soil probe has no soil row, rather than a dash beside one.
  */
-private fun readingRows(reading: StationReading): List<@Composable () -> Unit> {
-    val rows = ArrayList<@Composable () -> Unit>()
-
-    // The gusts go in the wind's own row: as two rows, a scroll could leave the wind under
-    // the top bar and only the gusts on the screen.
-    val gust = reading.windGust
-    reading.windSpeed?.let { wind ->
-        rows += {
-            val compass = stringArrayResource(R.array.compass_16)
-            val speed = wind.number.roundToInt()
-            // A direction on a still day is the vane's last resting place, not a wind.
-            val from = reading.windFrom?.takeIf { speed > 0 }?.let { compass[((it / 22.5).roundToInt()) % 16] }
-            Reading(
-                label = stringResource(R.string.sky_wind),
-                value = listOfNotNull(from, speed.toString()).joinToString(" "),
-                unit = wind.unit,
-                note = gust?.let { stringResource(R.string.sky_gusts_to, it.number.roundToInt(), it.unit) },
-            )
-        }
-    } ?: gust?.let {
-        rows += { Reading(stringResource(R.string.sky_gusts), it.number.roundToInt().toString(), it.unit) }
-    }
+private fun readingRows(reading: StationReading): List<ReadRow> {
+    val rows = ArrayList<ReadRow>()
     reading.rainToday?.let { rain ->
         val rate = reading.rainRate
         val falling = reading.raining == true || (rate != null && rate.number > 0.0)
-        rows += {
+        rows += ReadRow(short = !falling) { paired ->
             Reading(
                 label = stringResource(R.string.sky_rain_today),
                 value = rain.text,
@@ -733,17 +693,43 @@ private fun readingRows(reading: StationReading): List<@Composable () -> Unit> {
                         stringResource(R.string.sky_rain_falling_at, rate.text, rate.unit)
                     else -> stringResource(R.string.sky_rain_falling)
                 },
+                paired = paired,
             )
         }
     }
-    reading.humidity?.let { rows += { Reading(stringResource(R.string.sky_humidity), it.toString(), "%") } }
     reading.dewPoint?.let { dew ->
-        rows += { Reading(stringResource(R.string.sky_dew_point), "${dew.number.roundToInt()}°", dew.unit) }
+        rows += ReadRow(true) { Reading(stringResource(R.string.sky_dew_point), "${dew.number.roundToInt()}°", dew.unit, paired = it) }
     }
-    reading.pressure?.let { p -> rows += { Reading(stringResource(R.string.sky_pressure), p.text, p.unit) } }
-    reading.uvIndex?.let { uv -> rows += { Reading(stringResource(R.string.sky_uv), uv.roundToInt().toString(), "") } }
-    reading.soilMoisture?.let { rows += { Reading(stringResource(R.string.sky_soil), it.toString(), "%") } }
+    reading.uvIndex?.let { uv -> rows += ReadRow(true) { Reading(stringResource(R.string.sky_uv), uv.roundToInt().toString(), "", paired = it) } }
+    reading.soilMoisture?.let { rows += ReadRow(true) { p -> Reading(stringResource(R.string.sky_soil), it.toString(), "%", paired = p) } }
     return rows
+}
+
+/** Sunrise and sunset as two short rows, the same on Today and on a day's page. */
+internal fun sunRows(sunrise: LocalDateTime, sunset: LocalDateTime): List<ReadRow> = listOf(
+    ReadRow(true) { Reading(stringResource(R.string.sky_sunrise), clock(sunrise), "", small = true, paired = it) },
+    ReadRow(true) { Reading(stringResource(R.string.sky_sunset), clock(sunset), "", small = true, paired = it) },
+)
+
+/** Rows in order, two short ones to a line and every other row on its own. */
+internal fun pairedRows(rows: List<ReadRow>, item: (@Composable () -> Unit) -> Unit) {
+    var i = 0
+    while (i < rows.size) {
+        val first = rows[i]
+        val second = rows.getOrNull(i + 1)
+        if (first.short && second != null && second.short) {
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    Box(Modifier.weight(1f)) { first.draw(true) }
+                    Box(Modifier.weight(1f)) { second.draw(true) }
+                }
+            }
+            i += 2
+        } else {
+            item { first.draw(false) }
+            i += 1
+        }
+    }
 }
 
 @Composable
@@ -780,7 +766,7 @@ private fun DayRow(
     val condition = stringResource(conditionFor(day.code))
 
     Row(
-        modifier = modifier.fillMaxWidth().padding(vertical = 12.dp),
+        modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -923,13 +909,13 @@ private fun DayColumn(day: Day?, hours: List<Hour>, state: SkyState, onPull: () 
         }
         val (sunrise, sunset) = sunTimes(day, state)
         if (sunrise != null && sunset != null) {
-            item {
-                HorizontalDividerMMD()
-                Reading(stringResource(R.string.sky_sunrise), clock(sunrise), "", small = true)
-            }
-            item {
-                HorizontalDividerMMD()
-                Reading(stringResource(R.string.sky_sunset), clock(sunset), "", small = true)
+            pairedRows(sunRows(sunrise, sunset)) { row ->
+                item {
+                    Column {
+                        HorizontalDividerMMD()
+                        row()
+                    }
+                }
             }
         }
         almanacDayRows(day, state.at, state.almanacZone()).forEach { row ->
@@ -1153,7 +1139,7 @@ private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean) {
     val now = stringResource(R.string.sky_now)
     val count = hours.size
     val change = Change.of(hours)
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 0.dp)) {
         TextMMD(
             text = when (change) {
                 // The station knows the present better than a model does: a drizzle the
@@ -1194,7 +1180,7 @@ private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean) {
             style = MaterialTheme.typography.labelSmall,
             maxLines = 1,
         )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(6.dp))
         Strip(hours, first = now)
     }
 }
@@ -1205,14 +1191,14 @@ private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean) {
  */
 @Composable
 private fun LaterHours(hours: List<Hour>) {
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 0.dp)) {
         TextMMD(text = spellLine(hours, wholeDay = false), style = MaterialTheme.typography.bodyMedium)
         TextMMD(
             text = stringResource(R.string.sky_hours_span, clock(hours.first().time), clock(hours.last().time.plusHours(1))),
             style = MaterialTheme.typography.labelSmall,
             maxLines = 1,
         )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(6.dp))
         Strip(hours)
     }
 }
@@ -1292,7 +1278,7 @@ private fun Strip(hours: List<Hour>, first: String? = null) {
     }
 }
 
-private val BAR_HEIGHT = 40.dp
+private val BAR_HEIGHT = 28.dp
 
 private val hour24: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 private val hour12: DateTimeFormatter = DateTimeFormatter.ofPattern("h a")
@@ -1336,16 +1322,15 @@ private fun snowDepth(value: Double?, inches: Boolean): String? {
 /** Open-Meteo gives snow in centimetres beside millimetres of rain, and inches beside inches. */
 private fun snowUnit(inches: Boolean): String = if (inches) "in" else "cm"
 
-/** A label, a number with its unit, and a note only where a label cannot carry it. */
+/**
+ * A label, a number with its unit, and a note only where a label cannot carry it. [paired] sets
+ * the label over the figure, for the half of a line two rows share.
+ */
 @Composable
-internal fun Reading(label: String, value: String, unit: String, note: String? = null, small: Boolean = false) {
+internal fun Reading(label: String, value: String, unit: String, note: String? = null, small: Boolean = false, paired: Boolean = false) {
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom,
-        ) {
-            TextMMD(text = label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        if (paired) {
+            TextMMD(text = label, style = MaterialTheme.typography.bodyMedium)
             Row(verticalAlignment = Alignment.Bottom) {
                 TextMMD(
                     text = value,
@@ -1355,6 +1340,25 @@ internal fun Reading(label: String, value: String, unit: String, note: String? =
                 if (unit.isNotEmpty()) {
                     Spacer(Modifier.size(6.dp))
                     TextMMD(text = unit, style = MaterialTheme.typography.labelSmall)
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                TextMMD(text = label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                Row(verticalAlignment = Alignment.Bottom) {
+                    TextMMD(
+                        text = value,
+                        style = if (small) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Medium,
+                    )
+                    if (unit.isNotEmpty()) {
+                        Spacer(Modifier.size(6.dp))
+                        TextMMD(text = unit, style = MaterialTheme.typography.labelSmall)
+                    }
                 }
             }
         }

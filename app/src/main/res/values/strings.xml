@@ -28,6 +28,9 @@
     <!-- %1$s is a number, %2$s its unit as the gateway gives it, e.g. in/Hr -->
     <string name="sky_rain_falling_at">Falling now, %1$s %2$s</string>
     <string name="sky_humidity">Humidity</string>
+    <string name="sky_humidity_pct">Humidity %1$d%%</string>
+    <string name="sky_pressure_line">Pressure %1$s</string>
+    <string name="sky_calm">Calm</string>
     <string name="sky_dew_point">Dew point</string>
     <string name="sky_pressure">Pressure</string>
     <string name="sky_uv">UV index</string>
@@ -149,7 +152,7 @@
     <string name="sky_forecast_credit">Forecast by Open-Meteo, CC BY 4.0</string>
     <string name="sky_air_credit">Air quality from the Copernicus Atmosphere Monitoring Service, by Open-Meteo</string>
     <!-- Under the temperature when there is no station: %1$s is a condition such as "Overcast", %2$s a time -->
-    <string name="sky_estimate">%1$s. The forecast\'s estimate for %2$s</string>
+    <string name="sky_estimate_at">Estimate for %1$s</string>
     <!-- Under the forecast's estimate, when a station is set but cannot be reached. -->
     <string name="sky_station_fallback">The station is not answering, so this is the forecast\'s estimate.</string>
     <string name="sky_air">Air quality</string>

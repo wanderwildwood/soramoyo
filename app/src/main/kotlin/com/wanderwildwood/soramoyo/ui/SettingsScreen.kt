@@ -354,8 +354,8 @@ private fun PlaceDialog(
                 modifier = Modifier.weight(1f).height(48.dp),
             ) { TextMMD(text = stringResource(R.string.settings_cancel), style = MaterialTheme.typography.bodySmall) }
             OutlinedButtonMMD(
+                // Never greyed out: with nothing typed it simply waits for something to look up.
                 onClick = { look() },
-                enabled = typed.isNotBlank(),
                 modifier = Modifier.weight(1f).height(48.dp),
             ) { TextMMD(text = stringResource(R.string.settings_place_search), style = MaterialTheme.typography.bodySmall) }
         }

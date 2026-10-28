@@ -52,7 +52,7 @@ internal fun DayWords(summary: DaySummary?, soon: RainSoon?) {
     val words = summary?.let { daySentence(it) }
     val rain = soon?.let { soonLine(it) }
     if (words == null && rain == null) return
-    Column(modifier = Modifier.padding(vertical = 12.dp)) {
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
         if (words != null) TextMMD(text = words, style = MaterialTheme.typography.bodySmall)
         if (words != null && rain != null) Spacer(Modifier.height(6.dp))
         if (rain != null) TextMMD(text = rain, style = MaterialTheme.typography.labelSmall)
