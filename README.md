@@ -58,6 +58,8 @@ for a place you choose.
 
 **The next two hours.** Under it, one line from Open-Meteo's quarter-hour rain forecast: "Rain in about 40 minutes", "Dry for the next two hours", or "Raining now, easing in about 30 minutes". Where the model has nothing for a place, the line is left out rather than saying dry.
 
+**Turned sideways.** With the phone on its side, Today puts the day down the left (the words, the reading, today's high and low, then the rows a page at a time) and the next twelve hours at the right, with Later and Now; Forecast shows two days to a row, all five on one page; a day's page puts the day on the left and its hours on the right; the radar's map fills the height with its controls beside it; the tabs move up into the bar. The phone's own settings never turn the Kompakt's screen, so Sky watches the phone itself; **Settings → Turn sideways with the phone** keeps it upright.
+
 **Pull down to refresh.** On Today, Forecast, a day's page and the alerts, a swipe down from the top asks the station and the forecast again; a line at the top says "Updating…" and then "Up to date".
 
 **The air.** Air quality, on the US index with imperial units and the European one with

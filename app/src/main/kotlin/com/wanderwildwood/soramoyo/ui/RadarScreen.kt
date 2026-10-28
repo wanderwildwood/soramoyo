@@ -1,6 +1,10 @@
 package com.wanderwildwood.soramoyo.ui
 
+import android.content.res.Configuration
 import android.graphics.Paint
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.platform.LocalConfiguration
 import android.graphics.Rect
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -71,11 +75,22 @@ fun RadarTab(
     // a coming to the front too, as far as the radar is concerned.
     LaunchedEffect(Unit) { vm.onForeground() }
 
-    Column(
-        modifier = modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        // The frame's time, which on a screen of its own was the title.
+    // The map: square, its size set by the caller.
+    val map: @Composable (Modifier) -> Unit = { m ->
+        Box(modifier = m, contentAlignment = Alignment.Center) {
+            when {
+                state.permissionDenied -> LocationPrompt(onAllowLocation)
+                state.location == null -> TextMMD(text = stringResource(R.string.locating), style = MaterialTheme.typography.bodySmall)
+                else -> RadarMap(state)
+            }
+
+            if (state.loading) {
+                TextMMD(text = stringResource(R.string.loading), style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+    // The frame's time, which on a screen of its own was the title, and the cloud motion.
+    val heading: @Composable () -> Unit = {
         TextMMD(text = headerText(state), style = MaterialTheme.typography.titleMedium)
         // Locally estimated cloud motion behind the ≈ forecast frames.
         state.motion?.let { m ->
@@ -89,28 +104,9 @@ fun RadarTab(
                 TextMMD(text = label, style = MaterialTheme.typography.labelSmall)
             }
         }
-
-        // Square, and as large as the panel allows once everything else has its line: under
-        // the tab row a full-width square pushed RainViewer's credit off the bottom, and that
-        // credit is a condition of using its data.
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .aspectRatio(1f, matchHeightConstraintsFirst = true)
-                .padding(vertical = 6.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            when {
-                state.permissionDenied -> LocationPrompt(onAllowLocation)
-                state.location == null -> TextMMD(text = stringResource(R.string.locating), style = MaterialTheme.typography.bodySmall)
-                else -> RadarMap(state)
-            }
-
-            if (state.loading) {
-                TextMMD(text = stringResource(R.string.loading), style = MaterialTheme.typography.bodySmall)
-            }
-        }
-
+    }
+    // The controls, and RainViewer's attribution, which is a condition of using it, not a courtesy.
+    val foot: @Composable () -> Unit = {
         state.error?.let {
             TextMMD(text = stringResource(it), style = MaterialTheme.typography.labelSmall)
         }
@@ -118,7 +114,6 @@ fun RadarTab(
         Controls(vm, state)
 
         Spacer(Modifier.height(8.dp))
-        // RainViewer's attribution is a condition of using it, not a courtesy.
         TextMMD(text = stringResource(R.string.attribution), style = MaterialTheme.typography.labelSmall)
         state.lastUpdate?.let { t ->
             if (t > 0L) {
@@ -128,6 +123,43 @@ fun RadarTab(
                 )
             }
         }
+    }
+
+    if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        // Turned sideways: the map as tall as the panel at the left, the time, the controls and
+        // the credit beside it.
+        Row(modifier = modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
+            map(Modifier.fillMaxHeight().aspectRatio(1f, matchHeightConstraintsFirst = true))
+            Spacer(Modifier.width(12.dp))
+            Column(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) { heading() }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) { foot() }
+            }
+        }
+        return
+    }
+
+    Column(
+        modifier = modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        heading()
+
+        // Square, and as large as the panel allows once everything else has its line: under
+        // the tab row a full-width square pushed RainViewer's credit off the bottom, and that
+        // credit is a condition of using its data.
+        map(
+            Modifier
+                .weight(1f)
+                .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                .padding(vertical = 6.dp),
+        )
+
+        foot()
     }
 }
 

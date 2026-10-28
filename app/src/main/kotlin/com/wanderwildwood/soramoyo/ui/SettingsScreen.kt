@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.width
 import com.wanderwildwood.soramoyo.glance.LockScreen
 import com.wanderwildwood.soramoyo.alerts.AlertNotices
 import com.mudita.mmd.components.switcher.SwitchMMD
+import com.wanderwildwood.soramoyo.Turning
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
@@ -27,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -68,11 +70,11 @@ fun SettingsScreen(
     onSecond: (Place?) -> Unit,
     onUnits: (Units.Choice) -> Unit,
 ) {
-    var aboutOpen by remember { mutableStateOf(false) }
-    var stationOpen by remember { mutableStateOf(false) }
-    var placeOpen by remember { mutableStateOf(false) }
-    var secondOpen by remember { mutableStateOf(false) }
-    var unitsOpen by remember { mutableStateOf(false) }
+    var aboutOpen by rememberSaveable { mutableStateOf(false) }
+    var stationOpen by rememberSaveable { mutableStateOf(false) }
+    var placeOpen by rememberSaveable { mutableStateOf(false) }
+    var secondOpen by rememberSaveable { mutableStateOf(false) }
+    var unitsOpen by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -141,6 +143,27 @@ fun SettingsScreen(
                     )
                     Spacer(Modifier.width(16.dp))
                     SwitchMMD(checked = onLock, onCheckedChange = null)
+                }
+            }
+            item {
+                // Read and written here as well; the screen turns, or stops turning, at once.
+                val context = LocalContext.current
+                val turning = Turning.on(context)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { Turning.set(context, !turning) }
+                        .heightIn(min = 48.dp)
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextMMD(
+                        text = stringResource(R.string.settings_turn),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    SwitchMMD(checked = turning, onCheckedChange = null)
                 }
             }
             item {
@@ -273,7 +296,7 @@ private fun PlaceDialog(
     onChoose: (Place?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var typed by remember { mutableStateOf("") }
+    var typed by rememberSaveable { mutableStateOf("") }
     var search by remember { mutableStateOf<Search>(Search.Idle) }
     val scope = rememberCoroutineScope()
     fun look() {
@@ -366,8 +389,9 @@ private fun Choice(label: String, chosen: Boolean = false, onClick: () -> Unit) 
  */
 @Composable
 private fun StationDialog(source: Source, onSave: (Source) -> Unit, onDismiss: () -> Unit) {
-    var kind by remember { mutableStateOf(source.kind()) }
-    var address by remember {
+    // Kept through a turn of the phone, which builds the screen again; the key is not, being a secret.
+    var kind by rememberSaveable { mutableStateOf(source.kind()) }
+    var address by rememberSaveable {
         mutableStateOf(
             when (source) {
                 is Source.Ecowitt -> source.address
@@ -376,7 +400,7 @@ private fun StationDialog(source: Source, onSave: (Source) -> Unit, onDismiss: (
             },
         )
     }
-    var stationId by remember { mutableStateOf((source as? Source.Underground)?.stationId.orEmpty()) }
+    var stationId by rememberSaveable { mutableStateOf((source as? Source.Underground)?.stationId.orEmpty()) }
     var apiKey by remember { mutableStateOf((source as? Source.Underground)?.apiKey.orEmpty()) }
 
     val chosen: Source? = when (kind) {

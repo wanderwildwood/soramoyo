@@ -48,6 +48,8 @@ fun StoneTabs(
     selected: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    /** The thin rule beneath; left off where the row sits in a bar that draws its own. */
+    rule: Boolean = true,
 ) {
     val roomy = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
     val tight = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
@@ -100,6 +102,6 @@ fun StoneTabs(
             }
         }
         // MMD's divider defaults to 3dp; the rule TopAppBarMMD draws is 1dp, and this matches it.
-        HorizontalDividerMMD(thickness = 1.dp)
+        if (rule) HorizontalDividerMMD(thickness = 1.dp)
     }
 }

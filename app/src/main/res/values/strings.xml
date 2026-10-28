@@ -57,6 +57,7 @@
     <string name="sky_hours_dry">No rain likely in the next %1$d hours</string>
     <!-- Settings: whether the weather shows on the lock screen, through the Glance app -->
     <string name="settings_lock_screen">The weather on the lock screen</string>
+    <string name="settings_turn">Turn sideways with the phone</string>
     <!-- On the lock screen: the day's high and low, "18° / 9°" -->
     <string name="lock_high_low">%1$d° / %2$d°</string>
     <string name="sky_hours_rain_from">Rain likely from %1$s</string>

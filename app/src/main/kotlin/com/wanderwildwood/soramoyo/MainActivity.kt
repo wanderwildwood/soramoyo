@@ -38,13 +38,18 @@ import java.time.LocalDate
 class MainActivity : ComponentActivity() {
     /** Set by a press on an alert notification: open the alerts. */
     private var openAlerts by mutableStateOf(false)
+    private val turner = TurnWithPhone(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) openAlerts = intent.getBooleanExtra(AlertNotices.OPEN_EXTRA, false)
         // Brought back after an update or a cleared app, while the setting is on.
         AlertNotices.schedule(applicationContext)
+        turner.set(Turning.on(this))
         setContent {
+            // The switch in Settings takes effect at once.
+            val turning = Turning.on(this)
+            LaunchedEffect(turning) { turner.set(turning) }
             // A steady cursor: a blinking one repaints the panel twice a second for as long as a
             // field has focus.
             CompositionLocalProvider(LocalCursorBlinkEnabled provides false) {
@@ -53,6 +58,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        turner.resume()
+    }
+
+    override fun onPause() {
+        turner.pause()
+        super.onPause()
     }
 
     override fun onNewIntent(intent: Intent) {

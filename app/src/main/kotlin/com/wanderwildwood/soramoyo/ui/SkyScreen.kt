@@ -6,7 +6,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.clickable
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -101,10 +106,41 @@ fun SkyTabs(
     onPull: () -> Unit,
 ) {
     val shown = state.forScreen()
+    val wide = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val labels = Tab.entries.map { t ->
+        stringResource(
+            when (t) {
+                Tab.TODAY -> R.string.tab_today
+                Tab.FORECAST -> R.string.tab_forecast
+                Tab.RADAR -> R.string.tab_radar
+                Tab.ALMANAC -> R.string.tab_almanac
+            },
+        )
+    }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            Column {
+            // Turned sideways the height is short, so the tabs go up into the bar in the title's
+            // place, beside the two places when there are two, and the page keeps the rest.
+            if (wide) Column {
+                Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+                    state.second?.let { second ->
+                        Box(Modifier.widthIn(max = 200.dp).padding(start = 16.dp)) {
+                            PlaceSwitch(state.place, second, state.showingSecond, onSwitchPlace)
+                        }
+                    }
+                    StoneTabs(
+                        labels = labels,
+                        selected = tab.ordinal,
+                        onSelect = { onTab(Tab.entries[it]) },
+                        modifier = Modifier.weight(1f),
+                        rule = false,
+                    )
+                    BarButton(Icons.Settings, stringResource(R.string.sky_cd_settings), onSettings)
+                    Spacer(Modifier.width(8.dp))
+                }
+                HorizontalDividerMMD(thickness = 1.dp)
+            } else Column {
                 // With a second place the two names take the title's place rather than a line
                 // of their own under it: that line pushed the rows of Today down a whole row,
                 // and the wind off the first screen.
@@ -120,16 +156,7 @@ fun SkyTabs(
                     actions = { BarButton(Icons.Settings, stringResource(R.string.sky_cd_settings), onSettings) },
                 )
                 StoneTabs(
-                    labels = Tab.entries.map { t ->
-                        stringResource(
-                            when (t) {
-                                Tab.TODAY -> R.string.tab_today
-                                Tab.FORECAST -> R.string.tab_forecast
-                                Tab.RADAR -> R.string.tab_radar
-                                Tab.ALMANAC -> R.string.tab_almanac
-                            },
-                        )
-                    },
+                    labels = labels,
                     selected = tab.ordinal,
                     onSelect = { onTab(Tab.entries[it]) },
                 )
@@ -211,7 +238,46 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
         state.days.firstOrNull { it.date == state.placeToday() }, state.hours, state.metric, state.offset,
     )
     val soon = RainSoon.of(state.quarters, state.hours, state.inches, state.offset)
-    PagedColumn(modifier = modifier.padding(horizontal = 20.dp), onPullAtTop = onPull) {
+    // The next twelve hours, and the twelve after them a swipe away: going out in the
+    // morning, the evening you come back in is past the first twelve.
+    val next = upcoming(state.hours, state.offset, count = HOURS * 2)
+    val hours = next.take(HOURS)
+    val after = next.drop(HOURS)
+    // Turned sideways: the day down the left, the hours with Later and Now standing at the
+    // right, where turning the left's pages leaves them be.
+    val wide = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    if (wide) {
+        Row(modifier) {
+            TodayColumn(state, hours, after, summary, soon, today, yesterday, noStation, fallback, onAllowLocation, onAlerts, onPull, wide = true, Modifier.weight(1f).fillMaxHeight().padding(horizontal = 20.dp))
+            VerticalDivider(color = MaterialTheme.colorScheme.onSurface)
+            Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 20.dp)) {
+                if (hours.isNotEmpty()) Hours(hours, after, state.inches, rainingNow(state), state.returns)
+            }
+        }
+    } else {
+        TodayColumn(state, hours, after, summary, soon, today, yesterday, noStation, fallback, onAllowLocation, onAlerts, onPull, wide = false, modifier.padding(horizontal = 20.dp))
+    }
+}
+
+/** Today's rows, a page of whole rows at a time; [wide] leaves the hours out, for the column beside. */
+@Composable
+private fun TodayColumn(
+    state: SkyState,
+    hours: List<Hour>,
+    after: List<Hour>,
+    summary: DaySummary?,
+    soon: RainSoon?,
+    today: Day?,
+    yesterday: Day?,
+    noStation: Boolean,
+    fallback: Boolean,
+    onAllowLocation: () -> Unit,
+    onAlerts: () -> Unit,
+    onPull: () -> Unit,
+    wide: Boolean,
+    modifier: Modifier,
+) {
+    PagedColumn(modifier = modifier, onPullAtTop = onPull) {
         pullLine(state.pull)
         // An official warning comes before anything else, and only while there is one.
         if (state.alerts.isNotEmpty()) {
@@ -230,11 +296,6 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
                 }
             }
         }
-        // The next twelve hours, and the twelve after them a swipe away: going out in the
-        // morning, the evening you come back in is past the first twelve.
-        val next = upcoming(state.hours, state.offset, count = HOURS * 2)
-        val hours = next.take(HOURS)
-        val after = next.drop(HOURS)
         val current = state.current
         if (noStation) {
             if (current != null) {
@@ -248,7 +309,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
             } else {
                 item { Outlook(today, yesterday, state, onAllowLocation) }
             }
-            if (hours.isNotEmpty()) {
+            if (hours.isNotEmpty() && !wide) {
                 item {
                     HorizontalDividerMMD()
                     Hours(hours, after, state.inches, rainingNow(state), state.returns)
@@ -282,7 +343,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
                     }
                 }
             }
-            if (hours.isNotEmpty()) {
+            if (hours.isNotEmpty() && !wide) {
                 item {
                     HorizontalDividerMMD()
                     Hours(hours, after, state.inches, rainingNow(state), state.returns)
@@ -335,16 +396,32 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
 private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, onDay: (LocalDate) -> Unit, onPull: () -> Unit, modifier: Modifier) {
     val placeToday = state.placeToday()
     val ahead = state.days.filter { it.date.isAfter(placeToday) }
+    val wide = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     PagedColumn(modifier = modifier.padding(horizontal = 20.dp), onPullAtTop = onPull) {
         pullLine(state.pull)
         item {
             Spacer(Modifier.height(12.dp))
             ForecastTrouble(state.forecastTrouble, ahead.isEmpty(), onAllowLocation)
         }
-        ahead.forEachIndexed { i, day ->
-            item {
-                if (i > 0) HorizontalDividerMMD()
-                DayRow(day, state.inches, placeToday, Modifier.clickable { onDay(day.date) })
+        if (wide) {
+            // Turned sideways, two days to a row, so the five fit one page rather than two.
+            ahead.chunked(2).forEachIndexed { i, pair ->
+                item {
+                    if (i > 0) HorizontalDividerMMD()
+                    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                        pair.forEach { day ->
+                            DayRow(day, state.inches, placeToday, Modifier.weight(1f).clickable { onDay(day.date) })
+                        }
+                        if (pair.size == 1) Spacer(Modifier.weight(1f))
+                    }
+                }
+            }
+        } else {
+            ahead.forEachIndexed { i, day ->
+                item {
+                    if (i > 0) HorizontalDividerMMD()
+                    DayRow(day, state.inches, placeToday, Modifier.clickable { onDay(day.date) })
+                }
             }
         }
         if (ahead.isNotEmpty()) {
@@ -789,6 +866,9 @@ internal fun dayName(date: LocalDate, today: LocalDate): String = when (date) {
 @Composable
 fun DayScreen(date: LocalDate, state: SkyState, onClose: () -> Unit, onPull: () -> Unit) {
     val day = state.days.firstOrNull { it.date == date }
+    // Turned sideways: the day down the left, its hours at the right.
+    val wide = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val hours = state.hours.filter { it.time.toLocalDate() == date }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
@@ -798,54 +878,67 @@ fun DayScreen(date: LocalDate, state: SkyState, onClose: () -> Unit, onPull: () 
             )
         },
     ) { contentPadding ->
-        PagedColumn(
-            modifier = Modifier.fillMaxSize().padding(contentPadding).padding(horizontal = 20.dp),
-            onPullAtTop = onPull,
-        ) {
-            pullLine(state.pull)
-            // A forecast refreshed past midnight no longer has yesterday's tomorrow in it.
-            if (day == null) {
-                item {
-                    Spacer(Modifier.height(12.dp))
-                    TextMMD(text = stringResource(R.string.sky_day_gone), style = MaterialTheme.typography.bodySmall)
-                }
-                return@PagedColumn
+        if (wide && day != null && hours.isNotEmpty()) {
+            Row(Modifier.fillMaxSize().padding(contentPadding)) {
+                DayColumn(day, hours, state, onPull, wide = true, Modifier.weight(1f).fillMaxHeight().padding(horizontal = 20.dp))
+                VerticalDivider(color = MaterialTheme.colorScheme.onSurface)
+                Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 20.dp)) { DayHours(hours) }
             }
-            item { DayHeadline(day) }
-
-            val hours = state.hours.filter { it.time.toLocalDate() == date }
-            if (hours.isNotEmpty()) {
-                item {
-                    HorizontalDividerMMD()
-                    DayHours(hours)
-                }
-            }
-
-            dayRows(day, state.inches, state.metric).forEach { row ->
-                item {
-                    HorizontalDividerMMD()
-                    row()
-                }
-            }
-            val (sunrise, sunset) = sunTimes(day, state)
-            if (sunrise != null && sunset != null) {
-                item {
-                    HorizontalDividerMMD()
-                    Reading(stringResource(R.string.sky_sunrise), clock(sunrise), "", small = true)
-                }
-                item {
-                    HorizontalDividerMMD()
-                    Reading(stringResource(R.string.sky_sunset), clock(sunset), "", small = true)
-                }
-            }
-            almanacDayRows(day, state.at, state.almanacZone()).forEach { row ->
-                item {
-                    HorizontalDividerMMD()
-                    row()
-                }
-            }
-            item { Credit(state, air = false) }
+        } else {
+            DayColumn(day, hours, state, onPull, wide = false, Modifier.fillMaxSize().padding(contentPadding).padding(horizontal = 20.dp))
         }
+    }
+}
+
+/** A day's rows, a page of whole rows at a time; [wide] leaves the hours out, for the column beside. */
+@Composable
+private fun DayColumn(day: Day?, hours: List<Hour>, state: SkyState, onPull: () -> Unit, wide: Boolean, modifier: Modifier) {
+    PagedColumn(
+        modifier = modifier,
+        onPullAtTop = onPull,
+    ) {
+        pullLine(state.pull)
+        // A forecast refreshed past midnight no longer has yesterday's tomorrow in it.
+        if (day == null) {
+            item {
+                Spacer(Modifier.height(12.dp))
+                TextMMD(text = stringResource(R.string.sky_day_gone), style = MaterialTheme.typography.bodySmall)
+            }
+            return@PagedColumn
+        }
+        item { DayHeadline(day) }
+
+        if (hours.isNotEmpty() && !wide) {
+            item {
+                HorizontalDividerMMD()
+                DayHours(hours)
+            }
+        }
+
+        dayRows(day, state.inches, state.metric).forEach { row ->
+            item {
+                HorizontalDividerMMD()
+                row()
+            }
+        }
+        val (sunrise, sunset) = sunTimes(day, state)
+        if (sunrise != null && sunset != null) {
+            item {
+                HorizontalDividerMMD()
+                Reading(stringResource(R.string.sky_sunrise), clock(sunrise), "", small = true)
+            }
+            item {
+                HorizontalDividerMMD()
+                Reading(stringResource(R.string.sky_sunset), clock(sunset), "", small = true)
+            }
+        }
+        almanacDayRows(day, state.at, state.almanacZone()).forEach { row ->
+            item {
+                HorizontalDividerMMD()
+                row()
+            }
+        }
+        item { Credit(state, air = false) }
     }
 }
 
