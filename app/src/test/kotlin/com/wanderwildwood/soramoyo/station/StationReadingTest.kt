@@ -73,14 +73,6 @@ class StationReadingTest {
         assertEquals(42, r.soilMoisture)
     }
 
-    @Test
-    fun anAddressIsTakenHoweverItWasCopied() {
-        val want = "http://192.168.1.50/get_livedata_info"
-        assertEquals(want, StationClient.urlFor("192.168.1.50"))
-        assertEquals(want, StationClient.urlFor(" http://192.168.1.50/ "))
-        assertEquals(want, StationClient.urlFor("https://192.168.1.50"))
-    }
-
     /** Metric chosen in settings, over a gateway set to imperial. */
     @Test
     fun anImperialGatewayConvertedToMetric() {

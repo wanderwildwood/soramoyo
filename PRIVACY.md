@@ -35,7 +35,7 @@ The libraries the app is built on add these, and the store lists them: `ACCESS_N
 
 The store also lists `com.wanderwildwood.soramoyo.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` because it reads the APK. AndroidX declares it for its own internal receivers; it is signature-level and namespaced to this app, so nothing else can hold it and it grants no access to anything on the phone.
 
-Plain http is permitted (`usesCleartextTraffic="true"`) for one reason: an Ecowitt gateway or a Davis WeatherLink Live serves plain http on your home network, at an address only you know. The internet services below are all asked over https.
+The app declares no cleartext traffic, so Android refuses plain http for all of it; everything on the internet is asked over https. The one plain-text request Sky ever makes is to your own Ecowitt gateway or Davis WeatherLink Live, which serve plain http and nothing else, at the address you typed. Android's network security config cannot say "any private address", so the app makes that request itself, over a plain socket, and only after checking that the address (and every address a name resolves to) is a private one: 10.x.x.x, 172.16-31.x.x, 192.168.x.x, 169.254.x.x, or the IPv6 equivalents (fc00::/7, fe80::/10). Any other address is refused and nothing is sent. Redirects are not followed. No other plain-text request is made.
 
 Nothing a permission grants access to is sent anywhere, except as described in the next section.
 

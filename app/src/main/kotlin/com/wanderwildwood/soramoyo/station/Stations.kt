@@ -1,5 +1,6 @@
 package com.wanderwildwood.soramoyo.station
 
+import com.wanderwildwood.soramoyo.net.LocalHttp
 import android.content.Context
 import android.net.wifi.WifiManager
 import kotlinx.coroutines.Dispatchers
@@ -53,12 +54,7 @@ object Stations {
  */
 object Davis {
     suspend fun read(address: String, metric: Boolean): StationReading = withContext(Dispatchers.IO) {
-        val host = address.trim().removePrefix("http://").removePrefix("https://").trimEnd('/')
-        val request = Request.Builder().url("http://$host/v1/current_conditions").get().build()
-        Stations.http.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("WeatherLink Live answered ${response.code}")
-            parse(response.body?.string().orEmpty(), metric)
-        }
+        parse(LocalHttp.get(address, "/v1/current_conditions"), metric)
     }
 
     internal fun parse(json: String, metric: Boolean): StationReading {

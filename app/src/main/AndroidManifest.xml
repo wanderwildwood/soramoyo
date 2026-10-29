@@ -32,11 +32,12 @@
     </queries>
 
     <!--
-        usesCleartextTraffic: an Ecowitt gateway or a Davis WeatherLink Live serves plain
-        HTTP and nothing else, on the home network at an address only its owner knows, so it
-        cannot be named in a network security config ahead of time. Everything on the
-        internet - Open-Meteo, RainViewer, Weather Underground, the Weather Service - is asked over HTTPS
-        regardless; those addresses are written into the app that way.
+        No cleartext traffic is declared: Android refuses plain http for the whole app. An Ecowitt
+        gateway or a Davis WeatherLink Live serves plain http and nothing else, on the home network
+        at an address only its owner knows, which a network security config cannot name ("any
+        private address" does not exist there). So net/LocalHttp.kt makes that one request itself,
+        over a socket, and only to an address that resolves to a private one. Everything on the
+        internet is asked over https.
     -->
     <application
         android:allowBackup="false"
@@ -45,7 +46,6 @@
         android:roundIcon="@drawable/ic_launcher_mudita"
         android:label="@string/app_name"
         android:supportsRtl="false"
-        android:usesCleartextTraffic="true"
         android:theme="@style/Theme.App">
 
         <activity
