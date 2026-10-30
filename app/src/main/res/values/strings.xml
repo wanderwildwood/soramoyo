@@ -411,4 +411,10 @@
     <string name="sky_soon_snowing_easing">Snowing now, easing in about %1$d minutes</string>
     <string name="sky_soon_raining_lasting">Raining now, and not easing for two hours</string>
     <string name="sky_soon_snowing_lasting">Snowing now, and not easing for two hours</string>
+    <!-- The folio at the foot of a paged list, "2 / 6"; a tap on it asks for a page -->
+    <string name="folio_of">%1$d / %2$d</string>
+    <string name="folio_go_title">Go to page</string>
+    <string name="folio_page">Page %1$d of %2$d</string>
+    <string name="folio_go">Go</string>
+    <string name="folio_cancel">Cancel</string>
 </resources>
