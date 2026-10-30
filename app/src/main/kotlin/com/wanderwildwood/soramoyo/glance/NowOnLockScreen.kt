@@ -239,8 +239,13 @@ internal object Weather {
 /** Sky's own switch for the lock screen. */
 object LockScreen {
     private const val ON = "on"
+    /** Whether Glance, the only thing that can show these lines, is on this phone. */
+    fun glanceInstalled(context: Context): Boolean =
+        context.packageManager.getLaunchIntentForPackage(GlanceProvider.READER) != null
+
+    /** Off until chosen, unless Glance is there to show it: a switch nobody asked for stays off. */
     fun on(context: Context): Boolean =
-        context.getSharedPreferences("lock_screen", Context.MODE_PRIVATE).getBoolean(ON, true)
+        context.getSharedPreferences("lock_screen", Context.MODE_PRIVATE).getBoolean(ON, glanceInstalled(context))
 
     fun set(context: Context, on: Boolean) {
         context.getSharedPreferences("lock_screen", Context.MODE_PRIVATE).edit().putBoolean(ON, on).apply()

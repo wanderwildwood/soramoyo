@@ -1,6 +1,6 @@
 # Sky — Privacy Policy
 
-Version 0.11.1. Last reviewed 27 October 2026.
+Version 0.11.15. Last reviewed 27 October 2026.
 
 ## The short version
 

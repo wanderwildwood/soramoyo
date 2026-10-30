@@ -14,10 +14,13 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalCursorBlinkEnabled
+import com.wanderwildwood.soramoyo.ui.openAppSettings
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -92,13 +95,27 @@ private fun Sky(openAlerts: Boolean, onAlertsOpened: () -> Unit, sky: SkyViewMod
     // radar again.
     val radar: RadarViewModel = viewModel()
 
+    // Refused with "don't ask again": asking again answers at once with nothing, so the button
+    // then says why and takes the reader to the app's page in Android's settings.
+    var refusedForGood by remember { mutableStateOf(false) }
+    val activity = LocalContext.current as? android.app.Activity
     val ask = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
+        refusedForGood = !granted && activity != null &&
+            !androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.ACCESS_FINE_LOCATION)
         sky.onPermissionResult()
         radar.onPermissionResult(granted)
     }
-    val allowLocation = { ask.launch(Manifest.permission.ACCESS_FINE_LOCATION) }
+    val here = LocalContext.current
+    val allowLocation = {
+        if (refusedForGood) {
+            android.widget.Toast.makeText(here, R.string.location_refused, android.widget.Toast.LENGTH_LONG).show()
+            openAppSettings(here)
+        } else {
+            ask.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
 
     // Every return to the front asks the station again. The radar has its own throttle and
     // is only asked while it is the screen showing.

@@ -25,8 +25,16 @@
          can open a web address quietly answers no from Android 11 onwards, however many
          browsers are installed. -->
     <queries>
+        <!-- Glance, which draws the lock-screen lines: the switch is shown only when it is here. -->
+        <package android:name="com.wanderwildwood.hitome" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <!-- Which browsers the phone has, so a link never goes to the WebView test shell. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
             <data android:scheme="https" />
         </intent>
     </queries>

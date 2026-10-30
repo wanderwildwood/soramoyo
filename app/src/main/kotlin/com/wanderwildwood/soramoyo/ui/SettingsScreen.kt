@@ -2,6 +2,7 @@ package com.wanderwildwood.soramoyo.ui
 
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import com.wanderwildwood.soramoyo.glance.LockScreen
 import com.wanderwildwood.soramoyo.alerts.AlertNotices
 import com.mudita.mmd.components.switcher.SwitchMMD
@@ -86,6 +87,7 @@ fun SettingsScreen(
             )
         },
     ) { contentPadding ->
+        val glanceHere = LockScreen.glanceInstalled(LocalContext.current)
         PagedColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -121,7 +123,8 @@ fun SettingsScreen(
                     onClick = { unitsOpen = true },
                 )
             }
-            item {
+            // Only with Glance on the phone: without it the switch would change nothing anyone can see.
+            if (glanceHere) item {
                 // Read and written here: nothing else on this screen depends on it.
                 val context = LocalContext.current
                 var onLock by remember { mutableStateOf(LockScreen.on(context)) }
@@ -192,6 +195,13 @@ fun SettingsScreen(
                     TextMMD(text = stringResource(R.string.settings_alerts_note), style = MaterialTheme.typography.labelSmall)
                     if (notify && !AlertNotices.allowed(context)) {
                         TextMMD(text = stringResource(R.string.settings_alerts_blocked), style = MaterialTheme.typography.labelSmall)
+                        TextMMD(
+                            text = stringResource(R.string.settings_open_app_settings),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable { openNotificationSettings(context) }
+                                .fillMaxWidth().heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically),
+                        )
                     }
                 }
             }
@@ -238,6 +248,10 @@ fun SettingsScreen(
                     unitsOpen = false
                 }
             }
+            OutlinedButtonMMD(
+                onClick = { unitsOpen = false },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+            ) { TextMMD(text = stringResource(R.string.settings_cancel), style = MaterialTheme.typography.bodySmall) }
         }
     }
 
@@ -403,7 +417,12 @@ private fun StationDialog(source: Source, onSave: (Source) -> Unit, onDismiss: (
     var stationId by rememberSaveable { mutableStateOf((source as? Source.Underground)?.stationId.orEmpty()) }
     var apiKey by remember { mutableStateOf((source as? Source.Underground)?.apiKey.orEmpty()) }
 
-    val chosen: Source? = when (kind) {
+    // An address that is plainly an internet one is refused here, not at the first fetch, where
+    // all anyone sees is "the station is not answering".
+    val publicAddress = (kind == Kind.ECOWITT || kind == Kind.DAVIS) && isPublicIpAddress(address)
+    val chosen: Source? = when {
+        publicAddress -> null
+        else -> when (kind) {
         Kind.NONE -> Source.None
         Kind.ECOWITT -> address.trim().takeIf { it.isNotEmpty() }?.let { Source.Ecowitt(it) }
         Kind.DAVIS -> address.trim().takeIf { it.isNotEmpty() }?.let { Source.Davis(it) }
@@ -412,6 +431,7 @@ private fun StationDialog(source: Source, onSave: (Source) -> Unit, onDismiss: (
             Source.Underground(stationId.trim().uppercase(), apiKey.trim())
         } else {
             null
+        }
         }
     }
     val save = { chosen?.let(onSave); Unit }
@@ -433,6 +453,7 @@ private fun StationDialog(source: Source, onSave: (Source) -> Unit, onDismiss: (
                 Kind.ECOWITT, Kind.DAVIS -> {
                     item { Note(if (kind == Kind.ECOWITT) R.string.station_ecowitt_note else R.string.station_davis_note) }
                     item { Field(address, { address = it }, KeyboardType.Uri, last = true, onDone = save) }
+                    if (publicAddress) item { Note(R.string.station_address_public) }
                 }
                 Kind.UNDERGROUND -> {
                     item { Note(R.string.station_wu_note) }
@@ -445,7 +466,7 @@ private fun StationDialog(source: Source, onSave: (Source) -> Unit, onDismiss: (
                     item {
                         Column(Modifier.padding(top = 4.dp)) {
                             TextMMD(text = stringResource(R.string.station_wu_key), style = MaterialTheme.typography.labelSmall)
-                            Field(apiKey, { apiKey = it }, KeyboardType.Password, last = true, onDone = save)
+                            Field(apiKey, { apiKey = it }, KeyboardType.Password, last = true, onDone = save, secret = true)
                         }
                     }
                 }
@@ -500,8 +521,9 @@ private fun Note(text: Int) {
 }
 
 @Composable
-private fun Field(value: String, onChange: (String) -> Unit, type: KeyboardType, last: Boolean, onDone: () -> Unit) {
+private fun Field(value: String, onChange: (String) -> Unit, type: KeyboardType, last: Boolean, onDone: () -> Unit, secret: Boolean = false) {
     TextFieldMMD(
+        visualTransformation = if (secret) androidx.compose.ui.text.input.PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
         value = value,
         onValueChange = onChange,
         singleLine = true,
@@ -513,4 +535,17 @@ private fun Field(value: String, onChange: (String) -> Unit, type: KeyboardType,
         keyboardActions = KeyboardActions(onDone = { onDone() }),
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+/**
+ * Whether a typed station address is an IPv4 number that is not on the home network. A name is
+ * not judged here (it takes a lookup); only the plain case, so it can be said when saving.
+ */
+internal fun isPublicIpAddress(typed: String): Boolean {
+    val host = typed.trim().substringAfter("://").substringBefore('/').substringBefore(':')
+    val parts = host.split('.')
+    if (parts.size != 4 || parts.any { it.isEmpty() || it.length > 3 || !it.all(Char::isDigit) }) return false
+    val bytes = parts.map { it.toInt() }
+    if (bytes.any { it > 255 }) return false
+    return !com.wanderwildwood.soramoyo.net.LocalHttp.isLocal(ByteArray(4) { bytes[it].toByte() })
 }

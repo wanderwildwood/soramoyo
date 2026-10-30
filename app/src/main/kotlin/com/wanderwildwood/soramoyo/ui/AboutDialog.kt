@@ -43,7 +43,14 @@ import com.wanderwildwood.soramoyo.R
  */
 @Composable
 fun AboutDialog(onDismiss: () -> Unit) {
-    EInkDialog(onDismiss = onDismiss) {
+    var licences by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    // Back in the Licences page returns to the About rather than leaving both.
+    EInkDialog(onDismiss = { if (licences) licences = false else onDismiss() }) {
+        if (licences) {
+            val room = (LocalConfiguration.current.screenHeightDp - 165).coerceIn(120, 460).dp
+            LicencesPage(onBack = { licences = false }, room = room)
+            return@EInkDialog
+        }
         TextMMD(
             text = stringResource(R.string.about_title, BuildConfig.VERSION_NAME),
             style = MaterialTheme.typography.bodyLarge,
@@ -70,6 +77,14 @@ fun AboutDialog(onDismiss: () -> Unit) {
             }
             item { TextMMD(text = stringResource(R.string.about_data), style = MaterialTheme.typography.labelSmall) }
             item { TextMMD(text = stringResource(R.string.about_icons), style = MaterialTheme.typography.labelSmall) }
+            item {
+                TextMMD(
+                    text = stringResource(R.string.about_licences),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { licences = true }.fillMaxWidth().heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically),
+                )
+            }
             item { SourceLink() }
             item { Llama() }
         }
@@ -96,26 +111,17 @@ private fun Heading(title: Int) {
 @Composable
 private fun SourceLink() {
     val context = LocalContext.current
-    var dead by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .clickable {
-                dead = !runCatching {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(SOURCE_URL)))
-                }.isSuccess
-            },
+            .clickable { openLink(context, SOURCE_URL, context.getString(R.string.about_no_browser_address, SOURCE_SHOWN)) },
         contentAlignment = Alignment.CenterStart,
     ) {
-        TextMMD(
-            text = if (dead) stringResource(R.string.about_no_browser, SOURCE_SHOWN) else stringResource(R.string.about_source, SOURCE_SHOWN),
-            style = MaterialTheme.typography.labelSmall,
-        )
+        TextMMD(text = stringResource(R.string.about_source, SOURCE_SHOWN), style = MaterialTheme.typography.labelSmall)
     }
 }
 
-private const val SOURCE_URL = "https://github.com/wanderwildwood/soramoyo"
 private const val SOURCE_SHOWN = "github.com/wanderwildwood/soramoyo"
 
 /**
@@ -133,8 +139,6 @@ private const val SOURCE_SHOWN = "github.com/wanderwildwood/soramoyo"
 @Composable
 private fun Llama() {
     val context = LocalContext.current
-    // Which address had nothing to open it, to say so in place of the words.
-    var dead by remember { mutableStateOf<String?>(null) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -146,12 +150,7 @@ private fun Llama() {
             // The site's address opens the site, the way the llama beside it opens its page.
             modifier = Modifier
                 .clickable {
-                    val opened = runCatching {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse("https://wanderthe.dev")),
-                        )
-                    }.isSuccess
-                    dead = if (opened) null else "wanderthe.dev"
+                    openLink(context, "https://wanderthe.dev", context.getString(R.string.about_no_browser_address, "wanderthe.dev"))
                 }
                 .heightIn(min = 48.dp)
                 .wrapContentHeight(Alignment.CenterVertically),
@@ -161,12 +160,7 @@ private fun Llama() {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .clickable {
-                    val opened = runCatching {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse("https://square.link/u/AGu8oT10")),
-                        )
-                    }.isSuccess
-                    dead = if (opened) null else "square.link/u/AGu8oT10"
+                    openLink(context, "https://square.link/u/AGu8oT10", context.getString(R.string.about_no_browser_address, "square.link/u/AGu8oT10"))
                 }
                 .heightIn(min = 48.dp),
         ) {
@@ -177,11 +171,7 @@ private fun Llama() {
             )
             Spacer(Modifier.width(6.dp))
             TextMMD(
-                text = if (dead != null) {
-                    stringResource(R.string.about_no_browser, dead!!)
-                } else {
-                    stringResource(R.string.about_feed_the_llamas)
-                },
+                text = stringResource(R.string.about_feed_the_llamas),
                 style = MaterialTheme.typography.labelSmall,
             )
         }
