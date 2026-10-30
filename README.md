@@ -33,12 +33,9 @@ and whether it is falling now, humidity, dew point, pressure and UV, from one of
   and need renewing on the same page. Tried against a live station.
 - **A WeatherFlow Tempest**, heard on your own network: its hub broadcasts a reading about once
   a minute. A Tempest sends no total for the day's rain and no feels-like, so those two are
-  not shown for one. **Written from WeatherFlow's published format and not yet tried on a
-  real Tempest.**
-- **A Davis WeatherLink Live**, read on your own network through its local API. **Written from
-  Davis's published format and not yet tried on a real one.**
+  not shown for one.
+- **A Davis WeatherLink Live**, read on your own network through its local API.
 
-If you have a Tempest or a Davis and it works, or does not, an issue here is the way to say so.
 
 Without a station, Today leads with the forecast's estimate of now instead — temperature,
 feels-like, wind and humidity, marked as an estimate and for what time.
