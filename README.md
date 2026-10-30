@@ -14,7 +14,7 @@ the station and the forecast are added here.
 | | |
 |---|---|
 | ![Today: the day in words, the next two hours' rain, now and today](screenshots/1-today.png) | ![Almanac: the moon tonight, its rise and set, and the sun's dawn and dusk](screenshots/2-almanac.png) |
-| ![A day of its own: its hours and its snow](screenshots/3-day.png) | ![Radar, with the borders and the cities](screenshots/4-radar.png) |
+| ![A month of moons, on the almanac's second page](screenshots/3-moons.png) | ![About: privacy, terms and licences, a page at a time](screenshots/4-about.png) |
 
 ## What it shows
 
