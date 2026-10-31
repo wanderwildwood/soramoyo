@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Himmel</string>
+
+    <!-- The first screen: the station now, and three days of forecast -->
+    <string name="tab_today">Heute</string>
+    <string name="tab_forecast">Vorhersage</string>
+    <string name="tab_radar">Radar</string>
+    <string name="tab_almanac">Almanach</string>
+    <string name="sky_cd_settings">Einstellungen</string>
+    <string name="sky_asking">Die Station wird gefragt…</string>
+    <!-- %1$s is the address from settings -->
+    <string name="sky_not_answering">Die Station unter %1$s antwortet nicht. Sie ist nur aus ihrem eigenen Netzwerk erreichbar.</string>
+    <!-- %1$d is a temperature with no unit -->
+    <string name="sky_feels_like">Gefühlt %1$d°</string>
+    <!-- %1$s is a time of day -->
+    <string name="sky_read_at">Gelesen um %1$s</string>
+    <string name="sky_tempest_silent">Kein Tempest-Hub gehört. Er sendet nur in seinem eigenen Netzwerk.</string>
+    <!-- %1$s is a Weather Underground station ID -->
+    <string name="sky_wu_silent">Weather Underground hatte nichts für %1$s. Prüfe die Stations-ID und den API-Schlüssel in den Einstellungen.</string>
+    <string name="sky_wu_key_gone">Der API-Schlüssel von Weather Underground für %1$s muss in den Einstellungen erneut eingegeben werden. Er bleibt auf dem Telefon, auf dem er eingetippt wurde, deshalb fragt ein Neuinstallieren oder ein neues Telefon noch einmal danach.</string>
+    <string name="sky_last_read">Keine Antwort. Zuletzt gelesen um %1$s</string>
+    <string name="sky_wind">Wind</string>
+    <string name="sky_gusts">Böen</string>
+    <string name="sky_gusts_to">Böen bis %1$d %2$s</string>
+    <string name="sky_rain_today">Regen heute</string>
+    <string name="sky_rain_falling">Fällt gerade</string>
+    <!-- %1$s is a number, %2$s its unit as the gateway gives it, e.g. in/Hr -->
+    <string name="sky_rain_falling_at">Fällt gerade, %1$s %2$s</string>
+    <string name="sky_humidity">Luftfeuchtigkeit</string>
+    <string name="sky_humidity_pct">Luftfeuchtigkeit %1$d%%</string>
+    <string name="sky_pressure_line">Luftdruck %1$s</string>
+    <string name="sky_calm">Windstill</string>
+    <string name="sky_dew_point">Taupunkt</string>
+    <string name="sky_pressure">Luftdruck</string>
+    <string name="sky_uv">UV-Index</string>
+    <string name="sky_soil">Bodenfeuchtigkeit</string>
+
+    <!-- The first place in the switch at the top when it is the phone's own position -->
+    <string name="sky_place_here">Hier</string>
+    <!-- Between the two place names in the switch at the top -->
+    <string name="sky_place_between">·</string>
+    <!-- Read aloud for the place switch; %1$s is the place it goes to -->
+    <string name="sky_cd_switch_place">%1$s anzeigen</string>
+    <!-- %1$s is the name of the place chosen in settings -->
+    <string name="sky_forecast_for">Vorhersage für %1$s</string>
+    <!-- Beside the day's high in large type, when there is no station; %1$d is a temperature -->
+    <string name="sky_low">Tief %1$d°</string>
+    <string name="sky_forecast_asking">Die Vorhersage wird geholt…</string>
+    <string name="sky_forecast_no_permission">Die Vorhersage gilt für den Ort, an dem das Telefon ist, und braucht dafür seinen Standort. Oder wähle einen Ort in den Einstellungen.</string>
+    <string name="sky_forecast_no_location">Das Telefon konnte seinen Ort nicht bestimmen — drinnen findet sein GPS vielleicht keins. Wähle einen Ort in den Einstellungen, dann gilt die Vorhersage für ihn.</string>
+    <string name="sky_forecast_no_answer">Die Vorhersage konnte nicht geholt werden. Beim nächsten Öffnen von Himmel wird sie erneut angefragt.</string>
+    <string name="sky_today">Heute</string>
+    <string name="sky_tomorrow">Morgen</string>
+    <!-- %1$s is a condition such as "Light rain", %2$d a percentage -->
+    <string name="sky_condition_with_rain">%1$s, %2$d%% Regenwahrscheinlichkeit</string>
+    <!-- %1$s is a condition such as "Light rain", %2$d a percentage, %3$s an amount and %4$s its unit, mm or in -->
+    <string name="sky_condition_with_rain_amount">%1$s, %2$d%% Regenwahrscheinlichkeit, %3$s\u00A0%4$s</string>
+    <!-- The line over the hourly strip: when rain or snow is likely to start or stop. %1$s is a time, %1$d a number of hours -->
+    <string name="sky_hours_dry">In den nächsten %1$d Stunden wahrscheinlich kein Regen</string>
+    <!-- Settings: whether the weather shows on the lock screen, through the Glance app -->
+    <string name="settings_lock_screen">Das Wetter auf dem Sperrbildschirm</string>
+    <string name="settings_turn">Das Telefon seitlich drehen</string>
+    <!-- On the lock screen: the day's high and low, "18° / 9°" -->
+    <string name="lock_high_low">%1$d° / %2$d°</string>
+    <string name="sky_hours_rain_from">Regen wahrscheinlich ab %1$s</string>
+    <string name="sky_hours_rain_until">Regen wahrscheinlich bis %1$s</string>
+    <string name="sky_hours_rain_throughout">Regen wahrscheinlich die nächsten %1$d Stunden</string>
+    <string name="sky_hours_snow_from">Schnee wahrscheinlich ab %1$s</string>
+    <string name="sky_hours_snow_until">Schnee wahrscheinlich bis %1$s</string>
+    <string name="sky_hours_snow_throughout">Schnee wahrscheinlich die nächsten %1$d Stunden</string>
+    <!-- The same line when the station says it is raining now and the forecast disagrees; %1$s is a time -->
+    <string name="sky_hours_raining_none_forecast">Es regnet gerade, obwohl die Vorhersage keinen Regen erwartet</string>
+    <string name="sky_hours_raining_forecast_from">Es regnet gerade, obwohl die Vorhersage ihn erst ab %1$s erwartet</string>
+    <!-- Under that line: %1$s an amount, %2$s its unit (mm or in), %3$d a number of hours -->
+    <string name="sky_hours_amount">Etwa %1$s\u00A0%2$s in den nächsten %3$d Stunden</string>
+    <!-- Spoken by a screen reader for the hourly strip -->
+    <string name="sky_cd_hours">Stunde für Stunde: die Regenwahrscheinlichkeit als Balken, gepunktet, wo sie wahrscheinlich wird</string>
+    <!-- Under the first column of the hourly strip, the hour now under way -->
+    <string name="sky_now">Jetzt</string>
+    <string name="sky_hours_later">Später ›</string>
+    <string name="sky_hours_sooner">‹ Jetzt</string>
+    <string name="sky_hours_span">%1$s bis %2$s</string>
+    <string name="sky_later_rain_all">Regen wahrscheinlich durchgehend</string>
+    <string name="sky_later_snow_all">Schnee wahrscheinlich durchgehend</string>
+    <!-- High and low temperatures for a day -->
+    <string name="sky_high_low">%1$d° / %2$d°</string>
+    <string name="sky_feels_like_high_low">Gefühlt %1$d° / %2$d°</string>
+    <string name="sky_cd_back">Zurück</string>
+    <string name="sky_day_gone">Dieser Tag ist nicht mehr in der Vorhersage.</string>
+    <string name="sky_day_dry">Wahrscheinlich kein Regen</string>
+    <string name="sky_condition_with_snow">%1$s, %2$d%% Schneewahrscheinlichkeit</string>
+    <string name="sky_chance_rain">%1$d%% Regenwahrscheinlichkeit</string>
+    <string name="sky_chance_rain_amount">%1$d%% Regenwahrscheinlichkeit, %2$s\u00A0%3$s</string>
+    <string name="sky_chance_snow">%1$d%% Schneewahrscheinlichkeit</string>
+    <string name="sky_chance_snow_amount">%1$d%% Schneewahrscheinlichkeit, %2$s\u00A0%3$s</string>
+    <string name="sky_condition_with_snow_amount">%1$s, %2$d%% Schneewahrscheinlichkeit, %3$s\u00A0%4$s</string>
+    <string name="sky_day_rain_between">Regen wahrscheinlich von %1$s bis %2$s</string>
+    <string name="sky_day_snow_between">Schnee wahrscheinlich von %1$s bis %2$s</string>
+    <string name="sky_day_rain_all">Regen wahrscheinlich den ganzen Tag</string>
+    <string name="sky_day_snow_all">Schnee wahrscheinlich den ganzen Tag</string>
+    <string name="sky_rain">Regen</string>
+    <string name="sky_snow">Schnee</string>
+    <string name="sky_rain_chance">%1$d%% Wahrscheinlichkeit</string>
+    <plurals name="sky_rain_chance_hours">
+        <item quantity="one">%1$d%% Wahrscheinlichkeit, über etwa %2$d Stunde</item>
+        <item quantity="other">%1$d%% Wahrscheinlichkeit, über etwa %2$d Stunden</item>
+    </plurals>
+    <string name="sky_wind_strongest">Am stärksten</string>
+    <string name="sky_wind_strongest_gusts">Am stärksten, mit Böen bis %1$d %2$s</string>
+    <string name="sky_sunrise">Sonnenaufgang</string>
+    <string name="sky_sunset">Sonnenuntergang</string>
+    <!-- Today's high against yesterday's: %1$d is the difference in degrees -->
+    <string name="sky_warmer_than_yesterday">%1$d° wärmer als gestern</string>
+    <string name="sky_cooler_than_yesterday">%1$d° kühler als gestern</string>
+    <string name="sky_as_yesterday">Etwa so warm wie gestern</string>
+    <string name="sky_sunshine">Sonnenschein</string>
+    <!-- Under the hours of sunshine: %1$s is the hours the sun is above the horizon -->
+    <string name="sky_sunshine_of">Von %1$s Stunden Tageslicht</string>
+    <string name="sky_hours_short">Std.</string>
+
+    <!-- The almanac: the sun and moon, worked out on the phone -->
+    <string name="sky_almanac_waiting">Der Ort des Telefons wird gesucht…</string>
+    <string name="sky_moonrise">Mondaufgang</string>
+    <string name="sky_moonset">Monduntergang</string>
+    <string name="sky_moon">Mond</string>
+    <string name="sky_not_today">Heute nicht</string>
+    <!-- %1$d is the percentage of the moon's face that is lit -->
+    <string name="sky_moon_lit">%1$d%% beleuchtet</string>
+    <!-- %1$s is a moon phase ("Full moon"), %2$s its date -->
+    <string name="sky_next_phase">%1$s am %2$s</string>
+    <string name="sky_astronomical_dawn">Astronomische Morgendämmerung</string>
+    <string name="sky_astronomical_dusk">Astronomische Abenddämmerung</string>
+    <string name="sky_never_dark">Vollständig dunkel</string>
+    <string name="sky_never_dark_value">Heute Nacht nicht</string>
+    <string name="sky_sun">Sonne</string>
+    <string name="sky_sun_up_all_day">Den ganzen Tag über dem Horizont</string>
+    <string name="sky_sun_down_all_day">Den ganzen Tag unter dem Horizont</string>
+    <string name="sky_daylight">Tageslicht</string>
+    <!-- A length of time: %1$d hours, %2$d minutes -->
+    <string name="sky_duration">%1$d Std. %2$d Min.</string>
+    <string name="sky_cd_month_before">Monat davor</string>
+    <string name="sky_cd_month_after">Monat danach</string>
+    <string name="moon_new">Neumond</string>
+    <string name="moon_waxing_crescent">Zunehmende Sichel</string>
+    <string name="moon_first_quarter">Erstes Viertel</string>
+    <string name="moon_waxing_gibbous">Zunehmender Mond</string>
+    <string name="moon_full">Vollmond</string>
+    <string name="moon_waning_gibbous">Abnehmender Mond</string>
+    <string name="moon_last_quarter">Letztes Viertel</string>
+    <string name="moon_waning_crescent">Abnehmende Sichel</string>
+    <string name="sky_forecast_credit">Vorhersage von Open-Meteo, CC BY 4.0</string>
+    <string name="sky_air_credit">Luftqualität vom Copernicus Atmosphere Monitoring Service, über Open-Meteo</string>
+    <!-- Under the temperature when there is no station: %1$s is a condition such as "Overcast", %2$s a time -->
+    <string name="sky_estimate_at">Schätzung für %1$s</string>
+    <!-- Under the forecast's estimate, when a station is set but cannot be reached. -->
+    <string name="sky_station_fallback">Die Station antwortet nicht, deshalb ist das die Schätzung der Vorhersage.</string>
+    <string name="sky_air">Luftqualität</string>
+    <!-- The scale the air-quality figure is on, written beside it as a unit -->
+    <string name="sky_air_us">US AQI</string>
+    <string name="sky_air_eu">EAQI</string>
+    <!-- The bands, in each scale's own words: the US EPA uses good, moderate, unhealthy for sensitive groups, unhealthy, very unhealthy, hazardous; the European Environment Agency good, fair, moderate, poor, very poor, extremely poor -->
+    <string name="air_good">Gut</string>
+    <string name="air_fair">Mäßig</string>
+    <string name="air_moderate">Mittel</string>
+    <string name="air_sensitive">Ungesund für empfindliche Gruppen</string>
+    <string name="air_unhealthy">Ungesund</string>
+    <string name="air_very_unhealthy">Sehr ungesund</string>
+    <string name="air_hazardous">Gefährlich</string>
+    <string name="air_poor">Schlecht</string>
+    <string name="air_very_poor">Sehr schlecht</string>
+    <string name="air_extremely_poor">Extrem schlecht</string>
+    <string name="pollen_alder">Erlenpollen</string>
+    <string name="pollen_birch">Birkenpollen</string>
+    <string name="pollen_grass">Gräserpollen</string>
+    <string name="pollen_mugwort">Beifußpollen</string>
+    <string name="pollen_olive">Olivenpollen</string>
+    <string name="pollen_ragweed">Ambrosiapollen</string>
+    <string name="sky_pollen_unit">Körner/m³</string>
+
+    <string name="allow_location">Standort erlauben</string>
+
+    <!-- Wind directions, 16 points, north first, clockwise -->
+    <string-array name="compass_16">
+        <item>N</item>
+        <item>NNO</item>
+        <item>NO</item>
+        <item>ONO</item>
+        <item>O</item>
+        <item>OSO</item>
+        <item>SO</item>
+        <item>SSO</item>
+        <item>S</item>
+        <item>SSW</item>
+        <item>SW</item>
+        <item>WSW</item>
+        <item>W</item>
+        <item>WNW</item>
+        <item>NW</item>
+        <item>NNW</item>
+    </string-array>
+
+    <!-- WMO weather codes, as Open-Meteo reports them -->
+    <string name="wmo_clear">Klar</string>
+    <string name="wmo_mostly_clear">Überwiegend klar</string>
+    <string name="wmo_partly_cloudy">Teilweise bewölkt</string>
+    <string name="wmo_overcast">Bedeckt</string>
+    <string name="wmo_fog">Nebel</string>
+    <string name="wmo_drizzle">Nieselregen</string>
+    <string name="wmo_freezing_drizzle">Gefrierender Nieselregen</string>
+    <string name="wmo_light_rain">Leichter Regen</string>
+    <string name="wmo_rain">Regen</string>
+    <string name="wmo_heavy_rain">Starker Regen</string>
+    <string name="wmo_freezing_rain">Gefrierender Regen</string>
+    <string name="wmo_light_snow">Leichter Schneefall</string>
+    <string name="wmo_snow">Schneefall</string>
+    <string name="wmo_heavy_snow">Starker Schneefall</string>
+    <string name="wmo_snow_grains">Schneegriesel</string>
+    <string name="wmo_showers">Schauer</string>
+    <string name="wmo_heavy_showers">Starke Schauer</string>
+    <string name="wmo_snow_showers">Schneeschauer</string>
+    <string name="wmo_thunderstorm">Gewitter</string>
+    <string name="wmo_thunderstorm_hail">Gewitter mit Hagel</string>
+    <string name="wmo_unknown">Keine Beschreibung</string>
+
+    <!-- The radar screen -->
+    <string name="radar_title">Radar</string>
+    <string name="loading">Radar wird geladen…</string>
+    <string name="locating">Der Ort des Telefons wird gesucht…</string>
+    <string name="need_location">Das Radar ist auf das Telefon zentriert und braucht seinen Standort, um zu wissen, wo das ist. Oder wähle einen Ort in den Einstellungen.</string>
+    <string name="radar_no_data">RainViewer hat kein Radar für hier.</string>
+    <string name="radar_no_fix">Das Telefon konnte seinen Ort nicht bestimmen — drinnen findet sein GPS vielleicht keins. Wähle einen Ort in den Einstellungen, dann zentriert sich das Radar dort.</string>
+    <string name="radar_no_answer">Das Radar konnte nicht geholt werden.</string>
+    <string name="now">jetzt</string>
+    <string name="play">Abspielen</string>
+    <string name="pause">Pause</string>
+    <string name="step_back">Vorheriges Bild</string>
+    <string name="step_fwd">Nächstes Bild</string>
+    <string name="zoom_in">Vergrößern</string>
+    <string name="zoom_out">Verkleinern</string>
+    <!-- RainViewer's attribution is a condition of using its data -->
+    <string name="attribution">Wetterdaten von RainViewer — rainviewer.com</string>
+    <string name="updated">Aktualisiert %1$s</string>
+    <!-- Locally-estimated cloud motion (≈ forecast). Compass is 8-point, N first, clockwise. -->
+    <string name="motion_estimate">≈ %1$s ~%2$d\u00A0%3$s</string>
+    <string name="motion_stationary">≈ stillstehend</string>
+    <string-array name="compass_points">
+        <item>N</item>
+        <item>NO</item>
+        <item>O</item>
+        <item>SO</item>
+        <item>S</item>
+        <item>SW</item>
+        <item>W</item>
+        <item>NW</item>
+    </string-array>
+
+    <!-- Settings -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_cd_close">Schließen</string>
+    <string name="settings_cd_about">Über</string>
+    <string name="settings_station">Station</string>
+    <string name="settings_not_set">Nicht festgelegt</string>
+    <string name="station_none">Keine</string>
+    <string name="station_ecowitt">Ecowitt-Gateway</string>
+    <string name="station_wu">Weather Underground</string>
+    <string name="station_tempest">WeatherFlow Tempest</string>
+    <string name="station_davis">Davis WeatherLink Live</string>
+    <!-- %1$s is an address on the local network -->
+    <string name="station_ecowitt_at">Ecowitt-Gateway, %1$s</string>
+    <string name="station_davis_at">Davis WeatherLink Live, %1$s</string>
+    <!-- %1$s is a Weather Underground station ID -->
+    <string name="station_wu_at">Weather Underground, %1$s</string>
+    <string name="station_ecowitt_note">Die Adresse des Gateways in deinem Netzwerk, etwa 192.168.1.50. WS View zeigt sie, und dein Router auch. Es muss eine Adresse in deinem Heimnetz sein.</string>
+    <string name="station_davis_note">Die Adresse von WeatherLink Live in deinem Netzwerk, etwa 192.168.1.60. Die WeatherLink-App zeigt sie, und dein Router auch. Es muss eine Adresse in deinem Heimnetz sein.</string>
+    <string name="station_tempest_note">Himmel hört zu, was der Tempest-Hub in deinem Netzwerk sendet, etwa einmal pro Minute. Es gibt nichts einzugeben.</string>
+    <string name="station_wu_note">Jede Station, die zu Weather Underground hochlädt, ein paar Minuten verzögert gelesen. Der API-Schlüssel steht auf wunderground.com unter deinen Geräten.</string>
+    <string name="station_wu_id">Stations-ID</string>
+    <string name="station_wu_key">API-Schlüssel</string>
+    <string name="settings_place">Vorhersage und Radar für</string>
+    <string name="settings_place_phone">Den Ort des Telefons</string>
+    <string name="settings_units">Einheiten</string>
+    <string name="settings_units_automatic">Wie die Station liest, sonst das Land des Telefons</string>
+    <string name="settings_units_metric">Metrisch: °C, km/h, mm, hPa</string>
+    <string name="settings_units_imperial">Imperial: °F, mph, in, inHg</string>
+    <string name="settings_place_why">Ein hier gewählter Ort wird statt der Position des Telefons verwendet, die es dann nie liest. Das lohnt sich auf einem Telefon mit nur einem GPS, das drinnen vielleicht gar nichts findet.</string>
+    <string name="settings_second">Zweiter Ort</string>
+    <string name="settings_second_none">Keiner</string>
+    <string name="settings_second_why">Ein anderer Ort, den du auf Knopfdruck siehst, etwa deine Arbeit. Ein Tippen auf die beiden Namen oben auf dem Bildschirm wechselt dann zwischen ihnen. Die Station und der Sperrbildschirm bleiben beim ersten.</string>
+    <string name="settings_place_by_name">Oder ein Ort nach Namen — setze seinen Bundesstaat oder sein Land nach einem Komma dazu, wenn es mehrere gibt</string>
+    <string name="settings_place_search">Suchen</string>
+    <string name="settings_place_asking">Wird gesucht…</string>
+    <string name="settings_place_failed">Die Ortssuche war nicht erreichbar.</string>
+    <!-- %1$s is what was typed -->
+    <string name="settings_place_none">Für %1$s wurde nichts gefunden.</string>
+    <string name="settings_cancel">Abbrechen</string>
+    <string name="settings_save">Speichern</string>
+
+    <!-- Weather alerts, from the US National Weather Service -->
+    <!-- The line at the top of Today; %1$s is an alert's name such as "Red Flag Warning", %2$s a time such as "8:00 PM" or "Tue 8:00 PM" -->
+    <string name="alerts_line_until">%1$s bis %2$s</string>
+    <!-- After the line at the top of Today when several alerts are in effect -->
+    <plurals name="alerts_line_more">
+        <item quantity="one">und %1$d mehr</item>
+        <item quantity="other">und %1$d mehr</item>
+    </plurals>
+    <string name="alerts_cd_open">Die Warnungen öffnen</string>
+    <string name="alerts_title">Warnungen</string>
+    <!-- %1$s is a list of counties or zones -->
+    <string name="alerts_areas">Für %1$s</string>
+    <!-- %1$s and %2$s are times such as "8:00 PM" or "Tue 8:00 PM" -->
+    <string name="alerts_from_until">Von %1$s bis %2$s</string>
+    <!-- %1$s is a time such as "8:00 PM" or "Tue 8:00 PM" -->
+    <string name="alerts_until">Bis %1$s</string>
+    <string name="alerts_what_to_do">Was zu tun ist</string>
+    <string name="alerts_none">Hier gelten gerade keine Warnungen.</string>
+    <string name="alerts_coverage">Die Warnungen kommen vom US National Weather Service und gelten für die Vereinigten Staaten.</string>
+    <!-- The notification channel's name and its description in the phone's settings -->
+    <string name="alerts_channel">Wetterwarnungen</string>
+    <string name="alerts_channel_about">Ernste Warnungen des US National Weather Service für deinen Ort: schweres und extremes Wetter, Feuerwetter und Evakuierungen.</string>
+    <!-- The notification's title when several alerts arrive together; %1$s is the first one's name, %2$d how many more -->
+    <plurals name="alerts_and_more">
+        <item quantity="one">%1$s und %2$d mehr</item>
+        <item quantity="other">%1$s und %2$d mehr</item>
+    </plurals>
+    <!-- Settings: notifications for serious alerts -->
+    <string name="settings_alerts">Benachrichtigungen für ernste Wetterwarnungen</string>
+    <string name="settings_alerts_note">Schweres Wetter, Feuerwetter und Evakuierungen, vom US National Weather Service; nur für die Vereinigten Staaten. Wird alle halbe Stunde geprüft, solange das eingeschaltet ist.</string>
+    <string name="settings_alerts_blocked">Benachrichtigungen für Himmel sind in den Einstellungen des Telefons aus.</string>
+
+    <!-- About -->
+    <!-- %1$s is the version -->
+    <string name="about_title">Himmel %1$s</string>
+    <string name="about_privacy_title">Datenschutz</string>
+    <string name="about_privacy">Deine Orte und Einstellungen bleiben auf diesem Telefon. Die App geht nur online, um Wetter zu holen. Die Position des Telefons, auf etwa einen Kilometer gerundet, oder der Ort, den du gewählt hast, geht an Open-Meteo für Vorhersage, Luftqualität und Pollen, an RainViewer für das Radar und an den US National Weather Service für Warnungen. Die Wörter, mit denen du einen Ort suchst, gehen an Open-Meteo. Keine dieser Anfragen enthält ein Konto oder etwas, das du geschrieben hast.</string>
+    <string name="about_privacy_where">Eine Ecowitt-, Davis- oder Tempest-Station wird in deinem eigenen Netzwerk gelesen. Das Einzige, was Himmel je im Klartext ohne https sendet, ist die Anfrage an eine Ecowitt- oder Davis-Station unter der von dir eingetippten Adresse, und nur, wenn diese Adresse in deinem Heimnetz liegt; jede andere Adresse wird abgelehnt. Alles andere ist https. Eine Weather-Underground-Station wird von Weather Underground gelesen, mit deiner Stations-ID und deinem API-Schlüssel. Die Position wird nur angefragt, wenn du die Schaltfläche dafür drückst, und gar nicht, solange du einen Ort gewählt hast. Benachrichtigungen werden nur für ernste Wetterwarnungen verwendet, wenn du sie einschaltest; die App prüft dann alle halbe Stunde im Hintergrund.</string>
+    <string name="about_privacy_phone">Andere Apps des Autors auf diesem Telefon, Glance, Zeit und Wander, können Himmel nach dem Wetter fragen und bekommen es, nie deine Position. Die Sperrbildschirm-Einstellung schaltet Glance aus. Die Links am Ende öffnen deinen Browser; die App ruft diese Seiten nie selbst ab.</string>
+    <string name="about_privacy_close">Es gibt keine Werbung, keine Analysen und kein Tracking.</string>
+    <string name="about_terms_title">Bedingungen</string>
+    <string name="about_terms">Diese App ist freie Software unter der GNU General Public License v3. Sie kommt ohne Gewährleistung: Nutze sie auf eigenes Risiko. Vorhersagen können falsch sein; verlass dich für deine Sicherheit nicht auf sie.</string>
+    <string name="about_source">Quellcode: %1$s</string>
+    <string name="about_licence">GNU General Public License v3</string>
+    <string name="about_after">Das Radar und seine Karte sind kRadars, von Ondřej Koloničný, GPL 3.</string>
+    <string name="about_data">Radar von RainViewer. Vorhersage von Open-Meteo, CC BY 4.0. Warnungen vom US National Weather Service. Grenzen und Städte von Natural Earth, gemeinfrei.</string>
+    <string name="about_icons">Symbole von Material Symbols, Apache 2.0</string>
+    <string name="about_feed_the_llamas">füttere die Lamas</string>
+    <!-- Shown in place of the llama row when nothing on the phone opens web pages; %1$s is the address -->
+    <string name="about_no_browser">Hier öffnet nichts Webseiten — %1$s</string>
+    <string name="about_close">Schließen</string>
+
+    <!-- A pull down from the top of a list: one line of words at the top, never a spinner -->
+    <string name="sky_pull_updating">Wird aktualisiert…</string>
+    <string name="sky_pull_up_to_date">Auf dem neuesten Stand</string>
+
+    <!-- The day in a few words at the top of Today. The kind of weather, the time and the sky
+         come from the strings below; each part is left out when the forecast did not give it. -->
+    <string name="sky_summary_mostly_cloudy">Meist bewölkt</string>
+    <string name="sky_summary_foggy">Neblig</string>
+    <!-- %1$s is the sky such as "Mostly cloudy", %2$s what falls and when such as "showers after 3 pm" -->
+    <string name="sky_summary_sky_with">%1$s mit %2$s.</string>
+    <string name="sky_summary_sky_alone">%1$s.</string>
+    <!-- %1$s is what falls and when, with its first letter made a capital -->
+    <string name="sky_summary_wet_alone">%1$s.</string>
+    <string name="sky_kind_rain">Regen</string>
+    <string name="sky_kind_showers">Schauer</string>
+    <string name="sky_kind_drizzle">Nieselregen</string>
+    <string name="sky_kind_snow">Schnee</string>
+    <string name="sky_kind_snow_showers">Schneeschauer</string>
+    <string name="sky_kind_freezing_rain">Gefrierender Regen</string>
+    <string name="sky_kind_sleet">Regen und Schnee</string>
+    <string name="sky_kind_thunderstorms">Gewitter</string>
+    <!-- %1$s is the kind such as "rain" or "showers", %2$s and %3$s times such as "3 pm" or "noon" -->
+    <string name="sky_when_all_day">%1$s den ganzen Tag</string>
+    <string name="sky_when_rest_of_day">%1$s für den Rest des Tages</string>
+    <string name="sky_when_after">%1$s nach %2$s</string>
+    <string name="sky_when_early">%1$s früh, bis %2$s aufklarend</string>
+    <string name="sky_when_until">%1$s bis %2$s</string>
+    <string name="sky_when_between">%1$s von %2$s bis %3$s</string>
+    <string name="sky_when_on_and_off">%1$s mit Unterbrechungen</string>
+    <string name="sky_when_likely">%1$s wahrscheinlich</string>
+    <string name="sky_time_noon">Mittag</string>
+    <!-- %1$d is the hour, 1 to 12; %2$s is am or pm -->
+    <string name="sky_time_12">%1$d Uhr %2$s</string>
+    <string name="sky_time_am">vorm.</string>
+    <string name="sky_time_pm">nachm.</string>
+    <!-- 24-hour clock: %1$02d is the hour, %2$02d the minute -->
+    <string name="sky_time_24">%1$02d:%2$02d</string>
+    <!-- The high and low, in the units the screen already uses; %1$d and %2$d are degrees -->
+    <string name="sky_wind_breezy">Leichter Wind</string>
+    <string name="sky_wind_gusty">Böiger Wind</string>
+    <string name="sky_wind_windy">Starker Wind</string>
+    <!-- %1$s is Breezy, Gusty or Windy; %2$s a direction from the list below, such as "northwest" -->
+    <string name="sky_summary_wind_from">%1$s aus dem %2$s.</string>
+    <string name="sky_summary_wind">%1$s.</string>
+    <!-- North, then clockwise by eighths -->
+    <string-array name="sky_directions_8">
+        <item>Norden</item>
+        <item>Nordosten</item>
+        <item>Osten</item>
+        <item>Südosten</item>
+        <item>Süden</item>
+        <item>Südwesten</item>
+        <item>Westen</item>
+        <item>Nordwesten</item>
+    </string-array>
+
+    <!-- The next two hours, from the quarter-hour forecast; %1$d is minutes, to the nearest five -->
+    <string name="sky_soon_rain_in">Regen in etwa %1$d Minuten</string>
+    <string name="sky_soon_snow_in">Schnee in etwa %1$d Minuten</string>
+    <string name="sky_soon_raining_easing">Es regnet gerade, lässt in etwa %1$d Minuten nach</string>
+    <string name="sky_soon_snowing_easing">Es schneit gerade, lässt in etwa %1$d Minuten nach</string>
+    <string name="sky_soon_raining_lasting">Es regnet gerade und lässt zwei Stunden nicht nach</string>
+    <string name="sky_soon_snowing_lasting">Es schneit gerade und lässt zwei Stunden nicht nach</string>
+    <!-- The folio at the foot of a paged list, "2 / 6"; a tap on it asks for a page -->
+    <string name="folio_of">%1$d / %2$d</string>
+    <string name="folio_go_title">Zu Seite springen</string>
+    <string name="folio_page">Seite %1$d von %2$d</string>
+    <string name="folio_go">Los</string>
+    <string name="folio_cancel">Abbrechen</string>
+    <string name="about_licences">Lizenzen</string>
+    <string name="licences_title">Lizenzen</string>
+    <string name="licences_source_head">Quellcode</string>
+    <string name="licences_licence_head">Lizenz</string>
+    <string name="licences_licence">Himmel ist freie Software unter der GNU General Public License, ausschließlich Version 3 (GPL-3.0-only), Copyright wander wildwood, für das, was hier geschrieben steht. Die Arbeit, auf der sie aufbaut, behält ihre eigene Lizenz, und ihre Autoren behalten ihr Urheberrecht, wie unter „Gebaut mit“ aufgeführt. Der vollständige Text jeder Lizenz steht am Ende dieser Seite.</string>
+    <string name="licences_built_head">Gebaut mit</string>
+    <string name="licences_back">Zurück</string>
+    <string name="about_no_browser_address">Es ist kein Browser installiert. Die Adresse ist %1$s.</string>
+    <string name="licences_gpl">GNU General Public License, Version 3</string>
+    <string name="licences_apache">Apache License, Version 2.0</string>
+    <string name="licences_mit">MIT License</string>
+    <string name="licences_ofl">SIL Open Font License, Version 1.1</string>
+    <string name="licences_ccby">Creative Commons Attribution 4.0 International (Open-Meteo-Daten)</string>
+    <string name="settings_open_app_settings">App-Einstellungen öffnen</string>
+    <string name="location_refused">Der Standort ist für Himmel ausgeschaltet. Erlaube ihn in den Einstellungen der App und komm dann zurück.</string>
+    <string name="station_address_public">Das ist eine Internetadresse. Himmel spricht nur mit einer Station in deinem eigenen Netzwerk, sie wäre also nie erreichbar. Verwende die Adresse der Station zu Hause.</string>
+</resources>
