@@ -289,11 +289,15 @@ private fun TodayColumn(
                 }
             }
         }
-        if (summary != null || soon != null) {
-            item {
-                Column {
-                    DayWords(summary, soon)
-                    HorizontalDividerMMD()
+        // The day's words ("Overcast, dry...") come after the current conditions, so the temperature is the
+        // first thing on the page.
+        fun words() {
+            if (summary != null || soon != null) {
+                item {
+                    Column {
+                        HorizontalDividerMMD()
+                        DayWords(summary, soon)
+                    }
                 }
             }
         }
@@ -301,6 +305,7 @@ private fun TodayColumn(
         if (noStation) {
             if (current != null) {
                 item { Estimate(current, state, wide) }
+                words()
                 if (today != null) {
                     item {
                         HorizontalDividerMMD()
@@ -309,6 +314,7 @@ private fun TodayColumn(
                 }
             } else {
                 item { Outlook(today, yesterday, state, onAllowLocation) }
+                words()
             }
             if (hours.isNotEmpty() && !wide) {
                 item {
@@ -334,6 +340,7 @@ private fun TodayColumn(
             } else {
                 item { Now(state, wide) }
             }
+            words()
             item {
                 HorizontalDividerMMD()
                 if (today != null) {
