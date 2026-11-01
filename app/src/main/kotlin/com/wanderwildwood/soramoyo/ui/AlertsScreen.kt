@@ -83,7 +83,8 @@ fun AlertsScreen(alerts: List<Alert>, pull: Pull, onClose: () -> Unit, onPull: (
         },
     ) { contentPadding ->
         PagedColumn(
-            modifier = Modifier.fillMaxSize().padding(contentPadding).padding(horizontal = 20.dp),
+            modifier = Modifier.fillMaxSize().padding(contentPadding),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp),
             onPullAtTop = onPull,
         ) {
             pullLine(pull)

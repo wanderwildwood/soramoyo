@@ -249,14 +249,14 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
     val wide = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     if (wide) {
         Row(modifier) {
-            TodayColumn(state, hours, after, summary, soon, today, yesterday, noStation, fallback, onAllowLocation, onAlerts, onPull, wide = true, Modifier.weight(1f).fillMaxHeight().padding(horizontal = 20.dp))
+            TodayColumn(state, hours, after, summary, soon, today, yesterday, noStation, fallback, onAllowLocation, onAlerts, onPull, wide = true, Modifier.weight(1f).fillMaxHeight())
             VerticalDivider(color = MaterialTheme.colorScheme.onSurface)
             Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 20.dp)) {
                 if (hours.isNotEmpty()) Hours(hours, after, state.inches, rainingNow(state), state.returns)
             }
         }
     } else {
-        TodayColumn(state, hours, after, summary, soon, today, yesterday, noStation, fallback, onAllowLocation, onAlerts, onPull, wide = false, modifier.padding(horizontal = 20.dp))
+        TodayColumn(state, hours, after, summary, soon, today, yesterday, noStation, fallback, onAllowLocation, onAlerts, onPull, wide = false, modifier)
     }
 }
 
@@ -278,7 +278,7 @@ private fun TodayColumn(
     wide: Boolean,
     modifier: Modifier,
 ) {
-    PagedColumn(modifier = modifier, onPullAtTop = onPull) {
+    PagedColumn(modifier = modifier, onPullAtTop = onPull, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
         pullLine(state.pull)
         // An official warning comes before anything else, and only while there is one.
         if (state.alerts.isNotEmpty()) {
@@ -383,7 +383,7 @@ private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, onDay: (Lo
     val placeToday = state.placeToday()
     val ahead = state.days.filter { it.date.isAfter(placeToday) }
     val wide = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    PagedColumn(modifier = modifier.padding(horizontal = 20.dp), onPullAtTop = onPull) {
+    PagedColumn(modifier = modifier, onPullAtTop = onPull, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
         pullLine(state.pull)
         item {
             Spacer(Modifier.height(12.dp))
@@ -868,12 +868,12 @@ fun DayScreen(date: LocalDate, state: SkyState, onClose: () -> Unit, onPull: () 
     ) { contentPadding ->
         if (wide && day != null && hours.isNotEmpty()) {
             Row(Modifier.fillMaxSize().padding(contentPadding)) {
-                DayColumn(day, hours, state, onPull, wide = true, Modifier.weight(1f).fillMaxHeight().padding(horizontal = 20.dp))
+                DayColumn(day, hours, state, onPull, wide = true, Modifier.weight(1f).fillMaxHeight())
                 VerticalDivider(color = MaterialTheme.colorScheme.onSurface)
                 Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 20.dp)) { DayHours(hours) }
             }
         } else {
-            DayColumn(day, hours, state, onPull, wide = false, Modifier.fillMaxSize().padding(contentPadding).padding(horizontal = 20.dp))
+            DayColumn(day, hours, state, onPull, wide = false, Modifier.fillMaxSize().padding(contentPadding))
         }
     }
 }
@@ -883,6 +883,7 @@ fun DayScreen(date: LocalDate, state: SkyState, onClose: () -> Unit, onPull: () 
 private fun DayColumn(day: Day?, hours: List<Hour>, state: SkyState, onPull: () -> Unit, wide: Boolean, modifier: Modifier) {
     PagedColumn(
         modifier = modifier,
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp),
         onPullAtTop = onPull,
     ) {
         pullLine(state.pull)

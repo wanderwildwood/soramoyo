@@ -48,7 +48,7 @@ fun AboutDialog(onDismiss: () -> Unit) {
     EInkDialog(onDismiss = { if (licences) licences = false else onDismiss() }) {
         if (licences) {
             val room = (LocalConfiguration.current.screenHeightDp - 165).coerceIn(120, 460).dp
-            LicencesPage(onBack = { licences = false }, room = room)
+            LicencesScreen(rememberLicencesData(), rememberLicencesLabels(), onBack = { licences = false }, modifier = Modifier.fillMaxWidth().height(room))
             return@EInkDialog
         }
         TextMMD(
