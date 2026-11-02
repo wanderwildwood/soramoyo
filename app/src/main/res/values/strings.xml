@@ -338,14 +338,12 @@
     <string name="about_privacy_close">There are no ads, no analytics and no tracking.</string>
     <string name="about_terms_title">Terms</string>
     <string name="about_terms">This app is free software under the GNU General Public License v3. It comes with no warranty: use it at your own risk. Forecasts can be wrong; do not rely on them for your safety.</string>
-    <string name="about_source">Source code: %1$s</string>
     <string name="about_licence">GNU General Public License v3</string>
     <string name="about_after">The radar and its map are kRadar\'s, by Ondřej Koloničný, GPL 3.</string>
     <string name="about_data">Radar by RainViewer. Forecast by Open-Meteo, CC BY 4.0. Alerts by the US National Weather Service. Borders and cities from Natural Earth, public domain.</string>
     <string name="about_icons">Icons from Material Symbols, Apache 2.0</string>
-    <string name="about_feed_the_llamas">feed the llamas</string>
+    <string name="about_feed_the_llamas">Feed the llamas</string>
     <!-- Shown in place of the llama row when nothing on the phone opens web pages; %1$s is the address -->
-    <string name="about_no_browser">Nothing here opens web pages — %1$s</string>
     <string name="about_close">Close</string>
 
     <!-- A pull down from the top of a list: one line of words at the top, never a spinner -->

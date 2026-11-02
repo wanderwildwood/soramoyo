@@ -1,179 +1,40 @@
 package com.wanderwildwood.soramoyo.ui
 
-import android.content.Intent
-import android.net.Uri
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import com.mudita.mmd.components.buttons.OutlinedButtonMMD
-import com.mudita.mmd.components.text.TextMMD
 import com.wanderwildwood.soramoyo.BuildConfig
 import com.wanderwildwood.soramoyo.R
 
 /**
- * What this is, what it sends where, and whose work it is built on.
- *
- * The line about the position is here because a stranger cannot safely assume the answer: a
- * radar and a forecast both need to know roughly where the phone is, and they ask two
- * services this app does not run.
+ * This app's About: only the words and the address. The dialog, its one Close button, the
+ * Licences row, the links and the llama are the shared HouseAbout.kt, the same in every app.
  */
 @Composable
 fun AboutDialog(onDismiss: () -> Unit) {
-    var licences by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
-    // Back in the Licences page returns to the About rather than leaving both.
-    EInkDialog(onDismiss = { if (licences) licences = false else onDismiss() }) {
-        if (licences) {
-            val room = (LocalConfiguration.current.screenHeightDp - 165).coerceIn(120, 460).dp
-            LicencesScreen(rememberLicencesData(), rememberLicencesLabels(), onBack = { licences = false }, modifier = Modifier.fillMaxWidth().height(room))
-            return@EInkDialog
-        }
-        TextMMD(
-            text = stringResource(R.string.about_title, BuildConfig.VERSION_NAME),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-        )
-
-        Spacer(Modifier.height(10.dp))
-        // The body pages on whole rows when it is longer than the panel; the Close button stays
-        // outside it, always in reach.
-        val room = (LocalConfiguration.current.screenHeightDp - 165).coerceIn(120, 460).dp
-        PagedColumn(Modifier.fillMaxWidth().height(room)) {
-            item { Heading(R.string.about_privacy_title) }
-            item { TextMMD(text = stringResource(R.string.about_privacy), style = MaterialTheme.typography.labelSmall) }
-            item { TextMMD(text = stringResource(R.string.about_privacy_where), style = MaterialTheme.typography.labelSmall) }
-            item { TextMMD(text = stringResource(R.string.about_privacy_phone), style = MaterialTheme.typography.labelSmall) }
-            item { TextMMD(text = stringResource(R.string.about_privacy_close), style = MaterialTheme.typography.labelSmall) }
-            item { Heading(R.string.about_terms_title) }
-            item { TextMMD(text = stringResource(R.string.about_terms), style = MaterialTheme.typography.labelSmall) }
-            item {
-                Column(Modifier.padding(top = 10.dp)) {
-                    TextMMD(text = stringResource(R.string.about_licence), style = MaterialTheme.typography.labelSmall)
-                    TextMMD(text = stringResource(R.string.about_after), style = MaterialTheme.typography.labelSmall)
-                }
-            }
-            item { TextMMD(text = stringResource(R.string.about_data), style = MaterialTheme.typography.labelSmall) }
-            item { TextMMD(text = stringResource(R.string.about_icons), style = MaterialTheme.typography.labelSmall) }
-            item {
-                TextMMD(
-                    text = stringResource(R.string.about_licences),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { licences = true }.fillMaxWidth().heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically),
-                )
-            }
-            item { SourceLink() }
-            item { Llama() }
-        }
-
-        Spacer(Modifier.height(18.dp))
-        OutlinedButtonMMD(
-            onClick = onDismiss,
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-        ) { TextMMD(text = stringResource(R.string.about_close), style = MaterialTheme.typography.bodySmall) }
-    }
-}
-
-@Composable
-private fun Heading(title: Int) {
-    TextMMD(
-        text = stringResource(title),
-        style = MaterialTheme.typography.bodyMedium,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top = 10.dp),
+    val context = LocalContext.current
+    val data = AboutData(
+        title = stringResource(R.string.about_title, BuildConfig.VERSION_NAME),
+        sections = listOf(
+            AboutSection(stringResource(R.string.about_privacy_title), stringResource(R.string.about_privacy)),
+            AboutSection(null, stringResource(R.string.about_privacy_where)),
+            AboutSection(null, stringResource(R.string.about_privacy_phone)),
+            AboutSection(null, stringResource(R.string.about_privacy_close)),
+            AboutSection(stringResource(R.string.about_terms_title), stringResource(R.string.about_terms)),
+            AboutSection(null, stringResource(R.string.about_licence)),
+            AboutSection(null, stringResource(R.string.about_after)),
+            AboutSection(null, stringResource(R.string.about_data)),
+            AboutSection(null, stringResource(R.string.about_icons)),
+        ),
+        sourceUrl = SOURCE_URL,
     )
-}
-
-/** The address of the source, which opens it; says so if nothing on the phone can. */
-@Composable
-private fun SourceLink() {
-    val context = LocalContext.current
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .clickable { openLink(context, SOURCE_URL, context.getString(R.string.about_no_browser_address, SOURCE_SHOWN)) },
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        TextMMD(text = stringResource(R.string.about_source, SOURCE_SHOWN), style = MaterialTheme.typography.labelSmall)
-    }
-}
-
-private const val SOURCE_SHOWN = "github.com/wanderwildwood/soramoyo"
-
-/**
- * A llama at the foot of the About, which opens the page a donation goes to.
- * The site's address sits at the start of the same line and opens the site; the llama and its words open the page.
- *
- * Three words rather than an address: a verb and an object, so what happens when you press
- * them is not a surprise even though the page is not named. The drawing is his own, and it is
- * ink rather than an emoji, which is a colour glyph and reaches the panel as a pale smudge.
- *
- * Straight to the checkout rather than the donation page on the site, which only leads there
- * anyway. A phone with nothing registered for a web address throws, and this says so out loud
- * rather than swallowing it and leaving a press that does nothing with no explanation.
- */
-@Composable
-private fun Llama() {
-    val context = LocalContext.current
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        TextMMD(
-            text = "wanderthe.dev",
-            style = MaterialTheme.typography.labelSmall,
-            // The site's address opens the site, the way the llama beside it opens its page.
-            modifier = Modifier
-                .clickable {
-                    openLink(context, "https://wanderthe.dev", context.getString(R.string.about_no_browser_address, "wanderthe.dev"))
-                }
-                .heightIn(min = 48.dp)
-                .wrapContentHeight(Alignment.CenterVertically),
-        )
-        Spacer(Modifier.width(6.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clickable {
-                    openLink(context, "https://square.link/u/AGu8oT10", context.getString(R.string.about_no_browser_address, "square.link/u/AGu8oT10"))
-                }
-                .heightIn(min = 48.dp),
-        ) {
-            Image(
-                painter = painterResource(R.drawable.llama),
-                contentDescription = null,
-                modifier = Modifier.size(22.dp),
-            )
-            Spacer(Modifier.width(6.dp))
-            TextMMD(
-                text = stringResource(R.string.about_feed_the_llamas),
-                style = MaterialTheme.typography.labelSmall,
-            )
-        }
+    val labels = AboutLabels(
+        close = stringResource(R.string.about_close),
+        licences = stringResource(R.string.about_licences),
+        feedTheLlamas = stringResource(R.string.about_feed_the_llamas),
+        noBrowser = { address -> context.getString(R.string.about_no_browser_address, address) },
+    )
+    HouseAboutDialog(data, labels, R.drawable.llama, onDismiss) { modifier, back ->
+        LicencesScreen(rememberLicencesData(), rememberLicencesLabels(), onBack = back, modifier = modifier)
     }
 }
