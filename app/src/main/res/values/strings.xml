@@ -414,9 +414,8 @@
     <string name="about_licences">Licences</string>
     <string name="licences_title">Licences</string>
     <string name="licences_source_head">Source code</string>
-    <string name="licences_licence_head">Licence</string>
-    <string name="licences_licence">Sky is free software: GPL-3.0-only, copyright wander wildwood. What it is built on keeps its own licences, listed below.</string>
-    <string name="licences_built_head">Built with</string>
+    <string name="licences_no_text">%s needs no licence text here.</string>
+    <string name="licences_licence">Sky is free software: GPL-3.0-only, copyright wander wildwood. What it is built on keeps its own licences, each on its own page.</string>
     <string name="licences_back">Back</string>
     <string name="about_no_browser_address">No browser is installed. The address is %1$s.</string>
     <string name="settings_open_app_settings">Open app settings</string>
