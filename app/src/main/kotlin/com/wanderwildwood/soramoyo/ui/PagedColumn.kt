@@ -59,8 +59,8 @@ import kotlin.math.max
  * The list every screen uses: Mudita's list look, with its scrollbar (a chevron at each end that
  * turns a page, a track that jumps to the place pressed, a thumb that shows where the page is), but
  * a page turns on WHOLE ROWS. MMD's own `LazyColumnMMD` moves four rows a turn whatever their
- * heights, so Sky's tall rows (the hourly strip, the credits) ran off the foot of a page; the
- * bottom of Today was cut off. Here:
+ * heights, so tall rows ran off the foot of a page (Sky's Today lost its credits that way). Here
+ * (3 Nov 2026: pages end on whole rows; the scrollbar stays):
  *
  * - a turn forward brings the first row that did not fit to the top of the page;
  * - a row that does not fit at the foot is not drawn (nor pressable) until the next page;
