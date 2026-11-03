@@ -93,7 +93,7 @@ fun AlertsScreen(alerts: List<Alert>, pull: Pull, onClose: () -> Unit, onPull: (
             }
             alerts.forEachIndexed { i, alert ->
                 item {
-                    if (i > 0) HorizontalDividerMMD()
+                    if (i > 0) DottedRule(start = 0.dp, end = 0.dp)
                     Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp)) {
                         TextMMD(text = alert.event, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         val onset = alert.onset
