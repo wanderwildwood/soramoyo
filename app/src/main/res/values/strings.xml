@@ -227,9 +227,9 @@
     <string name="radar_title">Radar</string>
     <string name="loading">Loading radar…</string>
     <string name="locating">Finding where the phone is…</string>
-    <string name="need_location">The radar is centred on the phone, and needs its location to know where that is. Or choose a place in settings.</string>
+    <string name="need_location">The radar is centered on the phone, and needs its location to know where that is. Or choose a place in settings.</string>
     <string name="radar_no_data">RainViewer has no radar for here.</string>
-    <string name="radar_no_fix">The phone could not work out where it is — indoors its GPS may not. Choose a place in settings and the radar will centre there.</string>
+    <string name="radar_no_fix">The phone could not work out where it is — indoors its GPS may not. Choose a place in settings and the radar will center there.</string>
     <string name="radar_no_answer">The radar could not be fetched.</string>
     <string name="now">now</string>
     <string name="play">Play</string>
@@ -332,7 +332,7 @@
     <!-- %1$s is the version -->
     <string name="about_title">Sky %1$s</string>
     <string name="about_privacy_title">Privacy</string>
-    <string name="about_privacy">Your places and settings stay on this phone. The app goes online only to fetch weather. The phone\'s position, rounded to about a kilometre, or the place you chose, goes to Open-Meteo for the forecast, air quality and pollen, to RainViewer for the radar and to the US National Weather Service for alerts. The words you search a place by go to Open-Meteo. None of these requests carries an account or anything you have written.</string>
+    <string name="about_privacy">Your places and settings stay on this phone. The app goes online only to fetch weather. The phone\'s position, rounded to about a kilometer, or the place you chose, goes to Open-Meteo for the forecast, air quality and pollen, to RainViewer for the radar and to the US National Weather Service for alerts. The words you search a place by go to Open-Meteo. None of these requests carries an account or anything you have written.</string>
     <string name="about_privacy_where">An Ecowitt, Davis or Tempest station is read on your own network. The only thing Sky ever sends in plain text, without https, is the request to an Ecowitt or Davis station at the address you typed, and only if that address is on your home network; any other address is refused. Everything else is https. A Weather Underground station is read from Weather Underground, with your station ID and API key. The position is asked for only when you press the button for it, and not at all while you have chosen a place. Notifications are used only for serious weather alerts, when you turn them on; the app then checks every half hour in the background.</string>
     <string name="about_privacy_phone">Other apps of the author\'s on this phone, Glance, Clock and Wander, can ask Sky for the weather and get it, never your position. The lock-screen setting turns Glance off. The links at the end open in your browser; the app never fetches those pages.</string>
     <string name="about_privacy_close">There are no ads, no analytics and no tracking.</string>
@@ -409,11 +409,11 @@
     <string name="sky_soon_snowing_easing">Snowing now, easing in about %1$d minutes</string>
     <string name="sky_soon_raining_lasting">Raining now, and not easing for two hours</string>
     <string name="sky_soon_snowing_lasting">Snowing now, and not easing for two hours</string>
-    <string name="about_licences">Licences</string>
-    <string name="licences_title">Licences</string>
+    <string name="about_licences">Licenses</string>
+    <string name="licences_title">Licenses</string>
     <string name="licences_source_head">Source code</string>
-    <string name="licences_no_text">%s needs no licence text here.</string>
-    <string name="licences_licence">Sky is free software: GPL-3.0-only, copyright wander wildwood. What it is built on keeps its own licences, each on its own page.</string>
+    <string name="licences_no_text">%s needs no license text here.</string>
+    <string name="licences_licence">Sky is free software: GPL-3.0-only, copyright wander wildwood. What it is built on keeps its own licenses, each on its own page.</string>
     <string name="licences_back">Back</string>
     <string name="about_no_browser_address">No browser is installed. The address is %1$s.</string>
     <string name="settings_open_app_settings">Open app settings</string>
@@ -422,5 +422,5 @@
     <string name="licences_full_head">Full texts</string>
     <string name="licences_full_gpl">GNU General Public License v3 (full text)</string>
     <string name="licences_full_apache">Apache License 2.0 (full text)</string>
-    <string name="licences_full_ofl">SIL Open Font Licence 1.1 (full text)</string>
+    <string name="licences_full_ofl">SIL Open Font License 1.1 (full text)</string>
 </resources>
