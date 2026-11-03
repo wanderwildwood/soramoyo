@@ -72,8 +72,6 @@
     <!-- The same line when the station says it is raining now and the forecast disagrees; %1$s is a time -->
     <string name="sky_hours_raining_none_forecast">Raining now, though the forecast has none likely</string>
     <string name="sky_hours_raining_forecast_from">Raining now, though the forecast has it from %1$s</string>
-    <!-- Under that line: %1$s an amount, %2$s its unit (mm or in), %3$d a number of hours -->
-    <string name="sky_hours_amount">About %1$s\u00A0%2$s over the next %3$d hours</string>
     <!-- Spoken by a screen reader for the hourly strip -->
     <string name="sky_cd_hours">Hour by hour: the chance of rain as a bar, dotted where it becomes likely</string>
     <!-- Under the first column of the hourly strip, the hour now under way -->
@@ -81,6 +79,12 @@
     <string name="sky_hours_later">Later ›</string>
     <string name="sky_hours_sooner">‹ Now</string>
     <string name="sky_hours_span">%1$s to %2$s</string>
+    <!-- Above Today's strip when the day's sentence already says when it rains: the strip's title only. -->
+    <string name="sky_hours_next">The next %1$d hours</string>
+    <!-- Under it: the hours the strip covers and what falls in them, e.g. "06:00 to 18:00: 0.02 in". -->
+    <string name="sky_hours_span_amount">%1$s to %2$s: %3$s\u00A0%4$s</string>
+    <!-- Today's row: the amount still to fall today, e.g. "0.21 in by midnight". -->
+    <string name="sky_by_midnight">%1$s by midnight</string>
     <string name="sky_later_rain_all">Rain likely throughout</string>
     <string name="sky_later_snow_all">Snow likely throughout</string>
     <!-- High and low temperatures for a day -->

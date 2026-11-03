@@ -73,7 +73,6 @@
     <string name="sky_hours_raining_none_forecast">Es regnet gerade, obwohl die Vorhersage keinen Regen erwartet</string>
     <string name="sky_hours_raining_forecast_from">Es regnet gerade, obwohl die Vorhersage ihn erst ab %1$s erwartet</string>
     <!-- Under that line: %1$s an amount, %2$s its unit (mm or in), %3$d a number of hours -->
-    <string name="sky_hours_amount">Etwa %1$s\u00A0%2$s in den nächsten %3$d Stunden</string>
     <!-- Spoken by a screen reader for the hourly strip -->
     <string name="sky_cd_hours">Stunde für Stunde: die Regenwahrscheinlichkeit als Balken, gepunktet, wo sie wahrscheinlich wird</string>
     <!-- Under the first column of the hourly strip, the hour now under way -->
@@ -81,6 +80,9 @@
     <string name="sky_hours_later">Später ›</string>
     <string name="sky_hours_sooner">‹ Jetzt</string>
     <string name="sky_hours_span">%1$s bis %2$s</string>
+    <string name="sky_hours_next">Die nächsten %1$d Stunden</string>
+    <string name="sky_hours_span_amount">%1$s bis %2$s: %3$s\u00A0%4$s</string>
+    <string name="sky_by_midnight">%1$s bis Mitternacht</string>
     <string name="sky_later_rain_all">Regen wahrscheinlich durchgehend</string>
     <string name="sky_later_snow_all">Schnee wahrscheinlich durchgehend</string>
     <!-- High and low temperatures for a day -->

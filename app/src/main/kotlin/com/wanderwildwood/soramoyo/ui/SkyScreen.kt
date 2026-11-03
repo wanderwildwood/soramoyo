@@ -241,6 +241,9 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
         state.days.firstOrNull { it.date == state.placeToday() }, state.hours, state.metric, state.offset,
     )
     val soon = RainSoon.of(state.quarters, state.hours, state.inches, state.offset)
+    // Rain's time is said in one place: the sentence, when it speaks of rain; else the line over
+    // the hours. Two reckonings of "when" side by side read as a disagreement.
+    val sayWhen = summary?.wet == null
     // The next twelve hours, and the twelve after them a swipe away: going out in the
     // morning, the evening you come back in is past the first twelve.
     val next = upcoming(state.hours, state.offset, count = HOURS * 2)
@@ -254,7 +257,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
             TodayColumn(state, hours, after, summary, soon, today, yesterday, noStation, fallback, onAllowLocation, onAlerts, onPull, wide = true, Modifier.weight(1f).fillMaxHeight())
             VerticalDivider(color = MaterialTheme.colorScheme.onSurface)
             Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 20.dp)) {
-                if (hours.isNotEmpty()) Hours(hours, after, state.inches, rainingNow(state), state.returns, state.days)
+                if (hours.isNotEmpty()) Hours(hours, after, state.inches, rainingNow(state), state.returns, state.days, sayWhen)
             }
         }
     } else {
@@ -280,6 +283,8 @@ private fun TodayColumn(
     wide: Boolean,
     modifier: Modifier,
 ) {
+    // See TodayTab: the sentence says when it rains if it speaks of rain at all.
+    val sayWhen = summary?.wet == null
     PagedColumn(modifier = modifier, onPullAtTop = onPull, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
         pullLine(state.pull)
         // An official warning comes before anything else, and only while there is one.
@@ -321,7 +326,7 @@ private fun TodayColumn(
             if (hours.isNotEmpty() && !wide) {
                 item {
                     DottedRule(start = 0.dp)
-                    Hours(hours, after, state.inches, rainingNow(state), state.returns, state.days)
+                    Hours(hours, after, state.inches, rainingNow(state), state.returns, state.days, sayWhen)
                 }
             }
         } else {
@@ -356,7 +361,7 @@ private fun TodayColumn(
             if (hours.isNotEmpty() && !wide) {
                 item {
                     DottedRule(start = 0.dp)
-                    Hours(hours, after, state.inches, rainingNow(state), state.returns, state.days)
+                    Hours(hours, after, state.inches, rainingNow(state), state.returns, state.days, sayWhen)
                 }
             }
         }
@@ -787,7 +792,10 @@ private fun DayRow(
             // A snowy day gives its snow, as deep as it lies; its rain amount would be the
             // snow melted to water, which is not how anyone measures a snowfall.
             val amount = if (day.snowy) snowDepth(day.snow, inches) else amount(day.rain, inches)
-            val amountUnit = if (day.snowy) snowUnit(inches) else unit(inches)
+            val plainUnit = if (day.snowy) snowUnit(inches) else unit(inches)
+            // Today's row is what is still to fall today, said so, beside the next hours' own
+            // amount over the strip: "0.21 in by midnight" against "06:00 to 18:00: 0.02 in".
+            val amountUnit = if (yesterday != null) stringResource(R.string.sky_by_midnight, plainUnit) else plainUnit
             // On Today the sentence above already says what the sky does, and the row's word for
             // it (the worst of the hours left) could disagree with it, so only the chance is given.
             val line = if (!sayCondition) {
@@ -1104,9 +1112,9 @@ private fun dayRows(day: Day, inches: Boolean, metric: Boolean): List<@Composabl
  * the Kompakt's panel the figures ran together into one string.
  */
 @Composable
-private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining: Boolean, returns: Int, days: List<Day>) {
+private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining: Boolean, returns: Int, days: List<Day>, sayWhen: Boolean) {
     if (after.isEmpty()) {
-        NextHours(hours, inches, raining, days)
+        NextHours(hours, inches, raining, days, sayWhen)
         return
     }
     // The twelve hours after these, a swipe across the strip away. The word under it jumps
@@ -1124,11 +1132,11 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
     // the line above as well.
     Box(modifier = Modifier.fillMaxWidth()) {
         Box(modifier = Modifier.fillMaxWidth().alpha(0f).clearAndSetSemantics {}) {
-            NextHours(hours, inches, raining, days)
+            NextHours(hours, inches, raining, days, sayWhen)
             LaterHours(after, days)
         }
         HorizontalPager(state = pager, verticalAlignment = Alignment.Top, modifier = Modifier.matchParentSize()) { page ->
-            if (page == 0) NextHours(hours, inches, raining, days) else LaterHours(after, days)
+            if (page == 0) NextHours(hours, inches, raining, days, sayWhen) else LaterHours(after, days)
         }
         Box(
             modifier = Modifier
@@ -1151,13 +1159,13 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
 
 /** The next twelve hours, as Today first shows them. */
 @Composable
-private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean, days: List<Day>) {
+private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean, days: List<Day>, sayWhen: Boolean) {
     val now = stringResource(R.string.sky_now)
     val count = hours.size
     val change = Change.of(hours)
     Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 0.dp)) {
         TextMMD(
-            text = when (change) {
+            text = if (!sayWhen && change != Change.Dry) stringResource(R.string.sky_hours_next, count) else when (change) {
                 // The station knows the present better than a model does: a drizzle the
                 // forecast missed should not sit under a line saying none is likely.
                 Change.Dry -> if (raining) {
@@ -1191,7 +1199,7 @@ private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean, days
         // hours these are.
         TextMMD(
             text = amount(Change.total(hours), inches)?.takeIf { change != Change.Dry }
-                ?.let { stringResource(R.string.sky_hours_amount, it, unit(inches), count) }
+                ?.let { stringResource(R.string.sky_hours_span_amount, clock(hours.first().time), clock(hours.last().time.plusHours(1)), it, unit(inches)) }
                 ?: stringResource(R.string.sky_hours_span, clock(hours.first().time), clock(hours.last().time.plusHours(1))),
             style = MaterialTheme.typography.labelSmall,
             maxLines = 1,
@@ -1231,10 +1239,10 @@ private fun Strip(hours: List<Hour>, first: String? = null, days: List<Day>? = n
     val ink = MaterialTheme.colorScheme.onSurface
     val twentyFour = android.text.format.DateFormat.is24HourFormat(LocalContext.current)
     val described = stringResource(R.string.sky_cd_hours)
-    // Today's strip (given the days, for when the sun is down) draws the sky over the first hour
-    // and over each hour where it changes, and writes every other hour rather than every third:
+    // Today's strip (given the days, for when the sun is down) draws the sky over every hour,
+    // and writes every other hour rather than every third:
     // a column is about 24 dp, too narrow for "100°" in every one.
-    val marks = days?.let { d -> changeMarks(hours.map { weatherFor(it.code, isNight(it.time, d)) }) }
+    val marks = days?.let { d -> hours.map { weatherFor(it.code, isNight(it.time, d)) } }
     val every = if (days != null) 2 else 3
     Row(modifier = Modifier.fillMaxWidth().semantics { contentDescription = described }) {
         hours.forEachIndexed { i, hour ->
@@ -1253,7 +1261,7 @@ private fun Strip(hours: List<Hour>, first: String? = null, days: List<Day>? = n
             ) {
                 if (marks != null) {
                     Box(Modifier.height(MARK_SIZE), contentAlignment = Alignment.Center) {
-                        marks[i]?.let { WeatherMark(it, MARK_SIZE, 3.6f) }
+                        WeatherMark(marks[i], MARK_SIZE, 3.6f)
                     }
                     Spacer(Modifier.height(2.dp))
                 }
