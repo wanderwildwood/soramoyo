@@ -156,16 +156,13 @@ fun licenceParagraphs(text: String): List<String> =
         .map { block -> block.lines().joinToString(" ") { it.trim() }.trim() }
         .filter { it.isNotEmpty() }
 
-/** How many rows MMD's list turns per page: `LazyColumnMMD`'s `scrollStep`, which `PagedColumn` leaves at its default. */
+/** How many rows the Licences list shows to a page. `PagedColumn` turns on whole rows, so a list exactly this many rows tall turns this many. */
 const val LICENCE_ROWS_PER_PAGE = 4
 
 /**
  * How the Licences list is laid out so that a page is exactly [LICENCE_ROWS_PER_PAGE] whole rows.
- * MMD's list moves a fixed number of ROWS per swipe or chevron press, whatever their heights, so
- * with rows of differing heights a page ends mid-row (or leaves room for part of the next one), and
- * the last page, which the list shifts back to end at the final row, starts mid-row. If every row
- * is the same height and the list is exactly that many rows tall, every page is whole rows and the
- * last ends flush. [rowPx] is that height, [listPx] the list's height (leftover pixels are given up,
+ * The list turns on whole rows whatever their heights; with every row the same height and the list
+ * exactly that many rows tall, each page is also full, with no blank left at its foot. [rowPx] is that height, [listPx] the list's height (leftover pixels are given up,
  * never shown as a sliver), [titleLines] how many lines the row's name may take (the rest is
  * ellipsised; the library's page shows it in full).
  */
