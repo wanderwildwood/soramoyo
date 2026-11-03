@@ -46,6 +46,8 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -1344,9 +1346,12 @@ private fun snowUnit(inches: Boolean): String = if (inches) "in" else "cm"
  */
 @Composable
 internal fun Reading(label: String, value: String, unit: String, note: String? = null, small: Boolean = false, paired: Boolean = false) {
+    // A label too long for its half of a line (Sonnenuntergang, Bodenfeuchtigkeit) breaks at a
+    // syllable with a hyphen, in the phone's own language, rather than wherever the letters run out.
+    val labelStyle = MaterialTheme.typography.bodyMedium.copy(hyphens = Hyphens.Auto, lineBreak = LineBreak.Paragraph)
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
         if (paired) {
-            TextMMD(text = label, style = MaterialTheme.typography.bodyMedium)
+            TextMMD(text = label, style = labelStyle)
             Row(verticalAlignment = Alignment.Bottom) {
                 TextMMD(
                     text = value,
@@ -1364,7 +1369,7 @@ internal fun Reading(label: String, value: String, unit: String, note: String? =
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom,
             ) {
-                TextMMD(text = label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                TextMMD(text = label, style = labelStyle, modifier = Modifier.weight(1f))
                 Row(verticalAlignment = Alignment.Bottom) {
                     TextMMD(
                         text = value,
