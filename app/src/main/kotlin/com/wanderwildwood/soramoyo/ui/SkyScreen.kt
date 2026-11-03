@@ -254,7 +254,7 @@ private fun TodayTab(state: SkyState, onAllowLocation: () -> Unit, onAlerts: () 
             TodayColumn(state, hours, after, summary, soon, today, yesterday, noStation, fallback, onAllowLocation, onAlerts, onPull, wide = true, Modifier.weight(1f).fillMaxHeight())
             VerticalDivider(color = MaterialTheme.colorScheme.onSurface)
             Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 20.dp)) {
-                if (hours.isNotEmpty()) Hours(hours, after, state.inches, rainingNow(state), state.returns)
+                if (hours.isNotEmpty()) Hours(hours, after, state.inches, rainingNow(state), state.returns, state.days)
             }
         }
     } else {
@@ -287,7 +287,7 @@ private fun TodayColumn(
             item {
                 Column {
                     AlertLine(state.alerts, onAlerts)
-                    HorizontalDividerMMD()
+                    DottedRule(start = 0.dp)
                 }
             }
         }
@@ -297,7 +297,7 @@ private fun TodayColumn(
             if (summary != null || soon != null) {
                 item {
                     Column {
-                        HorizontalDividerMMD()
+                        DottedRule(start = 0.dp)
                         DayWords(summary, soon)
                     }
                 }
@@ -310,7 +310,7 @@ private fun TodayColumn(
                 words()
                 if (today != null) {
                     item {
-                        HorizontalDividerMMD()
+                        DottedRule(start = 0.dp)
                         DayRow(today, state.inches, today.date, yesterday = yesterday, sayCondition = summary?.sky == null && summary?.wet == null)
                     }
                 }
@@ -320,8 +320,8 @@ private fun TodayColumn(
             }
             if (hours.isNotEmpty() && !wide) {
                 item {
-                    HorizontalDividerMMD()
-                    Hours(hours, after, state.inches, rainingNow(state), state.returns)
+                    DottedRule(start = 0.dp)
+                    Hours(hours, after, state.inches, rainingNow(state), state.returns, state.days)
                 }
             }
         } else {
@@ -344,7 +344,7 @@ private fun TodayColumn(
             }
             words()
             item {
-                HorizontalDividerMMD()
+                DottedRule(start = 0.dp)
                 if (today != null) {
                     DayRow(today, state.inches, today.date, yesterday = yesterday, sayCondition = summary?.sky == null && summary?.wet == null)
                 } else {
@@ -355,8 +355,8 @@ private fun TodayColumn(
             }
             if (hours.isNotEmpty() && !wide) {
                 item {
-                    HorizontalDividerMMD()
-                    Hours(hours, after, state.inches, rainingNow(state), state.returns)
+                    DottedRule(start = 0.dp)
+                    Hours(hours, after, state.inches, rainingNow(state), state.returns, state.days)
                 }
             }
         }
@@ -375,7 +375,7 @@ private fun TodayColumn(
         pairedRows(lines) { row ->
             item {
                 Column {
-                    HorizontalDividerMMD()
+                    DottedRule(start = 0.dp)
                     row()
                 }
             }
@@ -1104,9 +1104,9 @@ private fun dayRows(day: Day, inches: Boolean, metric: Boolean): List<@Composabl
  * the Kompakt's panel the figures ran together into one string.
  */
 @Composable
-private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining: Boolean, returns: Int) {
+private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining: Boolean, returns: Int, days: List<Day>) {
     if (after.isEmpty()) {
-        NextHours(hours, inches, raining)
+        NextHours(hours, inches, raining, days)
         return
     }
     // The twelve hours after these, a swipe across the strip away. The word under it jumps
@@ -1124,11 +1124,11 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
     // the line above as well.
     Box(modifier = Modifier.fillMaxWidth()) {
         Box(modifier = Modifier.fillMaxWidth().alpha(0f).clearAndSetSemantics {}) {
-            NextHours(hours, inches, raining)
-            LaterHours(after)
+            NextHours(hours, inches, raining, days)
+            LaterHours(after, days)
         }
         HorizontalPager(state = pager, verticalAlignment = Alignment.Top, modifier = Modifier.matchParentSize()) { page ->
-            if (page == 0) NextHours(hours, inches, raining) else LaterHours(after)
+            if (page == 0) NextHours(hours, inches, raining, days) else LaterHours(after, days)
         }
         Box(
             modifier = Modifier
@@ -1151,7 +1151,7 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
 
 /** The next twelve hours, as Today first shows them. */
 @Composable
-private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean) {
+private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean, days: List<Day>) {
     val now = stringResource(R.string.sky_now)
     val count = hours.size
     val change = Change.of(hours)
@@ -1198,7 +1198,7 @@ private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean) {
             modifier = Modifier.padding(end = 92.dp),
         )
         Spacer(Modifier.height(6.dp))
-        Strip(hours, first = now)
+        Strip(hours, first = now, days = days)
     }
 }
 
@@ -1207,7 +1207,7 @@ private fun NextHours(hours: List<Hour>, inches: Boolean, raining: Boolean) {
  * these hours start and end under it, since "no rain likely" alone would not say when.
  */
 @Composable
-private fun LaterHours(hours: List<Hour>) {
+private fun LaterHours(hours: List<Hour>, days: List<Day>) {
     Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 0.dp)) {
         TextMMD(text = spellLine(hours, wholeDay = false), style = MaterialTheme.typography.bodyMedium)
         TextMMD(
@@ -1217,7 +1217,7 @@ private fun LaterHours(hours: List<Hour>) {
             modifier = Modifier.padding(end = 92.dp),
         )
         Spacer(Modifier.height(6.dp))
-        Strip(hours)
+        Strip(hours, days = days)
     }
 }
 
@@ -1227,13 +1227,18 @@ private fun LaterHours(hours: List<Hour>) {
  * first column's label is [first] where given ("Now"), else its hour.
  */
 @Composable
-private fun Strip(hours: List<Hour>, first: String? = null) {
+private fun Strip(hours: List<Hour>, first: String? = null, days: List<Day>? = null) {
     val ink = MaterialTheme.colorScheme.onSurface
     val twentyFour = android.text.format.DateFormat.is24HourFormat(LocalContext.current)
     val described = stringResource(R.string.sky_cd_hours)
+    // Today's strip (given the days, for when the sun is down) draws the sky over the first hour
+    // and over each hour where it changes, and writes every other hour rather than every third:
+    // a column is about 24 dp, too narrow for "100°" in every one.
+    val marks = days?.let { d -> changeMarks(hours.map { weatherFor(it.code, isNight(it.time, d)) }) }
+    val every = if (days != null) 2 else 3
     Row(modifier = Modifier.fillMaxWidth().semantics { contentDescription = described }) {
         hours.forEachIndexed { i, hour ->
-            val written = i % 3 == 0
+            val written = i % every == 0
             // Written past the column's edges if it needs to: its neighbours are empty. The
             // first column's run right from its left edge instead, since left of it is the
             // edge of the screen, where "8 AM" lost its 8.
@@ -1246,6 +1251,12 @@ private fun Strip(hours: List<Hour>, first: String? = null) {
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                if (marks != null) {
+                    Box(Modifier.height(MARK_SIZE), contentAlignment = Alignment.Center) {
+                        marks[i]?.let { WeatherMark(it, MARK_SIZE, 3.6f) }
+                    }
+                    Spacer(Modifier.height(2.dp))
+                }
                 TextMMD(
                     text = if (written) "${hour.temperature}°" else "",
                     style = MaterialTheme.typography.labelSmall,
@@ -1297,6 +1308,7 @@ private fun Strip(hours: List<Hour>, first: String? = null) {
 }
 
 private val BAR_HEIGHT = 28.dp
+private val MARK_SIZE = 22.dp
 
 private val hour24: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 private val hour12: DateTimeFormatter = DateTimeFormatter.ofPattern("h a")
