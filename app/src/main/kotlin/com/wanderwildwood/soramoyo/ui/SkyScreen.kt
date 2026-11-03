@@ -1239,10 +1239,11 @@ private fun Strip(hours: List<Hour>, first: String? = null, days: List<Day>? = n
     val ink = MaterialTheme.colorScheme.onSurface
     val twentyFour = android.text.format.DateFormat.is24HourFormat(LocalContext.current)
     val described = stringResource(R.string.sky_cd_hours)
-    // Today's strip (given the days, for when the sun is down) draws the sky over every hour,
-    // and writes every other hour rather than every third:
-    // a column is about 24 dp, too narrow for "100°" in every one.
-    val marks = days?.let { d -> hours.map { weatherFor(it.code, isNight(it.time, d)) } }
+    // Today's strip (given the days, for when the sun is down) draws the sky over the first hour
+    // and over each hour where it changes, and writes every other hour rather than every third:
+    // a column is about 24 dp, too narrow for "100°" in every one. A mark over every hour made
+    // the row too busy.
+    val marks = days?.let { d -> changeMarks(hours.map { weatherFor(it.code, isNight(it.time, d)) }) }
     val every = if (days != null) 2 else 3
     Row(modifier = Modifier.fillMaxWidth().semantics { contentDescription = described }) {
         hours.forEachIndexed { i, hour ->
@@ -1261,7 +1262,7 @@ private fun Strip(hours: List<Hour>, first: String? = null, days: List<Day>? = n
             ) {
                 if (marks != null) {
                     Box(Modifier.height(MARK_SIZE), contentAlignment = Alignment.Center) {
-                        WeatherMark(marks[i], MARK_SIZE, 3.6f)
+                        marks[i]?.let { WeatherMark(it, MARK_SIZE, 3.6f) }
                     }
                     Spacer(Modifier.height(2.dp))
                 }
