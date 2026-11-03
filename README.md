@@ -63,7 +63,7 @@ for a place you choose.
 
 **The air.** Air quality, on the US index with imperial units and the European one with
 metric, and in Europe the two heaviest pollens when there are any. From the Copernicus
-Atmosphere Monitoring Service, by Open-Meteo: modelled, not measured.
+Atmosphere Monitoring Service, by Open-Meteo: modeled, not measured.
 
 **Units.** As the station reads, or else the phone's country, until metric or imperial is
 chosen in settings; then everything follows, the station's readings included.
@@ -76,7 +76,7 @@ is worked out on the phone from where it is, so it is there with no signal. Far 
 it says so when the sun does not set, or the night does not get fully dark.
 
 **The radar.** kRadar's radar, unchanged at heart: the last two hours of
-[RainViewer](https://www.rainviewer.com/) radar over a vector map centred on the phone, a
+[RainViewer](https://www.rainviewer.com/) radar over a vector map centered on the phone, a
 locally estimated half hour ahead, marked `≈`, and zoom. State and province lines are drawn
 where Natural Earth has them — the US, Canada, Australia and the other large federations —
 which kRadar's map leaves out.
@@ -122,7 +122,7 @@ An Ecowitt, Tempest or Davis station is read on your own network, and nothing it
 the phone. A Weather Underground station is read from Weather Underground, with your key.
 
 The radar, the forecast and the air all need to know roughly where the phone is, or the
-places you chose. Each is rounded to two decimal places — about a kilometre — before it
+places you chose. Each is rounded to two decimal places — about a kilometer — before it
 leaves the phone, and it goes to Open-Meteo for the forecast and the air, and to RainViewer
 for the radar tiles, and to the US National Weather Service (api.weather.gov) for alerts — with
 the app's name and the address of this repository, which the Weather Service asks callers to
@@ -179,7 +179,7 @@ Radar data by [RainViewer](https://www.rainviewer.com/api.html). Forecast by
 
 Privacy: what the app stores and what it sends is set out in [PRIVACY.md](PRIVACY.md).
 
-## Licence
+## License
 
 GNU General Public License v3, as kRadar is. See [LICENSE](LICENSE).
 
