@@ -20,6 +20,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalCursorBlinkEnabled
+import com.wanderwildwood.soramoyo.ui.houseTypography
 import com.wanderwildwood.soramoyo.ui.openAppSettings
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -58,7 +59,7 @@ class MainActivity : ComponentActivity() {
             // A steady cursor: a blinking one repaints the panel twice a second for as long as a
             // field has focus.
             CompositionLocalProvider(LocalCursorBlinkEnabled provides false) {
-                ThemeMMD(colorScheme = monochrome) {
+                ThemeMMD(colorScheme = monochrome, typography = houseTypography) {
                     Sky(openAlerts = openAlerts, onAlertsOpened = { openAlerts = false })
                 }
             }

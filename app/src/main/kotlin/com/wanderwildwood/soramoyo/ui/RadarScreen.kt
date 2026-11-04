@@ -290,7 +290,8 @@ private fun VectorLayer(lat: Double, lon: Double, zoom: Int, tileSize: Int) {
         }
         val labelPaint = Paint().apply {
             color = android.graphics.Color.BLACK
-            textSize = 14f * density
+            // 16, the house floor for any text (Mudita's review, 4 Nov 2026): a city name is read too.
+            textSize = 16f * density
             isAntiAlias = true
         }
         val haloPaint = Paint(labelPaint).apply {
