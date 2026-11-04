@@ -103,6 +103,18 @@ the phone already lets Sky notify. While it is on, the alerts are checked every 
 when the phone has a network, at a time Android picks to suit the battery. It is the one thing in
 Sky that runs on a timer, and it stops when the setting is off.
 
+**Instant alerts.** Under that switch, a second one, off at first: a new alert arrives within
+minutes instead of at the next quarter-hour check. Sky subscribes an area about five kilometers
+around the place with KDE's alert server, which sends a message the moment an alert is added
+or changed there; Sky then looks as it always does. The messages come through Mozilla's push
+server, the one Firefox uses, over a connection Sky holds itself (a UnifiedPush distributor
+built in, after Sunup), so no second app is needed. They are encrypted to keys only the phone
+holds. While it is on, a quiet notification shows, with a Turn off button, and the battery runs
+down a little faster. A phone that stops apps in the background (DuraSpeed on the Kompakt) has
+to let Sky run, or the connection is cut. The quarter-hourly check carries on underneath, in
+case a message is lost. Even so it is not an earthquake early warning: the alert is a report
+of a quake that has happened, and only a tsunami warning gains real minutes from it.
+
 **Where it is for.** A Kompakt has no network location, only its GPS, and indoors on a
 phone that has never had a fix the GPS may not find itself at all. So in settings the
 forecast and the radar can be given a place by name instead — "Portland, Maine",

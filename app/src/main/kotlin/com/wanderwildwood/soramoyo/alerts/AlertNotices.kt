@@ -18,6 +18,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.wanderwildwood.soramoyo.MainActivity
 import com.wanderwildwood.soramoyo.R
+import com.wanderwildwood.soramoyo.alerts.push.InstantAlerts
 import com.wanderwildwood.soramoyo.glance.WalkFacts
 import com.wanderwildwood.soramoyo.location.LocationProvider
 import com.wanderwildwood.soramoyo.location.Places
@@ -77,6 +78,29 @@ object AlertNotices {
         prefs(context).edit().putBoolean(ON, on).apply()
         if (on) channel(context)
         schedule(context)
+        // Instant alerts ride on these: off with them, back with them.
+        InstantAlerts.refreshAsync(context)
+    }
+
+    /**
+     * Fetches the alerts for the first place and notifies of any new serious one: the
+     * quarter-hourly check, and a push from the alert server when instant alerts are on.
+     */
+    suspend fun checkNow(context: Context) {
+        if (!on(context)) return
+        val here = Places.chosen(context)?.at ?: LocationProvider.lastFound(context) ?: return
+        try {
+            when (val answer = Alerts.fetch(here.lat, here.lon)) {
+                is AlertAnswer.Found -> note(context, answer.alerts, notify = true)
+                // None to notify of, but that there are none is worth keeping too.
+                AlertAnswer.NotCovered -> note(context, emptyList(), notify = false)
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // The next quarter hour tries again; no faster retry, for the battery's sake.
+            Log.i("soramoyo", "alerts not checked: ${e.javaClass.simpleName}")
+        }
     }
 
     /** Whether the phone lets Sky post notifications at all. */
@@ -228,25 +252,13 @@ object AlertNotices {
     private const val KEEP_MS = 24 * 60 * 60 * 1000L
 }
 
-/** The quarter-hourly look at the alerts, for [AlertNotices]. */
+/** The quarter-hourly look at the alerts, for [AlertNotices], and the looking after of instant alerts. */
 class AlertCheck(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val context = applicationContext
-        if (!AlertNotices.on(context)) return Result.success()
-        val here = Places.chosen(context)?.at ?: LocationProvider.lastFound(context) ?: return Result.success()
-        return try {
-            when (val answer = Alerts.fetch(here.lat, here.lon)) {
-                is AlertAnswer.Found -> AlertNotices.note(context, answer.alerts, notify = true)
-                // None to notify of, but that there are none is worth keeping too.
-                AlertAnswer.NotCovered -> AlertNotices.note(context, emptyList(), notify = false)
-            }
-            Result.success()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            // The next quarter hour tries again; no faster retry, for the battery's sake.
-            Log.i("soramoyo", "alerts not checked: ${e.javaClass.simpleName}")
-            Result.success()
-        }
+        // The connection, the subscription's place and its renewal, while instant alerts are on.
+        runCatching { InstantAlerts.keep(context) }
+        AlertNotices.checkNow(context)
+        return Result.success()
     }
 }

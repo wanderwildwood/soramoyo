@@ -179,5 +179,5 @@ object Alerts {
     private fun time(text: String): OffsetDateTime? =
         if (text.isEmpty()) null else runCatching { OffsetDateTime.parse(text) }.getOrNull()
 
-    private const val USER_AGENT = "Sky (https://github.com/wanderwildwood/soramoyo)"
+    internal const val USER_AGENT = "Sky (https://github.com/wanderwildwood/soramoyo)"
 }

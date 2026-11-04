@@ -48,6 +48,8 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) openAlerts = intent.getBooleanExtra(AlertNotices.OPEN_EXTRA, false)
         // Brought back after an update or a cleared app, while the setting is on.
         AlertNotices.schedule(applicationContext)
+        // Instant alerts' connection and subscription, if they are on; opening Sky always may start them.
+        com.wanderwildwood.soramoyo.alerts.push.InstantAlerts.refreshAsync(applicationContext)
         turner.set(Turning.on(this))
         setContent {
             // The switch in Settings takes effect at once.

@@ -16,8 +16,8 @@ android {
         // that: Supernote's tablets run Android 11 (API 30), and it installs there too.
         minSdk = 30
         targetSdk = 31
-        versionCode = 61
-        versionName = "0.12.1"
+        versionCode = 62
+        versionName = "0.13.0"
     }
 
     // A real keystore in signing/ signs every build type when it is present, so the
@@ -111,6 +111,7 @@ dependencies {
 
     // The half-hourly check for serious weather alerts, only while that setting is on.
     implementation(libs.work.runtime)
+    implementation(libs.unifiedpush.connector)
 
     testImplementation(libs.junit)
     testImplementation(libs.orgjson)

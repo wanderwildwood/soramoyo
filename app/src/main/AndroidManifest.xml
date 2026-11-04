@@ -18,6 +18,12 @@
     <!-- A notification when a serious weather alert is issued for your place; only while that
          setting is on. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Instant alerts, only while that setting is on: the connection to the push server is held
+         by a foreground service, kept awake while it connects and while a message is handled, and
+         started again after the phone restarts. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
@@ -84,6 +90,38 @@
             android:name=".glance.ForTheWalk"
             android:authorities="com.wanderwildwood.soramoyo.sanpo"
             android:exported="true" />
+        <!-- Instant alerts: the UnifiedPush connector hands push addresses and messages here. -->
+        <service
+            android:name=".alerts.push.SkyPushService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="org.unifiedpush.android.connector.PUSH_EVENT" />
+            </intent-filter>
+        </service>
+        <!-- The built-in UnifiedPush distributor. The receiver is not exported, so only this
+             app can register with it; the connector finds it all the same. -->
+        <receiver
+            android:name=".alerts.push.EmbeddedDistributorReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="org.unifiedpush.android.distributor.REGISTER" />
+                <action android:name="org.unifiedpush.android.distributor.UNREGISTER" />
+            </intent-filter>
+        </receiver>
+        <service
+            android:name=".alerts.push.PushConnectionService"
+            android:exported="false" />
+        <receiver
+            android:name=".alerts.push.PushConnectionService$TurnOffReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".alerts.push.StartAgain"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

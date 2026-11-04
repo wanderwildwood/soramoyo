@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import com.wanderwildwood.soramoyo.glance.LockScreen
 import com.wanderwildwood.soramoyo.alerts.AlertNotices
+import com.wanderwildwood.soramoyo.alerts.push.InstantAlerts
 import com.mudita.mmd.components.switcher.SwitchMMD
 import com.wanderwildwood.soramoyo.Turning
 import androidx.compose.ui.platform.LocalConfiguration
@@ -202,6 +203,30 @@ fun SettingsScreen(
                             modifier = Modifier.clickable { openNotificationSettings(context) }
                                 .fillMaxWidth().heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically),
                         )
+                    }
+                    // Instant alerts ride on the notifications: offered only while they are on.
+                    if (notify) {
+                        var instant by remember { mutableStateOf(InstantAlerts.chosen(context)) }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    instant = !instant
+                                    InstantAlerts.setAsync(context, instant)
+                                }
+                                .padding(top = 16.dp),
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                TextMMD(
+                                    text = stringResource(R.string.settings_instant),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                Spacer(Modifier.width(16.dp))
+                                SwitchMMD(checked = instant, onCheckedChange = null)
+                            }
+                            TextMMD(text = stringResource(R.string.settings_instant_note), style = MaterialTheme.typography.labelSmall)
+                        }
                     }
                 }
             }

@@ -328,6 +328,15 @@
     <!-- Settings: notifications for serious alerts -->
     <string name="settings_alerts">Benachrichtigungen für ernste Warnungen</string>
     <string name="settings_alerts_note">Schweres Wetter, Feuerwetter, Evakuierungen, Erdbeben und Tsunamis: in den Vereinigten Staaten vom US National Weather Service, anderswo von den nationalen Diensten, die der öffentliche Warnserver von KDE sammelt. Wird jede Viertelstunde geprüft, solange das eingeschaltet ist.</string>
+    <!-- Settings: instant alerts, by push, under the notifications switch -->
+    <string name="settings_instant">Sofortwarnungen</string>
+    <string name="settings_instant_note">Eine neue Warnung kommt innerhalb von Minuten an statt bei der nächsten Prüfung zur Viertelstunde. Himmel hält dafür eine Verbindung zum Push-Server von Mozilla offen, und der Warnserver von KDE behält ein Gebiet von etwa fünf Kilometern um deinen Ort im Blick. Solange das an ist, steht eine stille Benachrichtigung da, und der Akku leert sich etwas schneller. Wenn das Telefon Apps im Hintergrund anhält, muss Himmel laufen dürfen.</string>
+    <!-- The ongoing notification while instant alerts are on, and its channel -->
+    <string name="instant_channel">Verbindung für Sofortwarnungen</string>
+    <string name="instant_channel_about">Wird gezeigt, solange Himmel auf Warnungen wartet, sobald sie herausgegeben werden.</string>
+    <string name="instant_notification_title">Wartet auf Warnungen</string>
+    <string name="instant_notification_text">Eine neue Warnung für deinen Ort kommt innerhalb von Minuten an.</string>
+    <string name="instant_turn_off">Ausschalten</string>
     <string name="settings_alerts_blocked">Benachrichtigungen für Himmel sind in den Einstellungen des Telefons aus.</string>
 
     <!-- About -->
@@ -335,7 +344,7 @@
     <string name="about_title">Himmel %1$s</string>
     <string name="about_privacy_title">Datenschutz</string>
     <string name="about_privacy">Deine Orte und Einstellungen bleiben auf diesem Telefon. Die App geht nur online, um Wetter zu holen. Die Position des Telefons, auf etwa einen Kilometer gerundet, oder der Ort, den du gewählt hast, geht an Open-Meteo für Vorhersage, Luftqualität und Pollen, an RainViewer für das Radar und an den US National Weather Service oder, außerhalb der USA, den öffentlichen Warnserver von KDE für Warnungen. Die Wörter, mit denen du einen Ort suchst, gehen an Open-Meteo. Keine dieser Anfragen enthält ein Konto oder etwas, das du geschrieben hast.</string>
-    <string name="about_privacy_where">Eine Ecowitt-, Davis- oder Tempest-Station wird in deinem eigenen Netzwerk gelesen. Das Einzige, was Himmel je im Klartext ohne https sendet, ist die Anfrage an eine Ecowitt- oder Davis-Station unter der von dir eingetippten Adresse, und nur, wenn diese Adresse in deinem Heimnetz liegt; jede andere Adresse wird abgelehnt. Alles andere ist https. Eine Weather-Underground-Station wird von Weather Underground gelesen, mit deiner Stations-ID und deinem API-Schlüssel. Die Position wird nur angefragt, wenn du die Schaltfläche dafür drückst, und gar nicht, solange du einen Ort gewählt hast. Benachrichtigungen werden nur für ernste Warnungen verwendet, wenn du sie einschaltest; die App prüft dann jede Viertelstunde im Hintergrund.</string>
+    <string name="about_privacy_where">Eine Ecowitt-, Davis- oder Tempest-Station wird in deinem eigenen Netzwerk gelesen. Das Einzige, was Himmel je im Klartext ohne https sendet, ist die Anfrage an eine Ecowitt- oder Davis-Station unter der von dir eingetippten Adresse, und nur, wenn diese Adresse in deinem Heimnetz liegt; jede andere Adresse wird abgelehnt. Alles andere ist https. Eine Weather-Underground-Station wird von Weather Underground gelesen, mit deiner Stations-ID und deinem API-Schlüssel. Die Position wird nur angefragt, wenn du die Schaltfläche dafür drückst, und gar nicht, solange du einen Ort gewählt hast. Benachrichtigungen werden nur für ernste Warnungen verwendet, wenn du sie einschaltest; die App prüft dann jede Viertelstunde im Hintergrund. Mit Sofortwarnungen behält der Warnserver von KDE ein Gebiet von etwa fünf Kilometern um deinen Ort, und Himmel hält eine Verbindung zum Push-Server von Mozilla, über die die verschlüsselten Nachrichten des Servers ankommen; Ausschalten löscht das Abonnement.</string>
     <string name="about_privacy_phone">Andere Apps des Autors auf diesem Telefon, Glance, Zeit und Wander, können Himmel nach dem Wetter fragen und bekommen es, nie deine Position. Die Sperrbildschirm-Einstellung schaltet Glance aus. Die Links am Ende öffnen deinen Browser; die App ruft diese Seiten nie selbst ab.</string>
     <string name="about_privacy_close">Es gibt keine Werbung, keine Analysen und kein Tracking.</string>
     <string name="about_terms_title">Bedingungen</string>
