@@ -33,6 +33,8 @@
     <queries>
         <!-- Glance, which draws the lock-screen lines: the switch is shown only when it is here. -->
         <package android:name="com.wanderwildwood.hitome" />
+        <!-- DuraSpeed, so the instant-alerts reminder shows only on a phone that has it. -->
+        <package android:name="com.mediatek.duraspeed" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />

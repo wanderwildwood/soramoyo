@@ -333,6 +333,11 @@
     <!-- Settings: instant alerts, by push, under the notifications switch -->
     <string name="settings_instant">Instant alerts</string>
     <string name="settings_instant_note">A new alert arrives within minutes instead of at the next quarter-hour check. Sky keeps a connection open to Mozilla\'s push server, and KDE\'s alert server keeps an area of about five kilometers around your place to watch. A quiet notification shows while it is on, and the battery runs down a little faster. If the phone stops apps in the background, Sky has to be allowed to run.</string>
+    <!-- Under the instant-alerts switch on a Kompakt, until done: DuraSpeed would stop Sky and cut the connection -->
+    <string name="settings_duraspeed">The phone\'s DuraSpeed setting can shut Sky down a few minutes after the screen goes off, and instant alerts with it. Open DuraSpeed, tap Open, and switch Sky on.</string>
+    <string name="settings_duraspeed_open">Open DuraSpeed</string>
+    <string name="settings_duraspeed_done">I have done this</string>
+    <string name="settings_duraspeed_done_note">The phone does not tell the app whether it worked; press this to hide the notice. It comes back if DuraSpeed stops Sky again.</string>
     <!-- The ongoing notification while instant alerts are on, and its channel -->
     <string name="instant_channel">Instant alerts connection</string>
     <string name="instant_channel_about">Shown while Sky listens for alerts the moment they are issued.</string>

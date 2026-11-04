@@ -111,7 +111,8 @@ server, the one Firefox uses, over a connection Sky holds itself (a UnifiedPush 
 built in, after Sunup), so no second app is needed. They are encrypted to keys only the phone
 holds. While it is on, a quiet notification shows, with a Turn off button, and the battery runs
 down a little faster. A phone that stops apps in the background (DuraSpeed on the Kompakt) has
-to let Sky run, or the connection is cut. The quarter-hourly check carries on underneath, in
+to let Sky run, or the connection is cut; on a Kompakt, Settings says so under the switch, with a button to
+DuraSpeed, until you say it is done. The quarter-hourly check carries on underneath, in
 case a message is lost. Even so it is not an earthquake early warning: the alert is a report
 of a quake that has happened, and only a tsunami warning gains real minutes from it.
 

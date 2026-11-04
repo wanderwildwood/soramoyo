@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import com.wanderwildwood.soramoyo.glance.LockScreen
 import com.wanderwildwood.soramoyo.alerts.AlertNotices
+import com.wanderwildwood.soramoyo.alerts.push.DuraSpeed
 import com.wanderwildwood.soramoyo.alerts.push.InstantAlerts
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.compose.runtime.mutableIntStateOf
 import com.mudita.mmd.components.switcher.SwitchMMD
 import com.wanderwildwood.soramoyo.Turning
 import androidx.compose.ui.platform.LocalConfiguration
@@ -226,6 +229,36 @@ fun SettingsScreen(
                                 SwitchMMD(checked = instant, onCheckedChange = null)
                             }
                             TextMMD(text = stringResource(R.string.settings_instant_note), style = MaterialTheme.typography.labelSmall)
+                        }
+                        // DuraSpeed would cut the connection: only while that step is still to do,
+                        // read again on every return from the phone's settings.
+                        var looks by remember { mutableIntStateOf(0) }
+                        LifecycleResumeEffect(Unit) {
+                            looks++
+                            onPauseOrDispose { }
+                        }
+                        val duraSpeed = remember(instant, looks) { instant && DuraSpeed.atRisk(context) }
+                        if (duraSpeed) {
+                            TextMMD(
+                                text = stringResource(R.string.settings_duraspeed),
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(top = 8.dp),
+                            )
+                            TextMMD(
+                                text = stringResource(R.string.settings_duraspeed_open),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable { DuraSpeed.open(context) }
+                                    .fillMaxWidth().heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically),
+                            )
+                            TextMMD(
+                                text = stringResource(R.string.settings_duraspeed_done),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable { DuraSpeed.done(context); looks++ }
+                                    .fillMaxWidth().heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically),
+                            )
+                            TextMMD(text = stringResource(R.string.settings_duraspeed_done_note), style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }

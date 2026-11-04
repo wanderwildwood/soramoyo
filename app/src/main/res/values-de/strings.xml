@@ -331,6 +331,11 @@
     <!-- Settings: instant alerts, by push, under the notifications switch -->
     <string name="settings_instant">Sofortwarnungen</string>
     <string name="settings_instant_note">Eine neue Warnung kommt innerhalb von Minuten an statt bei der nächsten Prüfung zur Viertelstunde. Himmel hält dafür eine Verbindung zum Push-Server von Mozilla offen, und der Warnserver von KDE behält ein Gebiet von etwa fünf Kilometern um deinen Ort im Blick. Solange das an ist, steht eine stille Benachrichtigung da, und der Akku leert sich etwas schneller. Wenn das Telefon Apps im Hintergrund anhält, muss Himmel laufen dürfen.</string>
+    <!-- Under the instant-alerts switch on a Kompakt, until done: DuraSpeed would stop Sky and cut the connection -->
+    <string name="settings_duraspeed">Die DuraSpeed-Einstellung des Telefons kann Himmel ein paar Minuten nach dem Ausschalten des Bildschirms beenden, und die Sofortwarnungen mit ihm. Öffne DuraSpeed, tippe auf Öffnen und schalte Himmel ein.</string>
+    <string name="settings_duraspeed_open">DuraSpeed öffnen</string>
+    <string name="settings_duraspeed_done">Erledigt</string>
+    <string name="settings_duraspeed_done_note">Das Telefon sagt der App nicht, ob es geklappt hat; tippe hierauf, um den Hinweis auszublenden. Er kommt wieder, wenn DuraSpeed Himmel erneut beendet.</string>
     <!-- The ongoing notification while instant alerts are on, and its channel -->
     <string name="instant_channel">Verbindung für Sofortwarnungen</string>
     <string name="instant_channel_about">Wird gezeigt, solange Himmel auf Warnungen wartet, sobald sie herausgegeben werden.</string>
