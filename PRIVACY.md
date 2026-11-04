@@ -1,18 +1,14 @@
 # Sky — Privacy Policy
 
-Version 0.11.15. Last reviewed 27 October 2026.
+Version 0.11.15. Last reviewed 4 November 2026.
 
 ## The short version
 
 The developer collects nothing about you. There is no account, no sign-up, no analytics, no advertising and no crash reporting, and no server belonging to the developer that the app talks to. To show the weather, Sky has to say roughly where you are: your position, rounded to about a kilometer, or a town you chose, goes to Open-Meteo for the forecast and to RainViewer for the radar, and, for weather alerts in the United States, to the National Weather Service. If you have a weather station, it is read on your own network, or from Weather Underground if you choose that. Nothing else leaves the phone.
 
-## Who is responsible
-
-wander wildwood, the author of this version of the app. Contact: email@wanderthe.dev
+## Where it comes from
 
 Sky began as kRadar, an open-source radar app; the forecast, almanac, station and alert screens were added to it.
-
-Because no personal data is transmitted to or held by the developer, there is no data controller relationship for the developer to administer. Where the app processes personal data, that processing happens on your own device, under your control.
 
 ## What the app stores, and where
 
@@ -76,15 +72,39 @@ No data is sold, rented, or shared for advertising. There is no profiling, no pe
 
 Processing on the device is carried out for your own purposes and at your own direction. Where the app contacts an outside service, that request is made at your request and is necessary to provide the feature you asked for (Article 6(1)(b) GDPR); that operator is an independent controller for what it then does, under its own policy.
 
-## Your rights
-
-Under the GDPR and UK GDPR you have rights of access, rectification, erasure, restriction, portability and objection. Under the CCPA/CPRA and comparable North American laws you have rights to know, delete, correct and opt out of sale or sharing.
-
-The developer holds no data about you, so there is nothing to request from them, and nothing has ever been sold or shared. You can exercise every one of these rights directly: the data is on your phone. Clear it in the app or in Android's app settings, or uninstall to remove all of it at once. For what Open-Meteo, RainViewer, the National Weather Service or Weather Underground keep of a request, ask them.
-
 ## Children
 
 The app is suitable for all ages and does not knowingly collect anything from anyone, of any age, because the developer does not collect anything.
+
+<!-- shared-about privacy section -->
+## Who we are
+
+Sky is made by wander wildwood, an independent developer: one person, not a company. wander wildwood is the data controller for anything the app itself handles, and that is very little. Sky keeps what you put in it on your phone, apart from what it sends to Open-Meteo, RainViewer, the US National Weather Service, KDE's alert server, Mozilla's push server and Weather Underground as described above, and sends nothing to the developer, so the developer holds no data about you.
+
+## How to contact us
+
+Write to email@wanderthe.dev about your data, this policy or anything else. The same address is in the app, under About.
+
+## Your rights
+
+If you are in the EU, the EEA or the UK, the GDPR gives you the right to:
+
+- see the personal data held about you (access)
+- have it corrected (rectification) or deleted (erasure)
+- limit how it is used (restriction)
+- object to its use (objection)
+- get a copy to take elsewhere (portability)
+- withdraw your consent at any time, where something rests on it
+- complain to a data protection supervisory authority, for example the one where you live
+
+Similar laws elsewhere, such as the CCPA in California, give you the right to know, delete and correct, and to opt out of the sale or sharing of your data. Nothing from Sky is sold or shared.
+
+Since Sky keeps what it stores only on your phone, you can exercise most of these rights yourself: change your places and your station in Settings, clear the app's data in Android's settings, or uninstall the app, which deletes all of it. For anything you cannot do yourself, write to the address above.
+
+Sky connects to Open-Meteo, RainViewer, the US National Weather Service, KDE's alert server, Mozilla's push server and Weather Underground. They are separate from this app and from its developer, and what they receive is covered by their own privacy policies; ask them about what they hold.
+
+If you point Sky at a server of your own, what that server keeps is yours to manage.
+<!-- /shared-about privacy section -->
 
 ## Changes
 
