@@ -1,0 +1,6 @@
+{
+  "hash": "kde-alerts-terms",
+  "name": "Each service's own terms",
+  "url": "https://alerts.kde.org/sources/status",
+  "content": "Each alert is the work of the national service that issued it and is used under that service's own terms. KDE's public alert server lists the services it gathers at https://alerts.kde.org/sources/status."
+}

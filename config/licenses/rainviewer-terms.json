@@ -1,0 +1,6 @@
+{
+  "hash": "rainviewer-terms",
+  "name": "RainViewer's terms for its API",
+  "url": "https://www.rainviewer.com/api.html",
+  "content": "The radar images come from RainViewer's public API while the app runs and are not bundled with it. They are used under the terms RainViewer sets for that API, on its website."
+}

@@ -1,0 +1,6 @@
+{
+  "uniqueId": "com.google.protobuf:protobuf-java",
+  "licenses": [
+    "protobuf-bsd"
+  ]
+}

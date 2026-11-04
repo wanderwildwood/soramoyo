@@ -1,0 +1,14 @@
+{
+  "uniqueId": "rainviewer",
+  "name": "RainViewer radar tiles (fetched)",
+  "description": "The radar images, fetched from RainViewer while the app runs; nothing of them is bundled.",
+  "developers": [
+    {
+      "name": "RainViewer"
+    }
+  ],
+  "website": "https://www.rainviewer.com/api.html",
+  "licenses": [
+    "rainviewer-terms"
+  ]
+}

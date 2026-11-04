@@ -1,0 +1,14 @@
+{
+  "uniqueId": "natural-earth",
+  "name": "Natural Earth borders, states and cities",
+  "description": "The base map's borders, state lines and cities (assets/borders.json, states.json and cities.json), made from Natural Earth by tools/convert_mapdata.py.",
+  "developers": [
+    {
+      "name": "Natural Earth"
+    }
+  ],
+  "website": "https://www.naturalearthdata.com",
+  "licenses": [
+    "natural-earth-pd"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "uniqueId": "sunup",
+  "name": "Sunup and the UnifiedPush distributor library",
+  "description": "The built-in push distributor for Instant alerts (alerts/push) is adapted from Sunup, commit fe768d0, and the distributor library it is built on.",
+  "developers": [
+    {
+      "name": "UnifiedPush"
+    }
+  ],
+  "website": "https://codeberg.org/Sunup/android",
+  "licenses": [
+    "Apache-2.0"
+  ]
+}

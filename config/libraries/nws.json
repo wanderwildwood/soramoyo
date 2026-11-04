@@ -1,0 +1,14 @@
+{
+  "uniqueId": "nws-alerts",
+  "name": "National Weather Service alerts (fetched)",
+  "description": "Weather alerts in the United States, fetched from the National Weather Service while the app runs.",
+  "developers": [
+    {
+      "name": "US National Weather Service"
+    }
+  ],
+  "website": "https://www.weather.gov",
+  "licenses": [
+    "nws-pd"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "uniqueId": "mozilla-push",
+  "name": "Mozilla push service (connected to, for instant alerts)",
+  "description": "With Instant alerts on, the alert server's encrypted messages reach the phone through Mozilla's push server. Nothing of it is bundled.",
+  "developers": [
+    {
+      "name": "Mozilla"
+    }
+  ],
+  "website": "https://push.services.mozilla.com",
+  "licenses": [
+    "mozilla-push-terms"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "uniqueId": "kradar",
+  "name": "kRadar (the work Sky started from)",
+  "description": "The radar: the RainViewer client, the e-ink conversion of its tiles, the cloud-motion forecast, the map and its drawing, and the map-data converter, from kRadar 1.4.",
+  "developers": [
+    {
+      "name": "Ondřej Koloničný (OK1CDJ)"
+    }
+  ],
+  "website": "https://github.com/ok1cdj/kRadar",
+  "licenses": [
+    "GPL-3.0-only"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "uniqueId": "open-meteo",
+  "name": "Open-Meteo forecasts and place search (fetched)",
+  "description": "The forecast, air quality, pollen and place search, fetched from Open-Meteo while the app runs; nothing of it is bundled.",
+  "developers": [
+    {
+      "name": "Open-Meteo.com"
+    }
+  ],
+  "website": "https://open-meteo.com",
+  "licenses": [
+    "CC-BY-4.0"
+  ]
+}

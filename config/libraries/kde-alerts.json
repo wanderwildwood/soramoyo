@@ -1,0 +1,14 @@
+{
+  "uniqueId": "kde-public-alerts",
+  "name": "Alerts outside the US, from KDE's public alert server (fetched)",
+  "description": "Alerts for places outside the United States, fetched from KDE's public alert server, which gathers the warnings of national weather, civil-protection, earthquake and tsunami services.",
+  "developers": [
+    {
+      "name": "KDE and the national warning services it gathers"
+    }
+  ],
+  "website": "https://alerts.kde.org/sources/status",
+  "licenses": [
+    "kde-alerts-terms"
+  ]
+}
