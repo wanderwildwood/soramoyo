@@ -37,7 +37,7 @@ import kotlin.coroutines.cancellation.CancellationException
  * where the phone is, so it does not try to find out.
  *
  * Nothing in Sky ran on a timer before this. The check is the one exception, and only while the
- * setting is on: once every half hour, when the phone has a network, at the time Android finds
+ * setting is on: once every quarter hour, the shortest Android allows, when the phone has a network, at the time Android finds
  * convenient. One small request to the Weather Service each time, and outside the US a few to
  * KDE's public alert server.
  *
@@ -82,17 +82,21 @@ object AlertNotices {
     /** Whether the phone lets Sky post notifications at all. */
     fun allowed(context: Context): Boolean = NotificationManagerCompat.from(context).areNotificationsEnabled()
 
-    /** The half-hourly check while the setting is on, and none while it is off. */
+    /**
+     * The quarter-hourly check while the setting is on, and none while it is off. UPDATE, not
+     * KEEP: a phone that already has the check takes a new period without its timer starting over
+     * (the check ran every half hour until 0.12.1).
+     */
     fun schedule(context: Context) {
         val work = WorkManager.getInstance(context)
         if (!on(context)) {
             work.cancelUniqueWork(WORK)
             return
         }
-        val request = PeriodicWorkRequestBuilder<AlertCheck>(30, TimeUnit.MINUTES)
+        val request = PeriodicWorkRequestBuilder<AlertCheck>(15, TimeUnit.MINUTES)
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
             .build()
-        work.enqueueUniquePeriodicWork(WORK, ExistingPeriodicWorkPolicy.KEEP, request)
+        work.enqueueUniquePeriodicWork(WORK, ExistingPeriodicWorkPolicy.UPDATE, request)
     }
 
     /**
@@ -224,7 +228,7 @@ object AlertNotices {
     private const val KEEP_MS = 24 * 60 * 60 * 1000L
 }
 
-/** The half-hourly look at the alerts, for [AlertNotices]. */
+/** The quarter-hourly look at the alerts, for [AlertNotices]. */
 class AlertCheck(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val context = applicationContext
@@ -240,7 +244,7 @@ class AlertCheck(context: Context, params: WorkerParameters) : CoroutineWorker(c
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            // The next half hour tries again; no faster retry, for the battery's sake.
+            // The next quarter hour tries again; no faster retry, for the battery's sake.
             Log.i("soramoyo", "alerts not checked: ${e.javaClass.simpleName}")
             Result.success()
         }

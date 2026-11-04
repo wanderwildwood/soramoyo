@@ -99,7 +99,7 @@ all clear.
 A notification can come too, once, when a new alert that is severe or extreme, or one for fire
 weather, an evacuation, an earthquake or a tsunami, is issued for the first place (the one chosen, else wherever the app
 last found the phone). Settings → Notifications for serious alerts; on at first only if
-the phone already lets Sky notify. While it is on, the alerts are checked every half hour
+the phone already lets Sky notify. While it is on, the alerts are checked every quarter hour, the shortest Android allows,
 when the phone has a network, at a time Android picks to suit the battery. It is the one thing in
 Sky that runs on a timer, and it stops when the setting is off.
 

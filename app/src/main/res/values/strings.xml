@@ -329,7 +329,7 @@
     </plurals>
     <!-- Settings: notifications for serious alerts -->
     <string name="settings_alerts">Notifications for serious alerts</string>
-    <string name="settings_alerts_note">Severe weather, fire weather, evacuations, earthquakes and tsunamis: from the US National Weather Service in the United States, and from the national services gathered by KDE\'s public alert server elsewhere. Checked every half hour while this is on.</string>
+    <string name="settings_alerts_note">Severe weather, fire weather, evacuations, earthquakes and tsunamis: from the US National Weather Service in the United States, and from the national services gathered by KDE\'s public alert server elsewhere. Checked every quarter hour while this is on.</string>
     <string name="settings_alerts_blocked">Notifications for Sky are turned off in the phone\'s settings.</string>
 
     <!-- About -->
@@ -337,7 +337,7 @@
     <string name="about_title">Sky %1$s</string>
     <string name="about_privacy_title">Privacy</string>
     <string name="about_privacy">Your places and settings stay on this phone. The app goes online only to fetch weather. The phone\'s position, rounded to about a kilometer, or the place you chose, goes to Open-Meteo for the forecast, air quality and pollen, to RainViewer for the radar, and to the US National Weather Service or, outside the US, KDE\'s public alert server for alerts. The words you search a place by go to Open-Meteo. None of these requests carries an account or anything you have written.</string>
-    <string name="about_privacy_where">An Ecowitt, Davis or Tempest station is read on your own network. The only thing Sky ever sends in plain text, without https, is the request to an Ecowitt or Davis station at the address you typed, and only if that address is on your home network; any other address is refused. Everything else is https. A Weather Underground station is read from Weather Underground, with your station ID and API key. The position is asked for only when you press the button for it, and not at all while you have chosen a place. Notifications are used only for serious alerts, when you turn them on; the app then checks every half hour in the background.</string>
+    <string name="about_privacy_where">An Ecowitt, Davis or Tempest station is read on your own network. The only thing Sky ever sends in plain text, without https, is the request to an Ecowitt or Davis station at the address you typed, and only if that address is on your home network; any other address is refused. Everything else is https. A Weather Underground station is read from Weather Underground, with your station ID and API key. The position is asked for only when you press the button for it, and not at all while you have chosen a place. Notifications are used only for serious alerts, when you turn them on; the app then checks every quarter hour in the background.</string>
     <string name="about_privacy_phone">Other apps of the author\'s on this phone, Glance, Clock and Wander, can ask Sky for the weather and get it, never your position. The lock-screen setting turns Glance off. The links at the end open in your browser; the app never fetches those pages.</string>
     <string name="about_privacy_close">There are no ads, no analytics and no tracking.</string>
     <string name="about_terms_title">Terms</string>
