@@ -13,8 +13,10 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
- * One warning, watch, advisory or statement from the US National Weather Service, as it was
- * issued. The times keep the offset they were written with, which is the place's own.
+ * One warning, watch, advisory or statement, as it was issued: by the US National Weather
+ * Service in the United States, and elsewhere by the national service whose alert KDE's public
+ * alert server passed on ([WorldAlerts]). The times keep the offset they were written with,
+ * which is the place's own.
  */
 data class Alert(
     val id: String,
@@ -36,21 +38,28 @@ data class Alert(
     val sender: String,
     /** The earlier messages this one updates. */
     val references: List<String> = emptyList(),
+    /** The alert's CAP categories, such as "Met" or "Geo"; empty from the Weather Service. */
+    val category: String = "",
 ) {
     /**
      * Worth a notification: what the Weather Service itself rates severe or extreme, and the
      * fire and evacuation warnings whatever their rating. A Red Flag Warning is only
      * "Moderate" by the book, and is the one someone in a dry valley most wants to hear of.
+     * Earthquakes, tsunamis and the rest of the ground's own ("Geo") are serious too: a
+     * service may rate a felt quake only "Minor", and the person under it still wants to know.
      */
     val serious: Boolean
         get() = severity == "Severe" || severity == "Extreme" ||
-            FIRE.any { event.contains(it, ignoreCase = true) }
+            FIRE.any { event.contains(it, ignoreCase = true) } ||
+            category.split(' ').any { it == "Geo" } ||
+            GROUND.any { event.contains(it, ignoreCase = true) }
 
     /** Every name this warning has gone by: a message is not new if any of them was seen. */
     val names: List<String> get() = listOfNotNull(id, track) + references
 
     companion object {
         private val FIRE = listOf("Red Flag", "Fire Weather Watch", "Fire Warning", "Evacuation")
+        private val GROUND = listOf("Earthquake", "Tsunami")
     }
 }
 
@@ -61,13 +70,13 @@ sealed interface AlertAnswer {
 }
 
 /**
- * Alerts in effect for a place, from the US National Weather Service's own API
+ * Alerts in effect for a place. First from the US National Weather Service's own API
  * (api.weather.gov). It asks for no key; it asks only that callers say who they are, which is
  * the app's name and where its code is.
  *
- * Only the United States and its territories are covered. Anywhere else the Weather Service
- * answers that the point is out of its bounds, and Sky shows no alerts at all rather than an
- * empty list that would read as "all clear".
+ * The Weather Service covers only the United States and its territories. Anywhere else it
+ * answers that the point is out of its bounds, and the alerts come instead from KDE's public
+ * alert server ([WorldAlerts]), which gathers the national services of most of the world.
  */
 object Alerts {
     private val client = OkHttpClient.Builder()
@@ -89,10 +98,12 @@ object Alerts {
             .build()
         client.newCall(request).execute().use { response ->
             // 400 is "out of bounds" for a point outside the US; 404 is a point it has no zone for.
-            if (response.code == 400 || response.code == 404) return@withContext AlertAnswer.NotCovered
-            if (!response.isSuccessful) throw IOException("alerts answered ${response.code}")
-            AlertAnswer.Found(parse(response.body?.string().orEmpty()))
+            if (response.code != 400 && response.code != 404) {
+                if (!response.isSuccessful) throw IOException("alerts answered ${response.code}")
+                return@withContext AlertAnswer.Found(parse(response.body?.string().orEmpty()))
+            }
         }
+        AlertAnswer.Found(WorldAlerts.fetch(client, USER_AGENT, lat, lon))
     }
 
     /** Rounded as everything else that leaves the phone is: to two places, about a kilometre. */

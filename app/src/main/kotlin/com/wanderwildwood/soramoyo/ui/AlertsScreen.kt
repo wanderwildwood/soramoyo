@@ -65,7 +65,7 @@ internal fun AlertLine(alerts: List<Alert>, onOpen: () -> Unit) {
 }
 
 /**
- * Every alert in effect, each as the Weather Service wrote it: its name, headline, the areas
+ * Every alert in effect, each as its service wrote it: its name, headline, the areas
  * it covers, from when until when, what it says and what to do. Each paragraph is a row of its
  * own, so the pages turn on whole paragraphs.
  */

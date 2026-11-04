@@ -85,13 +85,21 @@ which kRadar's map leaves out.
 Service has issued for the place: Red Flag Warnings and Fire Weather Watches, evacuation and
 fire warnings where they are issued, and the rest — tornado, flood, winter storm, heat. While
 one is in effect a line at the top of Today names it and says until when; a press opens them
-all, each with its headline, the areas it covers, its times and what it says to do. Outside the
-US there are none: the Weather Service covers only the United States.
+all, each with its headline, the areas it covers, its times and what it says to do.
+
+Outside the US the alerts come from [KDE's public alert server](https://alerts.kde.org/sources/status),
+the one FOSS Warn uses, which gathers the warnings of national weather, civil-protection,
+earthquake and tsunami services in about 150 countries, and a worldwide earthquake feed. Where a
+service writes each warning in two languages, Sky shows the one in the phone's language, else
+English. An alert drawn on the map shows only if the place is inside it. An earthquake alert
+reports a quake after it happens; it is not an early warning, and nothing that checks every half
+hour could be. Where no service publishes, the list is simply empty, which is not the same as
+all clear.
 
 A notification can come too, once, when a new alert that is severe or extreme, or one for fire
-weather or an evacuation, is issued for the first place (the one chosen, else wherever the app
-last found the phone). Settings → Notifications for serious weather alerts; on at first only if
-the phone already lets Sky notify. While it is on, the Weather Service is asked every half hour
+weather, an evacuation, an earthquake or a tsunami, is issued for the first place (the one chosen, else wherever the app
+last found the phone). Settings → Notifications for serious alerts; on at first only if
+the phone already lets Sky notify. While it is on, the alerts are checked every half hour
 when the phone has a network, at a time Android picks to suit the battery. It is the one thing in
 Sky that runs on a timer, and it stops when the setting is off.
 
@@ -126,7 +134,9 @@ places you chose. Each is rounded to two decimal places — about a kilometer �
 leaves the phone, and it goes to Open-Meteo for the forecast and the air, and to RainViewer
 for the radar tiles, and to the US National Weather Service (api.weather.gov) for alerts — with
 the app's name and the address of this repository, which the Weather Service asks callers to
-give, and nothing else. A place you search for is sent, as typed, to Open-Meteo's place search.
+give, and nothing else. Outside the US the alerts are asked of KDE's public alert server
+(alerts.kde.org), for a box about a kilometer each side of the same rounded place, with the
+same name and address. A place you search for is sent, as typed, to Open-Meteo's place search.
 The almanac sends nothing; it is worked out on the phone.
 
 With [Glance](https://github.com/wanderwildwood/hitome) installed, the weather also shows on

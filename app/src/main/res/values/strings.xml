@@ -300,7 +300,7 @@
     <string name="settings_cancel">Cancel</string>
     <string name="settings_save">Save</string>
 
-    <!-- Weather alerts, from the US National Weather Service -->
+    <!-- Weather alerts: from the US National Weather Service in the US, and from KDE's public alert server elsewhere -->
     <!-- The line at the top of Today; %1$s is an alert's name such as "Red Flag Warning", %2$s a time such as "8:00 PM" or "Tue 8:00 PM" -->
     <string name="alerts_line_until">%1$s until %2$s</string>
     <!-- After the line at the top of Today when several alerts are in effect -->
@@ -318,33 +318,33 @@
     <string name="alerts_until">Until %1$s</string>
     <string name="alerts_what_to_do">What to do</string>
     <string name="alerts_none">No alerts are in effect here now.</string>
-    <string name="alerts_coverage">Alerts come from the US National Weather Service and cover the United States.</string>
+    <string name="alerts_coverage">In the United States, alerts come from the US National Weather Service; elsewhere, from the national warning services gathered by KDE\'s public alert server. An earthquake alert reports a quake after it happens; it is not an early warning.</string>
     <!-- The notification channel's name and its description in the phone's settings -->
     <string name="alerts_channel">Weather alerts</string>
-    <string name="alerts_channel_about">Serious warnings from the US National Weather Service for your place: severe and extreme weather, fire weather and evacuations.</string>
+    <string name="alerts_channel_about">Serious warnings for your place: severe and extreme weather, fire weather, evacuations, earthquakes and tsunamis.</string>
     <!-- The notification's title when several alerts arrive together; %1$s is the first one's name, %2$d how many more -->
     <plurals name="alerts_and_more">
         <item quantity="one">%1$s and %2$d more</item>
         <item quantity="other">%1$s and %2$d more</item>
     </plurals>
     <!-- Settings: notifications for serious alerts -->
-    <string name="settings_alerts">Notifications for serious weather alerts</string>
-    <string name="settings_alerts_note">Severe weather, fire weather and evacuations, from the US National Weather Service; the United States only. Checked every half hour while this is on.</string>
+    <string name="settings_alerts">Notifications for serious alerts</string>
+    <string name="settings_alerts_note">Severe weather, fire weather, evacuations, earthquakes and tsunamis: from the US National Weather Service in the United States, and from the national services gathered by KDE\'s public alert server elsewhere. Checked every half hour while this is on.</string>
     <string name="settings_alerts_blocked">Notifications for Sky are turned off in the phone\'s settings.</string>
 
     <!-- About -->
     <!-- %1$s is the version -->
     <string name="about_title">Sky %1$s</string>
     <string name="about_privacy_title">Privacy</string>
-    <string name="about_privacy">Your places and settings stay on this phone. The app goes online only to fetch weather. The phone\'s position, rounded to about a kilometer, or the place you chose, goes to Open-Meteo for the forecast, air quality and pollen, to RainViewer for the radar and to the US National Weather Service for alerts. The words you search a place by go to Open-Meteo. None of these requests carries an account or anything you have written.</string>
-    <string name="about_privacy_where">An Ecowitt, Davis or Tempest station is read on your own network. The only thing Sky ever sends in plain text, without https, is the request to an Ecowitt or Davis station at the address you typed, and only if that address is on your home network; any other address is refused. Everything else is https. A Weather Underground station is read from Weather Underground, with your station ID and API key. The position is asked for only when you press the button for it, and not at all while you have chosen a place. Notifications are used only for serious weather alerts, when you turn them on; the app then checks every half hour in the background.</string>
+    <string name="about_privacy">Your places and settings stay on this phone. The app goes online only to fetch weather. The phone\'s position, rounded to about a kilometer, or the place you chose, goes to Open-Meteo for the forecast, air quality and pollen, to RainViewer for the radar, and to the US National Weather Service or, outside the US, KDE\'s public alert server for alerts. The words you search a place by go to Open-Meteo. None of these requests carries an account or anything you have written.</string>
+    <string name="about_privacy_where">An Ecowitt, Davis or Tempest station is read on your own network. The only thing Sky ever sends in plain text, without https, is the request to an Ecowitt or Davis station at the address you typed, and only if that address is on your home network; any other address is refused. Everything else is https. A Weather Underground station is read from Weather Underground, with your station ID and API key. The position is asked for only when you press the button for it, and not at all while you have chosen a place. Notifications are used only for serious alerts, when you turn them on; the app then checks every half hour in the background.</string>
     <string name="about_privacy_phone">Other apps of the author\'s on this phone, Glance, Clock and Wander, can ask Sky for the weather and get it, never your position. The lock-screen setting turns Glance off. The links at the end open in your browser; the app never fetches those pages.</string>
     <string name="about_privacy_close">There are no ads, no analytics and no tracking.</string>
     <string name="about_terms_title">Terms</string>
     <string name="about_terms">This app is free software under the GNU General Public License v3. It comes with no warranty: use it at your own risk. Forecasts can be wrong; do not rely on them for your safety.</string>
     <string name="about_licence">GNU General Public License v3</string>
     <string name="about_after">The radar and its map are kRadar\'s, by Ondřej Koloničný, GPL 3.</string>
-    <string name="about_data">Radar by RainViewer. Forecast by Open-Meteo, CC BY 4.0. Alerts by the US National Weather Service. Borders and cities from Natural Earth, public domain.</string>
+    <string name="about_data">Radar by RainViewer. Forecast by Open-Meteo, CC BY 4.0. Alerts by the US National Weather Service and, elsewhere, the national services gathered by KDE\'s public alert server. Borders and cities from Natural Earth, public domain.</string>
     <string name="about_icons">Icons from Material Symbols, Apache 2.0</string>
     <string name="about_feed_the_llamas">Feed the llamas</string>
     <!-- Shown in place of the llama row when nothing on the phone opens web pages; %1$s is the address -->

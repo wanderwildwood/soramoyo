@@ -13,6 +13,7 @@ val LICENCE_COMPONENTS: List<LicenceComponent> = listOf(
     LicenceComponent("Open-Meteo forecasts and place search (fetched)", "Open-Meteo.com", "CC BY 4.0", "https://open-meteo.com"),
     LicenceComponent("RainViewer radar tiles (fetched)", "RainViewer", "Free tier terms", "https://www.rainviewer.com"),
     LicenceComponent("National Weather Service alerts (fetched)", "US National Weather Service", "Public domain", "https://www.weather.gov"),
+    LicenceComponent("Alerts outside the US, from KDE's public alert server (fetched)", "KDE and the national warning services it gathers", "Each service's own terms", "https://alerts.kde.org/sources/status"),
     LicenceComponent("Natural Earth borders, states and cities", "Natural Earth", "Public domain", "https://www.naturalearthdata.com"),
     LicenceComponent("OkHttp and Okio", "Square", "Apache-2.0", "https://square.github.io/okhttp/"),
     LicenceComponent("WorkManager", "Google", "Apache-2.0", "https://developer.android.com/jetpack/androidx/releases/work"),

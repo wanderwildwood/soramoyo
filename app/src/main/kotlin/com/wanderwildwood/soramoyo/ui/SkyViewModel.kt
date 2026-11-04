@@ -74,7 +74,7 @@ data class SkyState(
     val metric: Boolean = true,
     /** The air now; null until it arrives, and left null if it never does. */
     val air: Air? = null,
-    /** The Weather Service's alerts in effect where the forecast is for; empty outside the US. */
+    /** The alerts in effect where the forecast is for: the Weather Service's in the US, else KDE's server's. */
     val alerts: List<Alert> = emptyList(),
     val units: Units.Choice = Units.Choice.AUTOMATIC,
     val forecastTrouble: ForecastTrouble = ForecastTrouble.NONE,
@@ -411,8 +411,7 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                 } catch (_: Exception) {
                 }
             }
-            // The alerts the same way, and for the same place. Outside the US there are none to
-            // show; a failed fetch keeps whatever was shown before rather than blanking it.
+            // The alerts the same way, and for the same place. A failed fetch keeps whatever was shown before rather than blanking it.
             val first = !_state.value.showingSecond
             launch {
                 try {

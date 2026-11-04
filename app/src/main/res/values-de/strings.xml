@@ -298,7 +298,7 @@
     <string name="settings_cancel">Abbrechen</string>
     <string name="settings_save">Speichern</string>
 
-    <!-- Weather alerts, from the US National Weather Service -->
+    <!-- Weather alerts: from the US National Weather Service in the US, and from KDE's public alert server elsewhere -->
     <!-- The line at the top of Today; %1$s is an alert's name such as "Red Flag Warning", %2$s a time such as "8:00 PM" or "Tue 8:00 PM" -->
     <string name="alerts_line_until">%1$s bis %2$s</string>
     <!-- After the line at the top of Today when several alerts are in effect -->
@@ -316,33 +316,33 @@
     <string name="alerts_until">Bis %1$s</string>
     <string name="alerts_what_to_do">Was zu tun ist</string>
     <string name="alerts_none">Hier gelten gerade keine Warnungen.</string>
-    <string name="alerts_coverage">Die Warnungen kommen vom US National Weather Service und gelten für die Vereinigten Staaten.</string>
+    <string name="alerts_coverage">In den Vereinigten Staaten kommen die Warnungen vom US National Weather Service, anderswo von den nationalen Warndiensten, die der öffentliche Warnserver von KDE sammelt. Eine Erdbebenwarnung meldet ein Beben, nachdem es geschehen ist; sie ist keine Frühwarnung.</string>
     <!-- The notification channel's name and its description in the phone's settings -->
     <string name="alerts_channel">Wetterwarnungen</string>
-    <string name="alerts_channel_about">Ernste Warnungen des US National Weather Service für deinen Ort: schweres und extremes Wetter, Feuerwetter und Evakuierungen.</string>
+    <string name="alerts_channel_about">Ernste Warnungen für deinen Ort: schweres und extremes Wetter, Feuerwetter, Evakuierungen, Erdbeben und Tsunamis.</string>
     <!-- The notification's title when several alerts arrive together; %1$s is the first one's name, %2$d how many more -->
     <plurals name="alerts_and_more">
         <item quantity="one">%1$s und %2$d mehr</item>
         <item quantity="other">%1$s und %2$d mehr</item>
     </plurals>
     <!-- Settings: notifications for serious alerts -->
-    <string name="settings_alerts">Benachrichtigungen für ernste Wetterwarnungen</string>
-    <string name="settings_alerts_note">Schweres Wetter, Feuerwetter und Evakuierungen, vom US National Weather Service; nur für die Vereinigten Staaten. Wird alle halbe Stunde geprüft, solange das eingeschaltet ist.</string>
+    <string name="settings_alerts">Benachrichtigungen für ernste Warnungen</string>
+    <string name="settings_alerts_note">Schweres Wetter, Feuerwetter, Evakuierungen, Erdbeben und Tsunamis: in den Vereinigten Staaten vom US National Weather Service, anderswo von den nationalen Diensten, die der öffentliche Warnserver von KDE sammelt. Wird alle halbe Stunde geprüft, solange das eingeschaltet ist.</string>
     <string name="settings_alerts_blocked">Benachrichtigungen für Himmel sind in den Einstellungen des Telefons aus.</string>
 
     <!-- About -->
     <!-- %1$s is the version -->
     <string name="about_title">Himmel %1$s</string>
     <string name="about_privacy_title">Datenschutz</string>
-    <string name="about_privacy">Deine Orte und Einstellungen bleiben auf diesem Telefon. Die App geht nur online, um Wetter zu holen. Die Position des Telefons, auf etwa einen Kilometer gerundet, oder der Ort, den du gewählt hast, geht an Open-Meteo für Vorhersage, Luftqualität und Pollen, an RainViewer für das Radar und an den US National Weather Service für Warnungen. Die Wörter, mit denen du einen Ort suchst, gehen an Open-Meteo. Keine dieser Anfragen enthält ein Konto oder etwas, das du geschrieben hast.</string>
-    <string name="about_privacy_where">Eine Ecowitt-, Davis- oder Tempest-Station wird in deinem eigenen Netzwerk gelesen. Das Einzige, was Himmel je im Klartext ohne https sendet, ist die Anfrage an eine Ecowitt- oder Davis-Station unter der von dir eingetippten Adresse, und nur, wenn diese Adresse in deinem Heimnetz liegt; jede andere Adresse wird abgelehnt. Alles andere ist https. Eine Weather-Underground-Station wird von Weather Underground gelesen, mit deiner Stations-ID und deinem API-Schlüssel. Die Position wird nur angefragt, wenn du die Schaltfläche dafür drückst, und gar nicht, solange du einen Ort gewählt hast. Benachrichtigungen werden nur für ernste Wetterwarnungen verwendet, wenn du sie einschaltest; die App prüft dann alle halbe Stunde im Hintergrund.</string>
+    <string name="about_privacy">Deine Orte und Einstellungen bleiben auf diesem Telefon. Die App geht nur online, um Wetter zu holen. Die Position des Telefons, auf etwa einen Kilometer gerundet, oder der Ort, den du gewählt hast, geht an Open-Meteo für Vorhersage, Luftqualität und Pollen, an RainViewer für das Radar und an den US National Weather Service oder, außerhalb der USA, den öffentlichen Warnserver von KDE für Warnungen. Die Wörter, mit denen du einen Ort suchst, gehen an Open-Meteo. Keine dieser Anfragen enthält ein Konto oder etwas, das du geschrieben hast.</string>
+    <string name="about_privacy_where">Eine Ecowitt-, Davis- oder Tempest-Station wird in deinem eigenen Netzwerk gelesen. Das Einzige, was Himmel je im Klartext ohne https sendet, ist die Anfrage an eine Ecowitt- oder Davis-Station unter der von dir eingetippten Adresse, und nur, wenn diese Adresse in deinem Heimnetz liegt; jede andere Adresse wird abgelehnt. Alles andere ist https. Eine Weather-Underground-Station wird von Weather Underground gelesen, mit deiner Stations-ID und deinem API-Schlüssel. Die Position wird nur angefragt, wenn du die Schaltfläche dafür drückst, und gar nicht, solange du einen Ort gewählt hast. Benachrichtigungen werden nur für ernste Warnungen verwendet, wenn du sie einschaltest; die App prüft dann alle halbe Stunde im Hintergrund.</string>
     <string name="about_privacy_phone">Andere Apps des Autors auf diesem Telefon, Glance, Zeit und Wander, können Himmel nach dem Wetter fragen und bekommen es, nie deine Position. Die Sperrbildschirm-Einstellung schaltet Glance aus. Die Links am Ende öffnen deinen Browser; die App ruft diese Seiten nie selbst ab.</string>
     <string name="about_privacy_close">Es gibt keine Werbung, keine Analysen und kein Tracking.</string>
     <string name="about_terms_title">Bedingungen</string>
     <string name="about_terms">Diese App ist freie Software unter der GNU General Public License v3. Sie kommt ohne Gewährleistung: Nutze sie auf eigenes Risiko. Vorhersagen können falsch sein; verlass dich für deine Sicherheit nicht auf sie.</string>
     <string name="about_licence">GNU General Public License v3</string>
     <string name="about_after">Das Radar und seine Karte sind kRadars, von Ondřej Koloničný, GPL 3.</string>
-    <string name="about_data">Radar von RainViewer. Vorhersage von Open-Meteo, CC BY 4.0. Warnungen vom US National Weather Service. Grenzen und Städte von Natural Earth, gemeinfrei.</string>
+    <string name="about_data">Radar von RainViewer. Vorhersage von Open-Meteo, CC BY 4.0. Warnungen vom US National Weather Service und anderswo von den nationalen Diensten, die der öffentliche Warnserver von KDE sammelt. Grenzen und Städte von Natural Earth, gemeinfrei.</string>
     <string name="about_icons">Symbole von Material Symbols, Apache 2.0</string>
     <string name="about_feed_the_llamas">Füttere die Lamas</string>
     <!-- Shown in place of the llama row when nothing on the phone opens web pages; %1$s is the address -->

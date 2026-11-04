@@ -38,10 +38,11 @@ import kotlin.coroutines.cancellation.CancellationException
  *
  * Nothing in Sky ran on a timer before this. The check is the one exception, and only while the
  * setting is on: once every half hour, when the phone has a network, at the time Android finds
- * convenient. One small request to the Weather Service each time.
+ * convenient. One small request to the Weather Service each time, and outside the US a few to
+ * KDE's public alert server.
  *
- * Each alert is noticed once. An alert already seen on the screen, or one the Weather Service
- * has merely updated or extended, does not notify again.
+ * Each alert is noticed once. An alert already seen on the screen, or one its service has
+ * merely updated or extended, does not notify again.
  */
 object AlertNotices {
     private const val PREFS = "alerts"
@@ -223,7 +224,7 @@ object AlertNotices {
     private const val KEEP_MS = 24 * 60 * 60 * 1000L
 }
 
-/** The half-hourly look at the Weather Service, for [AlertNotices]. */
+/** The half-hourly look at the alerts, for [AlertNotices]. */
 class AlertCheck(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val context = applicationContext
