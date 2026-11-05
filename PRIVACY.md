@@ -1,6 +1,6 @@
 # Sky — Privacy Policy
 
-Version 0.11.15. Last reviewed 4 November 2026.
+Version 0.13.1. Last reviewed 4 November 2026.
 
 ## The short version
 
@@ -79,7 +79,7 @@ The app is suitable for all ages and does not knowingly collect anything from an
 <!-- shared-about privacy section -->
 ## Who we are
 
-Sky is made by wander wildwood, an independent developer: one person, not a company. wander wildwood is the data controller for anything the app itself handles, and that is very little. Sky keeps what you put in it on your phone, apart from what it sends to Open-Meteo, RainViewer, the US National Weather Service, KDE's alert server, Mozilla's push server and Weather Underground as described above, and sends nothing to the developer, so the developer holds no data about you.
+Sky is made by wander wildwood, an independent developer: one person, not a company. wander wildwood is the data controller for anything the app itself handles, and that is very little. What you put in Sky stays on your phone. The only things that go out are the requests described above: a request for the forecast, air quality and pollen, with your position rounded to about a kilometer or the place you chose, to Open-Meteo, and the words of a place search, too; a request for radar map tiles of that area, to RainViewer; a request for the alerts there, to the US National Weather Service or KDE's alert server; with Instant alerts on, a subscription for an area of about five kilometers around it, to KDE's alert server, and one connection that carries no position, to Mozilla's push server; and, if you chose Weather Underground, your station ID and API key, to Weather Underground. Nothing is sent to the developer, so the developer holds no data about you.
 
 ## How to contact us
 
