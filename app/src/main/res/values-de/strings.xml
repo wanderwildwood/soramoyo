@@ -347,6 +347,7 @@
     <!-- About -->
     <!-- %1$s is the version -->
     <string name="about_title">Himmel %1$s</string>
+    <string name="about_what">Die nächsten Tage, das Regenradar, Mond und Sonnenstunden, Wetterwarnungen und deine eigene Wetterstation, wenn du eine hast. Dazu die Luftqualität, berechnet statt gemessen.</string>
     <string name="about_privacy_title">Datenschutz</string>
     <string name="about_privacy">Deine Orte und Einstellungen bleiben auf diesem Telefon. Die App geht nur online, um Wetter zu holen. Die Position des Telefons, auf etwa einen Kilometer gerundet, oder der Ort, den du gewählt hast, geht an Open-Meteo für Vorhersage, Luftqualität und Pollen, an RainViewer für das Radar und an den US National Weather Service oder, außerhalb der USA, den öffentlichen Warnserver von KDE für Warnungen. Die Wörter, mit denen du einen Ort suchst, gehen an Open-Meteo. Keine dieser Anfragen enthält ein Konto oder etwas, das du geschrieben hast.</string>
     <string name="about_privacy_where">Eine Ecowitt-, Davis- oder Tempest-Station wird in deinem eigenen Netzwerk gelesen. Das Einzige, was Himmel je im Klartext ohne https sendet, ist die Anfrage an eine Ecowitt- oder Davis-Station unter der von dir eingetippten Adresse, und nur, wenn diese Adresse in deinem Heimnetz liegt; jede andere Adresse wird abgelehnt. Alles andere ist https. Eine Weather-Underground-Station wird von Weather Underground gelesen, mit deiner Stations-ID und deinem API-Schlüssel. Die Position wird nur angefragt, wenn du die Schaltfläche dafür drückst, und gar nicht, solange du einen Ort gewählt hast. Benachrichtigungen werden nur für ernste Warnungen verwendet, wenn du sie einschaltest; die App prüft dann jede Viertelstunde im Hintergrund. Mit Sofortwarnungen behält der Warnserver von KDE ein Gebiet von etwa fünf Kilometern um deinen Ort, und Himmel hält eine Verbindung zum Push-Server von Mozilla, über die die verschlüsselten Nachrichten des Servers ankommen; Ausschalten löscht das Abonnement.</string>
@@ -429,7 +430,7 @@
     <string name="about_licences">Lizenzen</string>
     <string name="licences_title">Lizenzen</string>
     <string name="licences_source_head">Quellcode</string>
-    <string name="licences_licence">Himmel ist freie Software unter der GNU General Public License, ausschließlich Version 3 (GPL-3.0-only), Copyright wander wildwood, für das, was hier geschrieben steht. Die Arbeit, auf der sie aufbaut, behält ihre eigene Lizenz, und ihre Autoren behalten ihr Urheberrecht, jede auf ihrer eigenen Seite.</string>
+    <string name="licences_licence">Himmel ist freie Software unter der GNU General Public License, ausschließlich Version 3 (GPL-3.0-only), Copyright wander wildwood, für das, was hier geschrieben steht. Die Arbeit, auf der sie aufbaut, behält ihre eigene Lizenz, und ihre Autoren behalten ihr Urheberrecht; sie sind unten aufgeführt.</string>
     <string name="licences_back">Zurück</string>
     <string name="about_no_browser_address">Es ist kein Browser installiert. Die Adresse ist %1$s.</string>
     <string name="settings_open_app_settings">App-Einstellungen öffnen</string>
@@ -438,6 +439,10 @@
     <!-- shared-about: contact row + privacy section (edit in /opt/projects/shared-about) -->
     <string name="about_write_to">Schreib an %1$s</string>
     <string name="about_no_mail_app">Keine E-Mail-App installiert. Die Adresse ist %1$s.</string>
+    <string name="about_open_drawer">%1$s öffnen</string>
+    <string name="about_close_drawer">%1$s schließen</string>
+    <string name="about_contact_head">Kontakt</string>
+    <string name="about_links_head">Links</string>
     <string name="privacy_who_title">Wer wir sind</string>
     <string name="privacy_who">Diese App stammt von wander wildwood, einem unabhängigen Entwickler: eine Person, keine Firma. Damit ist wander wildwood Verantwortlicher für alles, was die App selbst verarbeitet, und das ist sehr wenig: Was du eingibst, bleibt auf diesem Telefon. Hinaus gehen nur die oben beschriebenen Anfragen: eine Anfrage nach Vorhersage, Luftqualität und Pollen mit deinem auf etwa einen Kilometer gerundeten Standort oder dem gewählten Ort an Open-Meteo, dazu die Worte einer Ortssuche; eine Anfrage nach Radarkacheln dieser Gegend an RainViewer; eine Anfrage nach den Warnungen dort an den US National Weather Service oder den Warnserver von KDE; bei eingeschalteten Sofortwarnungen ein Abonnement für ein Gebiet von etwa fünf Kilometern darum beim Warnserver von KDE und eine Verbindung ohne Standort zum Push-Server von Mozilla; und, wenn du Weather Underground gewählt hast, deine Stations-ID und dein API-Schlüssel an Weather Underground. Nichts davon erreicht den Entwickler.</string>
     <string name="privacy_contact_title">So erreichst du uns</string>

@@ -349,6 +349,7 @@
     <!-- About -->
     <!-- %1$s is the version -->
     <string name="about_title">Sky %1$s</string>
+    <string name="about_what">The days ahead, the rain radar, the moon and the sun\'s hours, weather alerts, and your own weather station if you have one. Air quality too, modeled rather than measured.</string>
     <string name="about_privacy_title">Privacy</string>
     <string name="about_privacy">Your places and settings stay on this phone. The app goes online only to fetch weather. The phone\'s position, rounded to about a kilometer, or the place you chose, goes to Open-Meteo for the forecast, air quality and pollen, to RainViewer for the radar, and to the US National Weather Service or, outside the US, KDE\'s public alert server for alerts. The words you search a place by go to Open-Meteo. None of these requests carries an account or anything you have written.</string>
     <string name="about_privacy_where">An Ecowitt, Davis or Tempest station is read on your own network. The only thing Sky ever sends in plain text, without https, is the request to an Ecowitt or Davis station at the address you typed, and only if that address is on your home network; any other address is refused. Everything else is https. A Weather Underground station is read from Weather Underground, with your station ID and API key. The position is asked for only when you press the button for it, and not at all while you have chosen a place. Notifications are used only for serious alerts, when you turn them on; the app then checks every quarter hour in the background. With Instant alerts on, KDE\'s alert server keeps an area of about five kilometers around your place, and Sky keeps a connection to Mozilla\'s push server, through which the server\'s encrypted messages arrive; turning it off deletes the subscription.</string>
@@ -431,7 +432,7 @@
     <string name="licences_title">Licenses</string>
     <string name="licences_source_head">Source code</string>
     <string name="licences_no_text">%s needs no license text here.</string>
-    <string name="licences_licence">Sky is free software: GPL-3.0-only, copyright wander wildwood. What it is built on keeps its own licenses, each on its own page.</string>
+    <string name="licences_licence">Sky is free software: GPL-3.0-only, copyright wander wildwood. What it is built on keeps its own licenses, listed below.</string>
     <string name="licences_back">Back</string>
     <string name="about_no_browser_address">No browser is installed. The address is %1$s.</string>
     <string name="settings_open_app_settings">Open app settings</string>
@@ -444,6 +445,10 @@
     <!-- shared-about: contact row + privacy section (edit in /opt/projects/shared-about) -->
     <string name="about_write_to">Write to %1$s</string>
     <string name="about_no_mail_app">No email app is installed. The address is %1$s.</string>
+    <string name="about_open_drawer">Open %1$s</string>
+    <string name="about_close_drawer">Close %1$s</string>
+    <string name="about_contact_head">Contact</string>
+    <string name="about_links_head">Links</string>
     <string name="privacy_who_title">Who we are</string>
     <string name="privacy_who">This app is made by wander wildwood, an independent developer: one person, not a company. That makes wander wildwood the data controller for anything the app itself handles, and that is very little: what you put in stays on this phone. The only things that go out are the requests described above: a request for the forecast, air quality and pollen, with your position rounded to about a kilometer or the place you chose, to Open-Meteo, and the words of a place search, too; a request for radar map tiles of that area, to RainViewer; a request for the alerts there, to the US National Weather Service or KDE\'s alert server; with Instant alerts on, a subscription for an area of about five kilometers around it, to KDE\'s alert server, and one connection that carries no position, to Mozilla\'s push server; and, if you chose Weather Underground, your station ID and API key, to Weather Underground. Nothing comes to the developer.</string>
     <string name="privacy_contact_title">How to contact us</string>
