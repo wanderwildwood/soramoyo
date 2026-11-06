@@ -26,6 +26,9 @@ sealed interface RainSoon {
     /** Falling now and still falling two hours on. */
     data class Lasting(val snow: Boolean) : RainSoon
 
+    /** How hard a quarter-hour's rain or snow falls. */
+    enum class Level { NONE, LIGHT, MODERATE, HEAVY }
+
     companion object {
         /** How many quarter-hours make two hours. */
         const val WINDOW = 8
@@ -82,6 +85,39 @@ sealed interface RainSoon {
                 else -> Starts(rounded(minutesTo(known[firstWet])), snowAt(known[firstWet].time.minusMinutes(1)))
             }
         }
+
+        /**
+         * How hard it falls in each of the next two hours' eight quarter-hours, for the strip
+         * under the line: null for one the model left out. Empty when fewer than eight are
+         * left in the forecast. The steps are the usual ones by the hour: light under 2.5 mm,
+         * heavy from 7.6 mm (0.1 and 0.3 in), here per quarter-hour.
+         */
+        fun levels(
+            quarters: List<Quarter>,
+            inches: Boolean,
+            offset: ZoneOffset,
+            now: Instant = Instant.now(),
+        ): List<Level?> {
+            val at = LocalDateTime.ofInstant(now, offset)
+            val ahead = quarters.filter { it.time.isAfter(at) }.sortedBy { it.time }.take(WINDOW)
+            if (ahead.size < WINDOW) return emptyList()
+            val wet = if (inches) WET_IN else WET_MM
+            val mm = if (inches) 25.4 else 1.0
+            return ahead.map { q ->
+                q.precipitation?.let { amount ->
+                    val perHour = amount * mm * 4
+                    when {
+                        amount < wet -> Level.NONE
+                        perHour < LIGHT_MM_H -> Level.LIGHT
+                        perHour < HEAVY_MM_H -> Level.MODERATE
+                        else -> Level.HEAVY
+                    }
+                }
+            }
+        }
+
+        private const val LIGHT_MM_H = 2.5
+        private const val HEAVY_MM_H = 7.6
 
         /** Said to the nearest five minutes, to the nearest ten from an hour on, and never none. */
         fun rounded(minutes: Int): Int {

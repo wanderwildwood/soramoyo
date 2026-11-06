@@ -118,4 +118,33 @@ class RainSoonTest {
         // But rain that is in the few still there is rain.
         assertEquals(RainSoon.Starts(35, false), soon(quarters(0.0, 0.0, 0.0, 0.5).take(5)))
     }
+
+    @Test
+    fun levelsGoByTheHourlyRateOfEachQuarter() {
+        // 0.05 mm is under the 0.1 that counts; 0.5 is 2 mm an hour; 1.0 is 4; 2.0 is 8.
+        val q = quarters(0.05, 0.5, 1.0, 2.0, null)
+        assertEquals(
+            listOf(
+                RainSoon.Level.NONE, RainSoon.Level.LIGHT, RainSoon.Level.MODERATE, RainSoon.Level.HEAVY,
+                null, RainSoon.Level.NONE, RainSoon.Level.NONE, RainSoon.Level.NONE,
+            ),
+            RainSoon.levels(q, inches = false, offset = utc, now = now),
+        )
+    }
+
+    @Test
+    fun levelsInInchesAreTheSameRain() {
+        // 0.02 in is 0.508 mm, light; 0.04 in is 1.016 mm, moderate; 0.08 in, heavy.
+        val q = quarters(0.02, 0.04, 0.08)
+        assertEquals(
+            listOf(RainSoon.Level.LIGHT, RainSoon.Level.MODERATE, RainSoon.Level.HEAVY),
+            RainSoon.levels(q, inches = true, offset = utc, now = now).take(3),
+        )
+    }
+
+    @Test
+    fun noStripFromAStaleForecast() {
+        // At 12:40 only six quarter-hours of the sixteen are left.
+        assertEquals(emptyList<RainSoon.Level?>(), RainSoon.levels(quarters(), false, utc, Instant.parse("2026-05-06T12:40:00Z")))
+    }
 }

@@ -1,6 +1,9 @@
 package com.wanderwildwood.soramoyo.ui
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -8,9 +11,16 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.mudita.mmd.components.divider.HorizontalDividerMMD
 import com.mudita.mmd.components.text.TextMMD
@@ -46,9 +56,12 @@ internal fun LazyListScope.pullLine(pull: Pull) {
     }
 }
 
-/** The day in a few plain words, and under it the next two hours' rain when any is near; either may be absent. */
+/**
+ * The day in a few plain words, and under it the next two hours' rain when any is near, with
+ * [levels] drawn as a strip of quarter-hours; any of them may be absent.
+ */
 @Composable
-internal fun DayWords(summary: DaySummary?, soon: RainSoon?) {
+internal fun DayWords(summary: DaySummary?, soon: RainSoon?, levels: List<RainSoon.Level?> = emptyList()) {
     val words = summary?.let { daySentence(it) }
     val rain = soon?.let { soonLine(it) }
     if (words == null && rain == null) return
@@ -56,6 +69,64 @@ internal fun DayWords(summary: DaySummary?, soon: RainSoon?) {
         if (words != null) TextMMD(text = words, style = MaterialTheme.typography.bodySmall)
         if (words != null && rain != null) Spacer(Modifier.height(6.dp))
         if (rain != null) TextMMD(text = rain, style = MaterialTheme.typography.labelSmall)
+        if (rain != null && levels.size == RainSoon.WINDOW) {
+            Spacer(Modifier.height(8.dp))
+            RainStrip(levels)
+        }
+    }
+}
+
+/**
+ * The next two hours as eight bars, one a quarter-hour: none, a short one for light, taller for
+ * moderate, full for heavy; a quarter the model left out is a dotted outline. Solid ink only,
+ * for e-ink. Now, an hour and two hours are marked under the line.
+ */
+@Composable
+private fun RainStrip(levels: List<RainSoon.Level?>) {
+    val ink = MaterialTheme.colorScheme.onSurface
+    val said = levels.joinToString(", ") { level ->
+        when (level) {
+            RainSoon.Level.NONE -> "0"
+            RainSoon.Level.LIGHT -> "1"
+            RainSoon.Level.MODERATE -> "2"
+            RainSoon.Level.HEAVY -> "3"
+            null -> "?"
+        }
+    }
+    val description = stringResource(R.string.sky_soon_strip_description, said)
+    Column(Modifier.semantics { contentDescription = description }) {
+        Canvas(Modifier.fillMaxWidth().height(32.dp)) {
+            val line = 1.dp.toPx()
+            val gap = 4.dp.toPx()
+            val width = (size.width - gap * (levels.size - 1)) / levels.size
+            levels.forEachIndexed { i, level ->
+                val left = i * (width + gap)
+                val tall = when (level) {
+                    RainSoon.Level.NONE -> 0f
+                    RainSoon.Level.LIGHT -> 1f / 3
+                    RainSoon.Level.MODERATE -> 2f / 3
+                    RainSoon.Level.HEAVY -> 1f
+                    null -> 1f
+                }
+                val height = (size.height - line) * tall
+                if (level == null) {
+                    drawRect(
+                        ink, Offset(left, 0f), Size(width, size.height - line),
+                        style = Stroke(line, pathEffect = PathEffect.dashPathEffect(floatArrayOf(line * 2, line * 2))),
+                    )
+                } else if (height > 0f) {
+                    drawRect(ink, Offset(left, size.height - line - height), Size(width, height))
+                }
+            }
+            drawRect(ink, Offset(0f, size.height - line), Size(size.width, line))
+        }
+        Spacer(Modifier.height(2.dp))
+        Row(Modifier.fillMaxWidth()) {
+            val style = MaterialTheme.typography.labelSmall
+            TextMMD(text = stringResource(R.string.sky_soon_strip_now), style = style, modifier = Modifier.weight(1f))
+            TextMMD(text = stringResource(R.string.sky_soon_strip_hour), style = style, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+            TextMMD(text = stringResource(R.string.sky_soon_strip_two_hours), style = style, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+        }
     }
 }
 

@@ -428,6 +428,10 @@
     <string name="sky_soon_snowing_easing">Snowing now, easing in about %1$d minutes</string>
     <string name="sky_soon_raining_lasting">Raining now, and not easing for two hours</string>
     <string name="sky_soon_snowing_lasting">Snowing now, and not easing for two hours</string>
+    <string name="sky_soon_strip_now">Now</string>
+    <string name="sky_soon_strip_hour">1 h</string>
+    <string name="sky_soon_strip_two_hours">2 h</string>
+    <string name="sky_soon_strip_description">Rain or snow by quarter hour for the next two hours, from 0 for none to 3 for heavy: %1$s</string>
     <string name="about_licences">Licenses</string>
     <string name="licences_title">Licenses</string>
     <string name="licences_source_head">Source code</string>

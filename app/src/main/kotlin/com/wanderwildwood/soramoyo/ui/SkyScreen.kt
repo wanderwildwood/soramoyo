@@ -303,7 +303,7 @@ private fun TodayColumn(
                 item {
                     Column {
                         DottedRule(start = 0.dp)
-                        DayWords(summary, soon)
+                        DayWords(summary, soon, RainSoon.levels(state.quarters, state.inches, state.offset))
                     }
                 }
             }

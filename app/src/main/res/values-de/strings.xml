@@ -426,6 +426,10 @@
     <string name="sky_soon_snowing_easing">Es schneit gerade, lässt in etwa %1$d Minuten nach</string>
     <string name="sky_soon_raining_lasting">Es regnet gerade und lässt zwei Stunden nicht nach</string>
     <string name="sky_soon_snowing_lasting">Es schneit gerade und lässt zwei Stunden nicht nach</string>
+    <string name="sky_soon_strip_now">Jetzt</string>
+    <string name="sky_soon_strip_hour">1 Std.</string>
+    <string name="sky_soon_strip_two_hours">2 Std.</string>
+    <string name="sky_soon_strip_description">Regen oder Schnee je Viertelstunde in den nächsten zwei Stunden, von 0 für keinen bis 3 für starken: %1$s</string>
     <!-- The folio at the foot of a paged list, "2 / 6"; a tap on it asks for a page -->
     <string name="about_licences">Lizenzen</string>
     <string name="licences_title">Lizenzen</string>
