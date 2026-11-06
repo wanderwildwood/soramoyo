@@ -80,16 +80,14 @@ internal fun TodayHead(f: HeadFigures, wide: Boolean = false) {
             WeatherMark(weatherFor(f.code, f.night), 64.dp, 3.2f, Modifier.semantics { contentDescription = sky })
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                 f.feelsLike?.let {
                     TextMMD(text = stringResource(R.string.sky_feels_like, it), style = MaterialTheme.typography.bodyMedium)
                 }
                 f.humidity?.let {
                     TextMMD(text = stringResource(R.string.sky_humidity_pct, it), style = MaterialTheme.typography.bodyMedium)
                 }
-                f.pressure?.let {
-                    TextMMD(text = stringResource(R.string.sky_pressure_line, it), style = MaterialTheme.typography.bodyMedium)
-                }
+                f.pressure?.let { PressureLine(it) }
             }
             Column(horizontalAlignment = Alignment.End) {
                 f.windSpeed?.let { speed -> HeadWind(speed, f) }
@@ -154,6 +152,27 @@ private fun HeadWind(speed: Int, f: HeadFigures, side: Alignment.Horizontal = Al
         }
         f.gust?.takeIf { it > speed }?.let {
             TextMMD(text = stringResource(R.string.sky_gusts_to, it, f.windUnit), style = MaterialTheme.typography.labelSmall)
+        }
+    }
+}
+
+/**
+ * "Pressure 28.52" with its unit small after it, as the wind gives "mph": at full size,
+ * "inHg" did not fit beside the wind and fell to a line of its own.
+ */
+@Composable
+private fun PressureLine(pressure: String) {
+    val figure = pressure.substringBeforeLast(' ')
+    val unit = pressure.substringAfterLast(' ', "")
+    Row(modifier = Modifier.semantics(mergeDescendants = true) {}) {
+        TextMMD(
+            text = stringResource(R.string.sky_pressure_line, figure),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.alignByBaseline(),
+        )
+        if (unit.isNotEmpty() && unit != figure) {
+            Spacer(Modifier.width(4.dp))
+            TextMMD(text = unit, style = MaterialTheme.typography.labelSmall, modifier = Modifier.alignByBaseline())
         }
     }
 }
