@@ -91,7 +91,9 @@ internal fun TodayHead(f: HeadFigures, wide: Boolean = false) {
                     TextMMD(text = stringResource(R.string.sky_pressure_line, it), style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            Column(horizontalAlignment = Alignment.End) {
+            // Half each: given only what the wind left, "Pressure 28.52 inHg" broke onto a
+            // fourth line and pushed the rule under it down a row.
+            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                 f.windSpeed?.let { speed -> HeadWind(speed, f) }
                 TextMMD(text = f.source, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.End)
             }
