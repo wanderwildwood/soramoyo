@@ -104,4 +104,21 @@ class StationReadingTest {
         val r = StationReading.parse(fixture("gw3000-livedata.json")).copy(windSpeed = beaufort)
         assertEquals(beaufort, Units.convert(r, metric = true).windSpeed)
     }
+
+    @Test
+    fun thePiezoFlagWithNoWaterIsNotRain() {
+        // As a WS90 answered in sunshine: the flag on, nothing in the rate or the event.
+        val r = StationReading.parse(
+            """{"piezoRain":[{"id":"srain_piezo","val":"1"},{"id":"0x0D","val":"0.00 in"},{"id":"0x0E","val":"0.00 in/Hr"}]}""",
+        )
+        assertNull(r.raining)
+    }
+
+    @Test
+    fun thePiezoFlagWithWaterInTheEventIsRain() {
+        val r = StationReading.parse(
+            """{"piezoRain":[{"id":"srain_piezo","val":"1"},{"id":"0x0D","val":"0.02 in"},{"id":"0x0E","val":"0.00 in/Hr"}]}""",
+        )
+        assertEquals(true, r.raining)
+    }
 }

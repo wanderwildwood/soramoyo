@@ -64,7 +64,10 @@ data class StationReading(
                 rainRate = rain["0x0E"]?.let(::measure),
                 raining = rain["srain_piezo"]?.optString("val")?.let {
                     when (it) {
-                        "1" -> true
+                        // The haptic gauge's flag alone is not rain: dew or a drip on the WS90
+                        // has held it on in sunshine with nothing in the rate or the event. It
+                        // counts once the gauge has measured some water.
+                        "1" -> if (measuredWater(rain)) true else null
                         "0" -> false
                         else -> null
                     }
@@ -74,6 +77,10 @@ data class StationReading(
                 soilMoisture = soil?.let { measure(it.optString("humidity"), null) }?.number?.toInt(),
             )
         }
+
+        /** Whether the gauge has any water in its rate or its current event (0x0D). */
+        private fun measuredWater(rain: Map<String, JSONObject>): Boolean =
+            listOf("0x0E", "0x0D").any { id -> (rain[id]?.let(::measure)?.number ?: 0.0) > 0.0 }
 
         private fun byId(list: JSONArray?): Map<String, JSONObject> {
             if (list == null) return emptyMap()
