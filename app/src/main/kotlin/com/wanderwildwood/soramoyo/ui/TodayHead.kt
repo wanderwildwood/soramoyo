@@ -1,5 +1,8 @@
 package com.wanderwildwood.soramoyo.ui
 
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -157,22 +160,34 @@ private fun HeadWind(speed: Int, f: HeadFigures, side: Alignment.Horizontal = Al
 }
 
 /**
- * "Pressure 28.52" with its unit small after it, as the wind gives "mph": at full size,
- * "inHg" did not fit beside the wind and fell to a line of its own.
+ * "Pressure 28.52" with its unit small after it, as the wind gives "mph". Where the wind beside
+ * it leaves too little room for the word, the line drops it and reads "28.52 inHg": it never
+ * breaks onto a line of its own, which pushed the rule under the head down a row.
  */
 @Composable
 private fun PressureLine(pressure: String) {
     val figure = pressure.substringBeforeLast(' ')
     val unit = pressure.substringAfterLast(' ', "")
-    Row(modifier = Modifier.semantics(mergeDescendants = true) {}) {
-        TextMMD(
-            text = stringResource(R.string.sky_pressure_line, figure),
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.alignByBaseline(),
-        )
-        if (unit.isNotEmpty() && unit != figure) {
-            Spacer(Modifier.width(4.dp))
-            TextMMD(text = unit, style = MaterialTheme.typography.labelSmall, modifier = Modifier.alignByBaseline())
+    val labelled = stringResource(R.string.sky_pressure_line, figure)
+    val body = MaterialTheme.typography.bodyMedium
+    val small = MaterialTheme.typography.labelSmall
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    BoxWithConstraints {
+        val gap = with(density) { 4.dp.toPx() }
+        val unitWidth = if (unit.isEmpty()) 0f else measurer.measure(unit, small).size.width + gap
+        val fits = measurer.measure(labelled, body).size.width + unitWidth <= constraints.maxWidth
+        Row(modifier = Modifier.semantics(mergeDescendants = true) {}) {
+            TextMMD(
+                text = if (fits) labelled else figure,
+                style = body,
+                maxLines = 1,
+                modifier = Modifier.alignByBaseline(),
+            )
+            if (unit.isNotEmpty() && unit != figure) {
+                Spacer(Modifier.width(4.dp))
+                TextMMD(text = unit, style = small, maxLines = 1, modifier = Modifier.alignByBaseline())
+            }
         }
     }
 }
