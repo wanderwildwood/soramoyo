@@ -86,6 +86,7 @@ fun AlertsScreen(alerts: List<Alert>, pull: Pull, onClose: () -> Unit, onPull: (
             modifier = Modifier.fillMaxSize().padding(contentPadding),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp),
             onPullAtTop = onPull,
+            showCutRow = true,
         ) {
             pullLine(pull)
             if (alerts.isEmpty()) {

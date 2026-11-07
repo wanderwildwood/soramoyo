@@ -64,7 +64,7 @@ import kotlin.math.roundToInt
 @Composable
 internal fun AlmanacTab(state: SkyState, onAllowLocation: () -> Unit, modifier: Modifier) {
     val at = state.at
-    PagedColumn(modifier = modifier, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
+    PagedColumn(modifier = modifier, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp), showCutRow = true) {
         if (at == null) {
             item {
                 Spacer(Modifier.height(12.dp))

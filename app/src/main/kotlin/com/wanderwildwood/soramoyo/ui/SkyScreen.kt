@@ -285,7 +285,7 @@ private fun TodayColumn(
 ) {
     // See TodayTab: the sentence says when it rains if it speaks of rain at all.
     val sayWhen = summary?.wet == null
-    PagedColumn(modifier = modifier, onPullAtTop = onPull, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
+    PagedColumn(modifier = modifier, onPullAtTop = onPull, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp), showCutRow = true) {
         pullLine(state.pull)
         // An official warning comes before anything else, and only while there is one.
         if (state.alerts.isNotEmpty()) {
@@ -397,7 +397,7 @@ private fun ForecastTab(state: SkyState, onAllowLocation: () -> Unit, onDay: (Lo
     val placeToday = state.placeToday()
     val ahead = state.days.filter { it.date.isAfter(placeToday) }
     val wide = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    PagedColumn(modifier = modifier, onPullAtTop = onPull, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp)) {
+    PagedColumn(modifier = modifier, onPullAtTop = onPull, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp), showCutRow = true) {
         pullLine(state.pull)
         item {
             Spacer(Modifier.height(12.dp))
@@ -902,6 +902,7 @@ private fun DayColumn(day: Day?, hours: List<Hour>, state: SkyState, onPull: () 
         modifier = modifier,
         contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 12.dp),
         onPullAtTop = onPull,
+        showCutRow = true,
     ) {
         pullLine(state.pull)
         // A forecast refreshed past midnight no longer has yesterday's tomorrow in it.
