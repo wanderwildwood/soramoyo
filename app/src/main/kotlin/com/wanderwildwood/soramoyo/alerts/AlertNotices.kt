@@ -51,7 +51,11 @@ object AlertNotices {
     private const val KNOWN = "known"
     private const val IN_FORCE = "in_force"
     private const val IN_FORCE_AT = "in_force_at"
-    private const val CHANNEL = "weather_alerts"
+    private const val CHANNEL = "weather_alerts_light"
+
+    // A channel's settings are frozen once it exists, the light among them, so the one made
+    // before the light was asked for moves to a new id (LightChannel).
+    private const val CHANNEL_NO_LIGHT = "weather_alerts"
     private const val WORK = "alerts"
     private const val NOTIFICATION = 1
     const val OPEN_EXTRA = "open_alerts"
@@ -194,7 +198,9 @@ object AlertNotices {
     private fun channel(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         if (manager.getNotificationChannel(CHANNEL) != null) return
-        manager.createNotificationChannel(
+        LightChannel.ensure(
+            manager,
+            CHANNEL_NO_LIGHT,
             NotificationChannel(CHANNEL, context.getString(R.string.alerts_channel), NotificationManager.IMPORTANCE_HIGH).apply {
                 description = context.getString(R.string.alerts_channel_about)
             },
