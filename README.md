@@ -198,6 +198,17 @@ Radar data by [RainViewer](https://www.rainviewer.com/api.html). Forecast by
 [Material Symbols](https://fonts.google.com/icons), Apache License 2.0. The interface is
 [MMD](https://github.com/mudita/MMD), Mudita's E Ink component library.
 
+## Getting it, and keeping it
+
+Download <https://github.com/wanderwildwood/soramoyo/releases/latest/download/soramoyo.apk>
+and sideload it. That address always points at the newest release, and every release
+publishes a `.sha256` beside the APK if you would rather check than trust.
+
+For updates without doing this by hand, add this repository to
+[Obtainium](https://github.com/ImranR98/Obtainium):
+
+    https://github.com/wanderwildwood/soramoyo
+
 ## Privacy
 
 Privacy: what the app stores and what it sends is set out in [PRIVACY.md](PRIVACY.md).
