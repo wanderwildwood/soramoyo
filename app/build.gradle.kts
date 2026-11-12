@@ -47,6 +47,8 @@ android {
             realSigningConfig?.let { signingConfig = it }
         }
         getByName("release") {
+            // Release APKs carry arm64-v8a only: every device this app is for is arm64. Debug builds keep the emulator's.
+            ndk { abiFilters += listOf("arm64-v8a") }
             // AGP otherwise stamps the git revision of the build into META-INF, which is the
             // one thing that differs between a release built on the build box, from an rsync
             // with no .git, and the one GitHub publishes from a clone. Off, so the two hash
