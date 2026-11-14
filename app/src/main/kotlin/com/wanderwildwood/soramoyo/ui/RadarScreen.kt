@@ -190,8 +190,7 @@ private fun RadarMap(state: RadarUiState) {
     val loc = state.location ?: return
     // Clipped, because a Canvas draws wherever its paths go: without it the borders ran out
     // of the square and down through the controls beneath.
-    // keepColors sits outside the white background so the whole map and rain keep their colours in dark mode.
-    Box(modifier = Modifier.fillMaxSize().clipToBounds().keepColors().background(Color.White)) {
+    Box(modifier = Modifier.fillMaxSize().clipToBounds().background(Color.White)) {
         // Only overlay the raster while it matches the live zoom/center.
         OverlayLayer(if (state.overlayAligned) state.frames.getOrNull(state.currentIndex) else null)
         VectorLayer(lat = loc.lat, lon = loc.lon, zoom = state.zoom, tileSize = state.tileSize)
