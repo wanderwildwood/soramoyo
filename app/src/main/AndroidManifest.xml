@@ -31,6 +31,8 @@
          can open a web address quietly answers no from Android 11 onwards, however many
          browsers are installed. -->
     <queries>
+        <!-- Home, whose dark mode switch this app follows when Home is installed. -->
+        <package android:name="com.wanderwildwood.iori" />
         <!-- Glance, which draws the lock-screen lines: the switch is shown only when it is here. -->
         <package android:name="com.wanderwildwood.hitome" />
         <!-- DuraSpeed, so the instant-alerts reminder shows only on a phone that has it. -->
@@ -64,6 +66,12 @@
         android:label="@string/app_name"
         android:supportsRtl="false"
         android:theme="@style/Theme.App">
+
+        <!-- Starts dark mode before the first screen is drawn. Holds no data. -->
+        <provider
+            android:name="com.wanderwildwood.soramoyo.ui.DarkModeInit"
+            android:authorities="${applicationId}.darkmodeinit"
+            android:exported="false" />
 
         <activity
             android:name=".MainActivity"
