@@ -127,6 +127,25 @@ fun SettingsScreen(
                     onClick = { unitsOpen = true },
                 )
             }
+            item {
+                val context = LocalContext.current
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { DarkMode.set(context, !DarkMode.on) }
+                        .heightIn(min = 48.dp)
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextMMD(
+                        text = stringResource(R.string.settings_dark),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    SwitchMMD(checked = DarkMode.on, onCheckedChange = null)
+                }
+            }
             // Only with Glance on the phone: without it the switch would change nothing anyone can see.
             if (glanceHere) item {
                 // Read and written here: nothing else on this screen depends on it.
