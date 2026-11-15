@@ -27,6 +27,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
@@ -332,8 +333,13 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                 _state.value.forecastTrouble == ForecastTrouble.NO_ANSWER -> Pull.NO_ANSWER
                 else -> Pull.IDLE
             }
+            // The answer stays said until the next press, not for a few seconds: on this panel a
+            // line on a timer could be gone before it had been read.
             _state.update { it.copy(pull = outcome) }
-            if (outcome != Pull.IDLE) kotlinx.coroutines.delay(SAID_FOR_MS)
+            if (outcome != Pull.IDLE) {
+                val at = Notice.presses
+                androidx.compose.runtime.snapshotFlow { Notice.presses }.first { it != at }
+            }
             _state.update { it.copy(pull = Pull.IDLE) }
         }
     }
@@ -459,7 +465,6 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
         private const val STATION_EVERY_MS = 5 * 60 * 1000L
 
         /** How long "Up to date" or the failure stays at the top of a list. */
-        private const val SAID_FOR_MS = 3_000L
 
         /** The three countries that still count in Fahrenheit. */
         private fun localeIsMetric(): Boolean =

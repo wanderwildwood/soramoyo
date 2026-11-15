@@ -31,9 +31,10 @@ import java.time.LocalTime
 import java.util.Locale
 
 /**
- * The line a pull down from the top of a list is answered with: what is happening, in words,
- * and gone when it is done. Never a spinner. A failure to fetch says what the screen already
- * says of one.
+ * The line a pull down from the top of a list is answered with: what is happening, in words.
+ * Never a spinner. A failure to fetch says what the screen already says of one. The answer
+ * stays until the next press: on this panel a line on a timer could be gone before it had been
+ * read.
  */
 internal fun LazyListScope.pullLine(pull: Pull) {
     if (pull == Pull.IDLE) return

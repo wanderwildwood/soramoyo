@@ -60,7 +60,9 @@ class MainActivity : ComponentActivity() {
             // field has focus.
             CompositionLocalProvider(LocalCursorBlinkEnabled provides false) {
                 ThemeMMD(colorScheme = monochrome, typography = houseTypography) {
-                    Sky(openAlerts = openAlerts, onAlertsOpened = { openAlerts = false })
+                    com.wanderwildwood.soramoyo.ui.NoticeFrame {
+                        Sky(openAlerts = openAlerts, onAlertsOpened = { openAlerts = false })
+                    }
                 }
             }
         }
@@ -113,7 +115,7 @@ private fun Sky(openAlerts: Boolean, onAlertsOpened: () -> Unit, sky: SkyViewMod
     val here = LocalContext.current
     val allowLocation = {
         if (refusedForGood) {
-            android.widget.Toast.makeText(here, R.string.location_refused, android.widget.Toast.LENGTH_LONG).show()
+            com.wanderwildwood.soramoyo.ui.Notice.say(here, R.string.location_refused)
             openAppSettings(here)
         } else {
             ask.launch(Manifest.permission.ACCESS_FINE_LOCATION)
