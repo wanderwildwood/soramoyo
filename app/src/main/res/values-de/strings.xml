@@ -354,7 +354,7 @@
     <string name="about_privacy_phone">Andere Apps des Autors auf diesem Telefon, etwa Glance und Zeit, können Himmel nach dem Wetter fragen und bekommen es, nie deine Position. Die Sperrbildschirm-Einstellung schaltet Glance aus. Die Links am Ende öffnen deinen Browser; die App ruft diese Seiten nie selbst ab.</string>
     <string name="about_privacy_close">Es gibt keine Werbung, keine Analysen und kein Tracking.</string>
     <string name="about_terms_title">Bedingungen</string>
-    <string name="about_terms">Diese App ist freie Software unter der GNU General Public License v3. Sie kommt ohne Gewährleistung: Nutze sie auf eigenes Risiko. Vorhersagen können falsch sein; verlass dich für deine Sicherheit nicht auf sie. Eine Spende über „Füttere die Lamas“ ist freiwillig und schaltet nichts frei: Die App ist mit oder ohne Spende dieselbe.</string>
+    <string name="about_terms">Diese App ist freie Software unter der GNU General Public License, ausschließlich Version 3. Sie kommt ohne Gewährleistung: Nutze sie auf eigenes Risiko. Vorhersagen können falsch sein; verlass dich für deine Sicherheit nicht auf sie. Eine Spende über „Füttere die Lamas“ ist freiwillig und schaltet nichts frei: Die App ist mit oder ohne Spende dieselbe.</string>
     <string name="about_licence">GNU General Public License v3</string>
     <string name="about_after">Das Radar und seine Karte sind kRadars, von Ondřej Koloničný, GPL 3.</string>
     <string name="about_data">Radar von RainViewer. Vorhersage von Open-Meteo, CC BY 4.0. Warnungen vom US National Weather Service und anderswo von den nationalen Diensten, die der öffentliche Warnserver von KDE sammelt. Grenzen und Städte von Natural Earth, gemeinfrei.</string>
