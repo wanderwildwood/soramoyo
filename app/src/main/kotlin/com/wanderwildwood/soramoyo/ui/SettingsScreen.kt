@@ -58,6 +58,7 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.semantics.selected
 
 /**
  * The things there are to set: which station, where the forecast and radar are for (and a
@@ -470,6 +471,7 @@ private fun Choice(label: String, chosen: Boolean = false, onClick: () -> Unit) 
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
+            .semantics { role = Role.RadioButton; selected = chosen }
             .clickable(onClick = onClick),
         contentAlignment = Alignment.CenterStart,
     ) {
