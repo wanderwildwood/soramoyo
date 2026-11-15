@@ -53,6 +53,11 @@ import com.wanderwildwood.soramoyo.station.Source
 import com.wanderwildwood.soramoyo.station.Units
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
 
 /**
  * The things there are to set: which station, where the forecast and radar are for (and a
@@ -132,6 +137,7 @@ fun SettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .semantics { role = Role.Switch; toggleableState = ToggleableState(DarkMode.on) }
                         .clickable { DarkMode.set(context, !DarkMode.on) }
                         .heightIn(min = 48.dp)
                         .padding(vertical = 12.dp),
@@ -154,6 +160,7 @@ fun SettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .semantics { role = Role.Switch; toggleableState = ToggleableState(onLock) }
                         .clickable {
                             onLock = !onLock
                             LockScreen.set(context, onLock)
@@ -178,6 +185,7 @@ fun SettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .semantics { role = Role.Switch; toggleableState = ToggleableState(turning) }
                         .clickable { Turning.set(context, !turning) }
                         .heightIn(min = 48.dp)
                         .padding(vertical = 12.dp),
@@ -200,6 +208,7 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .semantics { role = Role.Switch; toggleableState = ToggleableState(notify) }
                         .clickable {
                             notify = !notify
                             AlertNotices.set(context, notify)
@@ -232,6 +241,7 @@ fun SettingsScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .semantics { role = Role.Switch; toggleableState = ToggleableState(instant) }
                                 .clickable {
                                     instant = !instant
                                     InstantAlerts.setAsync(context, instant)
