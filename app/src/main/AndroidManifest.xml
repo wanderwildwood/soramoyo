@@ -35,6 +35,8 @@
         <package android:name="com.wanderwildwood.iori" />
         <!-- Glance, which draws the lock-screen lines: the switch is shown only when it is here. -->
         <package android:name="com.wanderwildwood.hitome" />
+        <!-- Clock, whose release certificate is checked before it is handed the alarm's weather line. -->
+        <package android:name="com.wanderwildwood.tokei" />
         <!-- DuraSpeed, so the instant-alerts reminder shows only on a phone that has it. -->
         <package android:name="com.mediatek.duraspeed" />
         <intent>
@@ -60,6 +62,7 @@
     <application
         android:allowBackup="false"
         android:dataExtractionRules="@xml/no_backup"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:fullBackupContent="false"
         android:icon="@drawable/ic_launcher_mudita"
         android:roundIcon="@drawable/ic_launcher_mudita"

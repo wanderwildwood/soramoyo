@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    No cleartext anywhere. Every service the app asks (Open-Meteo, RainViewer, the alert feeds,
+    Weather Underground, the push server) is reached over https. An Ecowitt gateway or a Davis
+    WeatherLink Live speaks plain http and nothing else, at an address only its owner knows, so
+    the app reaches it on a plain socket (net/LocalHttp.kt) and only at a private-network
+    address; a Tempest is heard on UDP. Neither goes through the platform's http stack, so
+    nothing here needs to permit it. Only the system's certificates are trusted.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
