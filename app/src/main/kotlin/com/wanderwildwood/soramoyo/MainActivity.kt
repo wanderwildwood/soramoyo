@@ -38,6 +38,7 @@ import com.wanderwildwood.soramoyo.ui.Tab
 import com.wanderwildwood.soramoyo.ui.SkyViewModel
 import com.wanderwildwood.soramoyo.ui.monochrome
 import java.time.LocalDate
+import com.wanderwildwood.soramoyo.ui.DarkSelection
 
 class MainActivity : ComponentActivity() {
     /** Set by a press on an alert notification: open the alerts. */
@@ -59,11 +60,11 @@ class MainActivity : ComponentActivity() {
             // A steady cursor: a blinking one repaints the panel twice a second for as long as a
             // field has focus.
             CompositionLocalProvider(LocalCursorBlinkEnabled provides false) {
-                ThemeMMD(colorScheme = monochrome, typography = houseTypography) {
+                ThemeMMD(colorScheme = monochrome, typography = houseTypography) { DarkSelection {
                     com.wanderwildwood.soramoyo.ui.NoticeFrame {
                         Sky(openAlerts = openAlerts, onAlertsOpened = { openAlerts = false })
                     }
-                }
+                } }
             }
         }
     }
