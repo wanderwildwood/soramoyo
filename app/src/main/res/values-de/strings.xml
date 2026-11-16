@@ -455,7 +455,6 @@
     <string name="privacy_rights">Nach der DSGVO kannst du Auskunft über die Daten verlangen, die über dich gespeichert sind, sie berichtigen oder löschen lassen, ihre Verarbeitung einschränken lassen oder ihr widersprechen, eine Kopie mitnehmen, eine Einwilligung widerrufen und dich bei einer Datenschutzbehörde beschweren. Da die App alles, was sie speichert, nur auf deinem Telefon ablegt, kannst du das meiste davon selbst tun: deine Orte und deine Station in den Einstellungen ändern, die App-Daten in den Android-Einstellungen löschen oder die App deinstallieren. Für das, was Open-Meteo, RainViewer, US National Weather Service, KDE-Warnserver, Mozilla-Push-Server und Weather Underground erhalten, gelten deren eigene Datenschutzerklärungen. Ein eigener Server gehört dir: Was er speichert, bestimmst du.</string>
     <!-- /shared-about -->
     <string name="settings_dark">Dunkelmodus</string>
-    <string name="settings_dark_note">Weiß auf Schwarz, in dieser App. Home hat einen Schalter für alle Apps.</string>
     <string name="page_arrow_previous">Vorherige Seite</string>
     <string name="page_arrow_next">Nächste Seite</string>
 </resources>
