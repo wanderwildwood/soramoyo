@@ -78,5 +78,15 @@ internal object WalkFacts {
     }
 
     /** The moon's angle round from new, in degrees, as a fraction of its month: 0 new, 0.5 full. */
+    /**
+     * The sky, and whether rain or snow starts or stops and in how many minutes, counted from
+     * [nowMs] to the change's time [atMs], not from when the forecast was fetched. A change
+     * already past is no longer one.
+     */
+    fun changeNow(sky: String, change: String, atMs: Long, nowMs: Long): Triple<String, String, Long> {
+        if (atMs < nowMs) return Triple(sky, "", -1L)
+        return Triple(sky, change, (atMs - nowMs) / 60_000L)
+    }
+
     fun moonPhase(angle: Double): Float = (((angle % 360.0) + 360.0) % 360.0 / 360.0).toFloat()
 }

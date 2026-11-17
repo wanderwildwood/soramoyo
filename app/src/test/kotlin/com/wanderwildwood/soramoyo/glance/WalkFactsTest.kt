@@ -9,6 +9,15 @@ import org.junit.Test
 class WalkFactsTest {
 
     @Test
+    fun minutesToARainChangeCountFromNow() {
+        val at = 10_000_000L
+        assertEquals(Triple("clear", "starts", 30L), WalkFacts.changeNow("clear", "starts", at, at - 30 * 60_000L))
+        assertEquals(Triple("rain", "stops", 0L), WalkFacts.changeNow("rain", "stops", at, at))
+        // Past: no change is handed over any more.
+        assertEquals(Triple("rain", "", -1L), WalkFacts.changeNow("rain", "stops", at, at + 1))
+    }
+
+    @Test
     fun alertKindsFromEventNames() {
         assertEquals("heat", WalkFacts.alertKind("Heat Advisory"))
         assertEquals("heat", WalkFacts.alertKind("Excessive Heat Warning"))

@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
@@ -117,7 +118,13 @@ internal object Weather {
             return null
         }
         val source = Source.load(context)
-        val reading = if (source == Source.None) null else runCatching { Stations.read(context, source) }.getOrNull()
+        // A station gets a few seconds and no more: a Tempest is listened for up to 75 s, far
+        // longer than the lock screen or the alarm waits for this whole refresh. Left over, the
+        // read finishes on its own and is not used.
+        val reading = if (source == Source.None) null else {
+            val pending = scope.async { runCatching { Stations.read(context, source) }.getOrNull() }
+            withTimeoutOrNull(STATION_WAIT_MS) { pending.await() }
+        }
         val metric = Units.chosen(context) ?: reading?.metric ?: Units.metricHere()
         val predicted = Forecast.fetch(here.lat, here.lon, metric)
         val now = reading?.temperature?.number ?: predicted.current?.temperature ?: return null
@@ -147,6 +154,11 @@ internal object Weather {
             .putString(SKY, sky)
             .putString(CHANGE, when (change) { is Change.From -> "starts"; is Change.Until -> "stops"; else -> "" })
             .putLong(CHANGE_IN, when (change) { is Change.From -> minutesTo(change.at); is Change.Until -> minutesTo(change.at); else -> -1L })
+            .putLong(CHANGE_AT, when (change) {
+                is Change.From -> change.at.atZone(predicted.offset).toInstant().toEpochMilli()
+                is Change.Until -> change.at.atZone(predicted.offset).toInstant().toEpochMilli()
+                else -> -1L
+            })
             // the wind, the snow and the place, for ForTheWalk too
             .putFloat(WIND, WalkFacts.metresPerSecond(predicted.current?.windSpeed, metric))
             .putFloat(GUST, WalkFacts.metresPerSecond(predicted.current?.windGust, metric))
@@ -178,10 +190,14 @@ internal object Weather {
 
     /** The sky in a word (clear, fog, rain, snow), and whether rain or snow starts or stops soon, and in how
      *  many minutes; from the last fetch. */
-    fun walk(context: Context): Triple<String, String, Long>? {
+    fun walk(context: Context, nowMs: Long = System.currentTimeMillis()): Triple<String, String, Long>? {
         val c = cache(context)
         val sky = c.getString(SKY, null)?.takeIf { it.isNotEmpty() } ?: return null
-        return Triple(sky, c.getString(CHANGE, "") ?: "", c.getLong(CHANGE_IN, -1L))
+        val change = c.getString(CHANGE, "") ?: ""
+        val at = c.getLong(CHANGE_AT, -1L)
+        // A cache from before the change's time was kept: its minutes as they were.
+        if (change.isEmpty() || at < 0) return Triple(sky, change, c.getLong(CHANGE_IN, -1L))
+        return WalkFacts.changeNow(sky, change, at, nowMs)
     }
 
     /** The rest of what [ForTheWalk] hands over, from the last fetch and the sky worked out now. */
@@ -220,6 +236,8 @@ internal object Weather {
     private const val SKY = "sky"
     private const val CHANGE = "change"
     private const val CHANGE_IN = "change_in"
+    private const val CHANGE_AT = "change_at"
+    private const val STATION_WAIT_MS = 5_000L
     private const val WIND = "wind"
     private const val GUST = "gust"
     private const val HEAVY = "heavy"
