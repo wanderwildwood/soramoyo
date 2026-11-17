@@ -74,7 +74,16 @@ class PushConnectionService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Always first: a service started with startForegroundService() has five seconds.
-        startForeground(NOTIFICATION_ID, buildNotification())
+        // Android 12 and later may refuse it when the system itself restarts the service in
+        // the background; then it stops, and the quarter-hourly check or the next open of Sky
+        // brings it back.
+        try {
+            startForeground(NOTIFICATION_ID, buildNotification())
+        } catch (e: IllegalStateException) {
+            Log.w(EmbeddedPush.TAG, "Not allowed to start in the foreground just now")
+            stopSelf()
+            return START_NOT_STICKY
+        }
         if (!EmbeddedPush.shouldRun(this)) {
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
@@ -208,8 +217,11 @@ class PushConnectionService : Service() {
             .acquire(10_000L)
         val channel = EmbeddedPushStore(this).channelForId(message.channelId)
         if (channel != null) {
-            val bytes = message.data?.let { Base64.decode(it, Base64.URL_SAFE) } ?: ByteArray(0)
-            EmbeddedPush.deliverMessage(this, channel.token, bytes)
+            // A message that does not decode is dropped, and still acknowledged, so the server
+            // does not send it again and the connection is not torn down over it.
+            val bytes = message.data?.let { runCatching { Base64.decode(it, Base64.URL_SAFE) }.getOrNull() }
+                ?: if (message.data == null) ByteArray(0) else null
+            if (bytes != null) EmbeddedPush.deliverMessage(this, channel.token, bytes)
         }
         ws.send(AutopushProtocol.Client.ack(message.channelId, message.version))
     }
@@ -308,7 +320,8 @@ class PushConnectionService : Service() {
                 PendingIntent.getBroadcast(this, 1, Intent(this, TurnOffReceiver::class.java), PendingIntent.FLAG_IMMUTABLE),
             )
             .setContentIntent(
-                PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE),
+                // Its own request code: the alert notification's open intent (code 0) carries an extra.
+                PendingIntent.getActivity(this, 2, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE),
             )
             .build()
     }
