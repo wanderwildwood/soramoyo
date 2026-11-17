@@ -144,6 +144,7 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
                 val size = _state.value.tileSize
                 val result = downloadFrames(loc, zoom, size)
                 if (result.bitmaps.isEmpty()) {
+                    lastRefreshAtMs = 0L // not a load: the next return to the radar tries again
                     _state.update { it.copy(loading = false, error = NO_DATA) }
                     return@launch
                 }
@@ -170,6 +171,7 @@ class RadarViewModel(app: Application, private val saved: SavedStateHandle) : An
             } catch (_: kotlinx.coroutines.CancellationException) {
                 throw kotlinx.coroutines.CancellationException()
             } catch (e: Exception) {
+                lastRefreshAtMs = 0L // not a load: the next return to the radar tries again
                 _state.update { it.copy(loading = false, error = R.string.radar_no_answer) }
             }
         }
