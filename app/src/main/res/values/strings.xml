@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Sky</string>
+    <string name="app_name" translatable="false">Sky</string>
 
     <!-- The first screen: the station now, and three days of forecast -->
     <string name="tab_today">Today</string>
