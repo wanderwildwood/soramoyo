@@ -435,6 +435,11 @@
     <string name="licences_source_head">Quellcode</string>
     <string name="licences_licence">Sky ist freie Software unter der GNU General Public License, ausschließlich Version 3 (GPL-3.0-only), Copyright wander wildwood, für das, was hier geschrieben steht. Die Arbeit, auf der sie aufbaut, behält ihre eigene Lizenz, und ihre Autoren behalten ihr Urheberrecht; sie sind unten aufgeführt.</string>
     <string name="licences_back">Zurück</string>
+    <string name="licences_no_text">%s braucht hier keinen Lizenztext.</string>
+    <string name="licences_full_head">Volltexte</string>
+    <string name="licences_full_gpl">GNU General Public License v3 (Volltext)</string>
+    <string name="licences_full_apache">Apache License 2.0 (Volltext)</string>
+    <string name="licences_full_ofl">SIL Open Font License 1.1 (Volltext)</string>
     <string name="about_no_browser_address">Es ist kein Browser installiert. Die Adresse ist %1$s.</string>
     <string name="settings_open_app_settings">App-Einstellungen öffnen</string>
     <string name="location_refused">Der Standort ist für Sky ausgeschaltet. Erlaube ihn in den Einstellungen der App und komm dann zurück.</string>
