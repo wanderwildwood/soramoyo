@@ -19,7 +19,7 @@ import com.wanderwildwood.soramoyo.alerts.AlertNotices
  * is fetched for this alone. The alerts are only as new as the last look at them, by Sky's screen or
  * its alert check; older than [STALE_MS], the kind is none.
  *
- * It answers that app alone, from the last fetch, at once; a fetch more than half an hour old is renewed
+ * It answers that app alone (its name and its release certificate), from the last fetch, at once; a fetch more than half an hour old is renewed
  * for next time. An answer older than [STALE_MS] is not handed over, and the asking app does without it.
  */
 class ForTheWalk : ContentProvider() {
@@ -33,8 +33,8 @@ class ForTheWalk : ContentProvider() {
         selectionArgs: Array<out String>?,
         sortOrder: String?,
     ): Cursor? {
-        if (callingPackage != READER) return null
         val context = context ?: return null
+        if (!isSignedReader(context, callingPackage, READER, READER_CERT_SHA256)) return null
         val cursor = MatrixCursor(COLUMNS)
         try {
             Weather.lines(context)                                   // renews a stale fetch, for next time
@@ -67,6 +67,9 @@ class ForTheWalk : ContentProvider() {
 
     companion object {
         const val READER = "com.wanderwildwood.sanpo"
+
+        /** SHA-256 of the certificate Wander's releases are signed with, lower-case hex. */
+        const val READER_CERT_SHA256 = "b008d5c158fee6e0358b969b976e03270670251b1f07b8f10e5affb6e59c74e8"
         /** The first three as they always were; the rest only ever added after them. */
         private val COLUMNS = arrayOf(
             "sky", "change", "minutes",
