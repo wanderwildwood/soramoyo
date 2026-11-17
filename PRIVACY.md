@@ -1,6 +1,6 @@
 # Sky — Privacy Policy
 
-Version 0.13.1. Last reviewed 4 November 2026.
+Version 0.13.14. Last reviewed 17 November 2026.
 
 ## The short version
 
@@ -14,7 +14,7 @@ Sky began as kRadar, an open-source radar app; the forecast, almanac, station an
 
 Only what you set: a place you chose and, if you add one, a second place (each its name and its latitude and longitude, rounded to two decimal places), which of the two was shown last, which kind of weather station you have and its address on your network, the units you prefer, whether the weather goes to the lock screen, whether the notification for serious alerts is on, and, if you chose Weather Underground, your station ID and API key. The API key is sealed with AES-GCM under a key held in the phone's keystore, which cannot be taken off the phone; after a reinstall or on a new phone it has to be typed again.
 
-Of the phone's own position, only the last one found is kept, already rounded to two decimal places (about a kilometer), so the lock screen can bring its weather up to date while the app is closed. Each new position replaces it; no history is kept. The forecast, air quality and radar are held in memory while the app is open and are not written to storage. The exception is a small cache for the lock screen and the apps listed below: the temperature, the condition, the day's high and low, and when rain or snow starts or stops, with the wind and gusts, the day's snow, whether heavy snow is falling or due, the time they were fetched, and the place the forecast was for (rounded to two decimals, with its time zone). For weather alerts, only the Weather Service's names for the alerts already seen are kept, each with when it runs out, so the same alert is not announced twice (each is forgotten a day after it ends), and, for the last alerts fetched, each one's kind, severity and times, and none of its text.
+Of the phone's own position, only the last one found is kept, already rounded to two decimal places (about a kilometer), so the lock screen can bring its weather up to date while the app is closed. Each new position replaces it; no history is kept. The forecast, air quality and radar are held in memory while the app is open and are not written to storage. The exception is a small cache for the lock screen and the apps listed below: the temperature, the condition, the day's high and low, and when rain or snow starts or stops, with the wind and gusts, the day's snow, whether heavy snow is falling or due, the time they were fetched, and the place the forecast was for (rounded to two decimals, with its time zone). With Instant alerts on, the phone also keeps what the push connection needs: the push address and the random id Mozilla's push server gave it, the keys that open the messages, and the alert server's id for the subscription with the middle of its box and when it was last renewed. All of it is deleted when the setting is turned off; if the alert server cannot be reached just then, only the subscription's id is kept, until the server confirms it is deleted. For weather alerts, only the Weather Service's names for the alerts already seen are kept, each with when it runs out, so the same alert is not announced twice (each is forgotten a day after it ends), and, for the last alerts fetched, each one's kind, severity and times, and none of its text.
 
 All of it lives in the app's own private storage on the phone. Uninstalling the app deletes it. There is no cloud copy and no backup held by the developer. The manifest sets `allowBackup="false"`, and its data-extraction rules leave everything (the places, the station, the Weather Underground key and the rest) out of both a cloud backup and a direct transfer to a new phone.
 
@@ -28,7 +28,7 @@ From `app/src/main/AndroidManifest.xml`:
 - `POST_NOTIFICATIONS`: to show a notification when a serious alert is issued for your place, only while Settings, Notifications for serious alerts, is on.
 - `FOREGROUND_SERVICE`, `WAKE_LOCK` and `RECEIVE_BOOT_COMPLETED`: for Instant alerts, only while that setting is on. The connection to the push server is held by a foreground service, which shows a quiet notification for as long as it runs; the phone is kept awake for the moments it takes to connect and to handle a message; and the connection is started again after the phone restarts or Sky is updated. Android's WorkManager uses the same three for the quarter-hourly alert check.
 
-The libraries the app is built on add `ACCESS_NETWORK_STATE`, and the store lists it: WorkManager uses it to run the alert check only when the phone has a network. It reads nothing about you.
+- `ACCESS_NETWORK_STATE`: for Instant alerts, so the connection to the push server waits for a network and connects again when the network changes. WorkManager, which the app is built on, uses it too, to run the alert check only when the phone has a network. It reads nothing about you.
 
 The store also lists `com.wanderwildwood.soramoyo.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` because it reads the APK. AndroidX declares it for its own internal receivers; it is signature-level and namespaced to this app, so nothing else can hold it and it grants no access to anything on the phone.
 
@@ -56,7 +56,9 @@ Hosts contacted:
 
 The Almanac (the moon, moonrise and moonset, dawn, dusk and daylight) is worked out on the phone from the same rounded position or your chosen place, and contacts no host.
 
-On the phone, to three other apps of the author's, each answered by name and no other:
+On the phone, Sky asks Home (`com.wanderwildwood.iori`), when it is installed, whether its dark mode switch is on, and follows it; it hands Home nothing. It also looks whether DuraSpeed, a battery saver some phones have, is installed, to show the reminder about Instant alerts only where it is needed.
+
+To three other apps of the author's, each answered by name and no other:
 
 - **Glance** (`com.wanderwildwood.hitome`), the lock-screen app: the weather lines above are handed to Glance, to show on the lock screen, where anyone holding the phone can read them. When the lock screen is looked at and the last forecast is more than half an hour old, Sky fetches a new one from the same hosts, for your chosen place or the phone's rounded position. Settings, The weather on the lock screen, turns it off.
 - **Clock** (`com.wanderwildwood.tokei`), the alarm clock: with its weather line switched on in Clock's own settings, Clock can ask Sky for one short line of weather to show on its ringing screen. Sky fetches it the same way, for the same place, and hands it to Clock and nothing else.
