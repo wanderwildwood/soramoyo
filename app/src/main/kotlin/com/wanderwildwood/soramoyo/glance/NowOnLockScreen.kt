@@ -52,7 +52,9 @@ class NowOnLockScreen : GlanceProvider() {
 
     /** Glance asking for the weather to be brought up to date, and waiting until it is. */
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
-        if (method != Weather.REFRESH || callingPackage != READER) return null
+        if (method != Weather.REFRESH) return null
+        // The same check as the lines: Glance's name AND its release certificate.
+        if (!fromGlance(context ?: return null)) return null
         val context = context?.applicationContext ?: return null
         if (enabled(context)) Weather.refreshAndWait(context)
         return null
