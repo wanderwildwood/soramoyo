@@ -64,6 +64,9 @@ object InstantAlerts {
     private const val SUB_LON = "sub_lon"
     private const val RENEWED_AT = "renewed_at"
 
+    /** Subscriptions the server has not yet confirmed deleting; tried again on every [keep]. */
+    private const val TO_DELETE = "to_delete"
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val mutex = Mutex()
     private val json = "application/json".toMediaType()
@@ -106,6 +109,7 @@ object InstantAlerts {
      */
     suspend fun keep(context: Context) = mutex.withLock {
         val p = prefs(context)
+        retryDeletes(context)
         if (!on(context)) {
             if (p.contains(SUBSCRIPTION) || p.contains(ENDPOINT) || EmbeddedPushStore(context).hasChannels()) stop(context)
             return@withLock
@@ -132,7 +136,7 @@ object InstantAlerts {
 
     private fun stop(context: Context) {
         val p = prefs(context)
-        p.getString(SUBSCRIPTION, null)?.let { id -> runCatching { delete(id) } }
+        p.getString(SUBSCRIPTION, null)?.let { id -> deleteOrKeep(context, id) }
         UnifiedPushBridge.unregister(context, INSTANCE)
         p.edit().remove(ENDPOINT).remove(P256DH).remove(AUTH).remove(SUBSCRIPTION)
             .remove(SUB_LAT).remove(SUB_LON).remove(RENEWED_AT).commit()
@@ -205,7 +209,7 @@ object InstantAlerts {
         val p256dh = p.getString(P256DH, null) ?: return
         val auth = p.getString(AUTH, null) ?: return
         val vapid = p.getString(VAPID, null) ?: return
-        p.getString(SUBSCRIPTION, null)?.let { old -> runCatching { delete(old) } }
+        p.getString(SUBSCRIPTION, null)?.let { old -> deleteOrKeep(context, old) }
         p.edit().remove(SUBSCRIPTION).commit()
         val lat = round(here.lat)
         val lon = round(here.lon)
@@ -251,8 +255,26 @@ object InstantAlerts {
         }
     }
 
-    private fun delete(id: String) {
-        call(Request.Builder().url(subscriptionUrl(id)).delete())
+    /** True once the server has let the subscription go (or never knew it). */
+    private fun delete(id: String): Boolean {
+        val code = call(Request.Builder().url(subscriptionUrl(id)).delete()).first
+        return code in 200..299 || code == 404
+    }
+
+    /** Deletes [id] on the server, or keeps it to try again, so a failed delete is not forgotten. */
+    private fun deleteOrKeep(context: Context, id: String) {
+        if (runCatching { delete(id) }.getOrDefault(false)) return
+        val p = prefs(context)
+        val left = p.getStringSet(TO_DELETE, emptySet()).orEmpty() + id
+        p.edit().putStringSet(TO_DELETE, left).commit()
+    }
+
+    private fun retryDeletes(context: Context) {
+        val p = prefs(context)
+        val waiting = p.getStringSet(TO_DELETE, emptySet()).orEmpty()
+        if (waiting.isEmpty()) return
+        val left = waiting.filterNot { runCatching { delete(it) }.getOrDefault(false) }.toSet()
+        p.edit().putStringSet(TO_DELETE, left).commit()
     }
 
     private fun fetchVapid(): String? {
