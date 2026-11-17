@@ -243,9 +243,11 @@ internal object WorldAlerts {
         val factory = DocumentBuilderFactory.newInstance().apply {
             isNamespaceAware = true
             isExpandEntityReferences = false
-            // A CAP message has no doctype; refuse one rather than follow what it points at.
+            // Not every parser knows this feature (Android's does not), hence the check below.
             runCatching { setFeature("http://apache.org/xml/features/disallow-doctype-decl", true) }
         }
+        // A CAP message has no doctype; refuse one rather than follow what it points at.
+        if (xml.contains("<!DOCTYPE", ignoreCase = true)) throw IOException("an alert with a doctype")
         return factory.newDocumentBuilder().parse(InputSource(StringReader(xml))).documentElement
     }
 

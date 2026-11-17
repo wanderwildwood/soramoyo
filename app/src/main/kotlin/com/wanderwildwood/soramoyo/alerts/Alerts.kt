@@ -96,14 +96,25 @@ object Alerts {
             .header("Accept", "application/geo+json")
             .get()
             .build()
-        client.newCall(request).execute().use { response ->
-            // 400 is "out of bounds" for a point outside the US; 404 is a point it has no zone for.
-            if (response.code != 400 && response.code != 404) {
-                if (!response.isSuccessful) throw IOException("alerts answered ${response.code}")
-                return@withContext AlertAnswer.Found(parse(response.body?.string().orEmpty()))
+        // 400 is "out of bounds" for a point outside the US; 404 is a point it has no zone for.
+        // Any other failure of the Weather Service does not settle it either: KDE's server is
+        // asked next, so a place outside the US is not left without alerts while it is down.
+        val failed: Exception? = try {
+            client.newCall(request).execute().use { response ->
+                if (response.code != 400 && response.code != 404) {
+                    if (!response.isSuccessful) throw IOException("alerts answered ${response.code}")
+                    return@withContext AlertAnswer.Found(parse(response.body?.string().orEmpty()))
+                }
             }
+            null
+        } catch (e: IOException) {
+            e
         }
-        AlertAnswer.Found(WorldAlerts.fetch(client, USER_AGENT, lat, lon))
+        try {
+            AlertAnswer.Found(WorldAlerts.fetch(client, USER_AGENT, lat, lon))
+        } catch (e: IOException) {
+            throw failed ?: e
+        }
     }
 
     /** Rounded as everything else that leaves the phone is: to two places, about a kilometre. */
