@@ -4,8 +4,7 @@
 build/
 local.properties
 
-signing/signing.properties
-signing/signing.keystore
+/signing/
 *.jks
 *.keystore
 
