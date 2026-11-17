@@ -48,7 +48,7 @@
     <string name="sky_forecast_asking">Die Vorhersage wird geholt…</string>
     <string name="sky_forecast_no_permission">Die Vorhersage gilt für den Ort, an dem das Telefon ist, und braucht dafür seinen Standort. Oder wähle einen Ort in den Einstellungen.</string>
     <string name="sky_forecast_no_location">Das Telefon konnte seinen Ort nicht bestimmen — drinnen findet sein GPS vielleicht keins. Wähle einen Ort in den Einstellungen, dann gilt die Vorhersage für ihn.</string>
-    <string name="sky_forecast_no_answer">Die Vorhersage konnte nicht geholt werden. Beim nächsten Öffnen von Himmel wird sie erneut angefragt.</string>
+    <string name="sky_forecast_no_answer">Die Vorhersage konnte nicht geholt werden. Beim nächsten Öffnen von Sky wird sie erneut angefragt.</string>
     <string name="sky_today">Heute</string>
     <string name="sky_tomorrow">Morgen</string>
     <!-- %1$s is a condition such as "Light rain", %2$d a percentage -->
@@ -274,7 +274,7 @@
     <string name="station_wu_at">Weather Underground, %1$s</string>
     <string name="station_ecowitt_note">Die Adresse des Gateways in deinem Netzwerk, etwa 192.168.1.50. WS View zeigt sie, und dein Router auch. Es muss eine Adresse in deinem Heimnetz sein.</string>
     <string name="station_davis_note">Die Adresse von WeatherLink Live in deinem Netzwerk, etwa 192.168.1.60. Die WeatherLink-App zeigt sie, und dein Router auch. Es muss eine Adresse in deinem Heimnetz sein.</string>
-    <string name="station_tempest_note">Himmel hört zu, was der Tempest-Hub in deinem Netzwerk sendet, etwa einmal pro Minute. Es gibt nichts einzugeben.</string>
+    <string name="station_tempest_note">Sky hört zu, was der Tempest-Hub in deinem Netzwerk sendet, etwa einmal pro Minute. Es gibt nichts einzugeben.</string>
     <string name="station_wu_note">Jede Station, die zu Weather Underground hochlädt, ein paar Minuten verzögert gelesen. Der API-Schlüssel steht auf wunderground.com unter deinen Geräten.</string>
     <string name="station_wu_id">Stations-ID</string>
     <string name="station_wu_key">API-Schlüssel</string>
@@ -329,28 +329,28 @@
     <string name="settings_alerts_note">Schweres Wetter, Feuerwetter, Evakuierungen, Erdbeben und Tsunamis: in den Vereinigten Staaten vom US National Weather Service, anderswo von den nationalen Diensten, die der öffentliche Warnserver von KDE sammelt. Wird jede Viertelstunde geprüft, solange das eingeschaltet ist.</string>
     <!-- Settings: instant alerts, by push, under the notifications switch -->
     <string name="settings_instant">Sofortwarnungen</string>
-    <string name="settings_instant_note">Eine neue Warnung kommt innerhalb von Minuten an statt bei der nächsten Prüfung zur Viertelstunde. Himmel hält dafür eine Verbindung zum Push-Server von Mozilla offen, und der Warnserver von KDE behält ein Gebiet von etwa fünf Kilometern um deinen Ort im Blick. Solange das an ist, steht eine stille Benachrichtigung da, und der Akku leert sich etwas schneller. Wenn das Telefon Apps im Hintergrund anhält, muss Himmel laufen dürfen.</string>
+    <string name="settings_instant_note">Eine neue Warnung kommt innerhalb von Minuten an statt bei der nächsten Prüfung zur Viertelstunde. Sky hält dafür eine Verbindung zum Push-Server von Mozilla offen, und der Warnserver von KDE behält ein Gebiet von etwa fünf Kilometern um deinen Ort im Blick. Solange das an ist, steht eine stille Benachrichtigung da, und der Akku leert sich etwas schneller. Wenn das Telefon Apps im Hintergrund anhält, muss Sky laufen dürfen.</string>
     <!-- Under the instant-alerts switch on a Kompakt, until done: DuraSpeed would stop Sky and cut the connection -->
-    <string name="settings_duraspeed">Die DuraSpeed-Einstellung des Telefons kann Himmel ein paar Minuten nach dem Ausschalten des Bildschirms beenden, und die Sofortwarnungen mit ihm. Öffne DuraSpeed, tippe auf Öffnen und schalte Himmel ein.</string>
+    <string name="settings_duraspeed">Die DuraSpeed-Einstellung des Telefons kann Sky ein paar Minuten nach dem Ausschalten des Bildschirms beenden, und die Sofortwarnungen mit ihm. Öffne DuraSpeed, tippe auf Öffnen und schalte Sky ein.</string>
     <string name="settings_duraspeed_open">DuraSpeed öffnen</string>
     <string name="settings_duraspeed_done">Erledigt</string>
-    <string name="settings_duraspeed_done_note">Das Telefon sagt der App nicht, ob es geklappt hat; tippe hierauf, um den Hinweis auszublenden. Er kommt wieder, wenn DuraSpeed Himmel erneut beendet.</string>
+    <string name="settings_duraspeed_done_note">Das Telefon sagt der App nicht, ob es geklappt hat; tippe hierauf, um den Hinweis auszublenden. Er kommt wieder, wenn DuraSpeed Sky erneut beendet.</string>
     <!-- The ongoing notification while instant alerts are on, and its channel -->
     <string name="instant_channel">Verbindung für Sofortwarnungen</string>
-    <string name="instant_channel_about">Wird gezeigt, solange Himmel auf Warnungen wartet, sobald sie herausgegeben werden.</string>
+    <string name="instant_channel_about">Wird gezeigt, solange Sky auf Warnungen wartet, sobald sie herausgegeben werden.</string>
     <string name="instant_notification_title">Wartet auf Warnungen</string>
     <string name="instant_notification_text">Eine neue Warnung für deinen Ort kommt innerhalb von Minuten an.</string>
     <string name="instant_turn_off">Ausschalten</string>
-    <string name="settings_alerts_blocked">Benachrichtigungen für Himmel sind in den Einstellungen des Telefons aus.</string>
+    <string name="settings_alerts_blocked">Benachrichtigungen für Sky sind in den Einstellungen des Telefons aus.</string>
 
     <!-- About -->
     <!-- %1$s is the version -->
-    <string name="about_title">Himmel %1$s</string>
+    <string name="about_title">Sky %1$s</string>
     <string name="about_what">Die nächsten Tage, das Regenradar, Mond und Sonnenstunden, Wetterwarnungen und deine eigene Wetterstation, wenn du eine hast. Dazu die Luftqualität, berechnet statt gemessen.</string>
     <string name="about_privacy_title">Datenschutz</string>
     <string name="about_privacy">Deine Orte und Einstellungen bleiben auf diesem Telefon. Die App geht nur online, um Wetter zu holen. Die Position des Telefons, auf etwa einen Kilometer gerundet, oder der Ort, den du gewählt hast, geht an Open-Meteo für Vorhersage, Luftqualität und Pollen, an RainViewer für das Radar und an den US National Weather Service oder, außerhalb der USA, den öffentlichen Warnserver von KDE für Warnungen. Die Wörter, mit denen du einen Ort suchst, gehen an Open-Meteo. Keine dieser Anfragen enthält ein Konto oder etwas, das du geschrieben hast. „Füttere die Lamas“ öffnet eine Spendenseite (square.link) in deinem Browser, nur wenn du darauf drückst. Die App sendet nichts dorthin; wenn du spendest, wickelt Square die Zahlung auf dieser Seite ab, nicht diese App.</string>
-    <string name="about_privacy_where">Eine Ecowitt-, Davis- oder Tempest-Station wird in deinem eigenen Netzwerk gelesen. Das Einzige, was Himmel je im Klartext ohne https sendet, ist die Anfrage an eine Ecowitt- oder Davis-Station unter der von dir eingetippten Adresse, und nur, wenn diese Adresse in deinem Heimnetz liegt; jede andere Adresse wird abgelehnt. Alles andere ist https. Eine Weather-Underground-Station wird von Weather Underground gelesen, mit deiner Stations-ID und deinem API-Schlüssel. Die Position wird nur angefragt, wenn du die Schaltfläche dafür drückst, und gar nicht, solange du einen Ort gewählt hast. Benachrichtigungen werden nur für ernste Warnungen verwendet, wenn du sie einschaltest; die App prüft dann jede Viertelstunde im Hintergrund. Mit Sofortwarnungen behält der Warnserver von KDE ein Gebiet von etwa fünf Kilometern um deinen Ort, und Himmel hält eine Verbindung zum Push-Server von Mozilla, über die die verschlüsselten Nachrichten des Servers ankommen; Ausschalten löscht das Abonnement.</string>
-    <string name="about_privacy_phone">Andere Apps des Autors auf diesem Telefon, etwa Glance und Zeit, können Himmel nach dem Wetter fragen und bekommen es, nie deine Position. Die Sperrbildschirm-Einstellung schaltet Glance aus. Die Links am Ende öffnen deinen Browser; die App ruft diese Seiten nie selbst ab.</string>
+    <string name="about_privacy_where">Eine Ecowitt-, Davis- oder Tempest-Station wird in deinem eigenen Netzwerk gelesen. Das Einzige, was Sky je im Klartext ohne https sendet, ist die Anfrage an eine Ecowitt- oder Davis-Station unter der von dir eingetippten Adresse, und nur, wenn diese Adresse in deinem Heimnetz liegt; jede andere Adresse wird abgelehnt. Alles andere ist https. Eine Weather-Underground-Station wird von Weather Underground gelesen, mit deiner Stations-ID und deinem API-Schlüssel. Die Position wird nur angefragt, wenn du die Schaltfläche dafür drückst, und gar nicht, solange du einen Ort gewählt hast. Benachrichtigungen werden nur für ernste Warnungen verwendet, wenn du sie einschaltest; die App prüft dann jede Viertelstunde im Hintergrund. Mit Sofortwarnungen behält der Warnserver von KDE ein Gebiet von etwa fünf Kilometern um deinen Ort, und Sky hält eine Verbindung zum Push-Server von Mozilla, über die die verschlüsselten Nachrichten des Servers ankommen; Ausschalten löscht das Abonnement.</string>
+    <string name="about_privacy_phone">Andere Apps des Autors auf diesem Telefon, etwa Glance und Time, können Sky nach dem Wetter fragen und bekommen es, nie deine Position. Die Sperrbildschirm-Einstellung schaltet Glance aus. Die Links am Ende öffnen deinen Browser; die App ruft diese Seiten nie selbst ab.</string>
     <string name="about_privacy_close">Es gibt keine Werbung, keine Analysen und kein Tracking.</string>
     <string name="about_terms_title">Bedingungen</string>
     <string name="about_terms">Diese App ist freie Software unter der GNU General Public License, ausschließlich Version 3. Sie kommt ohne Gewährleistung: Nutze sie auf eigenes Risiko. Vorhersagen können falsch sein; verlass dich für deine Sicherheit nicht auf sie. Eine Spende über „Füttere die Lamas“ ist freiwillig und schaltet nichts frei: Die App ist mit oder ohne Spende dieselbe.</string>
@@ -433,12 +433,12 @@
     <string name="about_licences">Lizenzen</string>
     <string name="licences_title">Lizenzen</string>
     <string name="licences_source_head">Quellcode</string>
-    <string name="licences_licence">Himmel ist freie Software unter der GNU General Public License, ausschließlich Version 3 (GPL-3.0-only), Copyright wander wildwood, für das, was hier geschrieben steht. Die Arbeit, auf der sie aufbaut, behält ihre eigene Lizenz, und ihre Autoren behalten ihr Urheberrecht; sie sind unten aufgeführt.</string>
+    <string name="licences_licence">Sky ist freie Software unter der GNU General Public License, ausschließlich Version 3 (GPL-3.0-only), Copyright wander wildwood, für das, was hier geschrieben steht. Die Arbeit, auf der sie aufbaut, behält ihre eigene Lizenz, und ihre Autoren behalten ihr Urheberrecht; sie sind unten aufgeführt.</string>
     <string name="licences_back">Zurück</string>
     <string name="about_no_browser_address">Es ist kein Browser installiert. Die Adresse ist %1$s.</string>
     <string name="settings_open_app_settings">App-Einstellungen öffnen</string>
-    <string name="location_refused">Der Standort ist für Himmel ausgeschaltet. Erlaube ihn in den Einstellungen der App und komm dann zurück.</string>
-    <string name="station_address_public">Das ist eine Internetadresse. Himmel spricht nur mit einer Station in deinem eigenen Netzwerk, sie wäre also nie erreichbar. Verwende die Adresse der Station zu Hause.</string>
+    <string name="location_refused">Der Standort ist für Sky ausgeschaltet. Erlaube ihn in den Einstellungen der App und komm dann zurück.</string>
+    <string name="station_address_public">Das ist eine Internetadresse. Sky spricht nur mit einer Station in deinem eigenen Netzwerk, sie wäre also nie erreichbar. Verwende die Adresse der Station zu Hause.</string>
     <!-- shared-about: contact row + privacy section (edit in /opt/projects/shared-about) -->
     <string name="about_write_to">Schreib an %1$s</string>
     <string name="about_no_mail_app">Keine E-Mail-App installiert. Die Adresse ist %1$s.</string>
