@@ -18,7 +18,8 @@ the station and the forecast are added here.
 
 ## What it shows
 
-Four tabs: **Today**, **Forecast**, **Radar** and **Almanac**. Today opens.
+Four tabs: **Today**, **Forecast**, **Radar** and **Almanac**. Today opens. Settings has a
+**Dark mode** switch; it also follows the phone's dark setting, and Home's if Home is installed.
 
 **The station, if you have one.** Temperature, what it feels like, wind and gusts, rain today
 and whether it is falling now, humidity, dew point, pressure and UV, from one of four kinds:
@@ -157,6 +158,12 @@ the lock screen: the temperature, the day's high and low, and when rain is likel
 the lock screen fetches the forecast the same way opening the app does, at most once every half
 hour, and nothing runs on a timer. Settings → The weather on the lock screen turns it off; the
 lines go to Glance alone.
+
+With Wander installed, its walking game can ask what the sky is doing (clear, fog, rain or
+snow, the wind, the moon, and the kind of the most serious US alert, never its text or where
+you are), so the weather in its wood follows the real one. Sky answers only an app that carries
+Wander's own release certificate, from what it has already fetched; nothing is fetched for
+Wander alone.
 
 With [Clock](https://github.com/wanderwildwood/tokei) installed and its setting for it switched
 on, an alarm ringing shows the same first line: the temperature, the sky and the day's high and
