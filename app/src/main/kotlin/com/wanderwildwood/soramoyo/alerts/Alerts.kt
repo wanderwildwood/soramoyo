@@ -97,8 +97,10 @@ object Alerts {
             .get()
             .build()
         // 400 is "out of bounds" for a point outside the US; 404 is a point it has no zone for.
-        // Any other failure of the Weather Service does not settle it either: KDE's server is
-        // asked next, so a place outside the US is not left without alerts while it is down.
+        // Any other failure of the Weather Service does not settle it either: for a place
+        // outside the US, KDE's server is asked next, so it is not left without alerts while the
+        // Weather Service is down. A place that may be in the US is not sent to KDE's server on
+        // a failure: the failure is passed on, and what was shown and kept stays as it was.
         val failed: Exception? = try {
             client.newCall(request).execute().use { response ->
                 if (response.code != 400 && response.code != 404) {
@@ -110,12 +112,33 @@ object Alerts {
         } catch (e: IOException) {
             e
         }
+        if (failed != null && mayBeInUs(lat, lon)) throw failed
         try {
             AlertAnswer.Found(WorldAlerts.fetch(client, USER_AGENT, lat, lon))
         } catch (e: IOException) {
             throw failed ?: e
         }
     }
+
+    /**
+     * Inside a box around the United States or one of its territories. The boxes are generous:
+     * a point near the border counts as perhaps in the US, so its position stays off KDE's
+     * server when the Weather Service fails.
+     */
+    internal fun mayBeInUs(lat: Double, lon: Double): Boolean = US_BOXES.any { (latS, latN, lonW, lonE) ->
+        lat in latS..latN && lon in lonW..lonE
+    }
+
+    /** South, north, west, east. */
+    private val US_BOXES = listOf(
+        listOf(24.0, 50.0, -125.5, -66.0), // the lower 48
+        listOf(51.0, 72.0, -180.0, -129.0), // Alaska
+        listOf(51.0, 56.0, 172.0, 180.0), // the Aleutians west of the date line
+        listOf(18.0, 29.0, -179.0, -154.0), // Hawaii
+        listOf(17.5, 18.8, -68.0, -64.3), // Puerto Rico and the Virgin Islands
+        listOf(13.0, 21.0, 144.0, 146.5), // Guam and the Northern Marianas
+        listOf(-14.8, -10.9, -171.3, -168.0), // American Samoa
+    )
 
     /** Rounded as everything else that leaves the phone is: to two places, about a kilometre. */
     internal fun urlFor(lat: Double, lon: Double): String =

@@ -100,4 +100,16 @@ class AlertsTest {
             Alerts.urlFor(39.7392, -104.9903),
         )
     }
+
+    @Test
+    fun aPlaceThatMayBeInTheUsStaysOffKdesServer() {
+        assertTrue(Alerts.mayBeInUs(39.74, -104.99)) // Denver
+        assertTrue(Alerts.mayBeInUs(61.22, -149.90)) // Anchorage
+        assertTrue(Alerts.mayBeInUs(21.31, -157.86)) // Honolulu
+        assertTrue(Alerts.mayBeInUs(18.47, -66.11)) // San Juan
+        assertTrue(Alerts.mayBeInUs(13.44, 144.79)) // Guam
+        assertFalse(Alerts.mayBeInUs(52.52, 13.40)) // Berlin
+        assertFalse(Alerts.mayBeInUs(-33.87, 151.21)) // Sydney
+        assertFalse(Alerts.mayBeInUs(19.43, -99.13)) // Mexico City
+    }
 }
