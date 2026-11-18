@@ -333,11 +333,16 @@ class PushConnectionService : Service() {
             .build()
     }
 
-    /** "Turn off" on the notification: instant alerts off, as the switch in settings would. */
+    /**
+     * "Turn off" on the notification: instant alerts off, as the switch in settings would. The
+     * switch is set before this returns; the deletes on the alert and push servers follow, and
+     * can take far longer than a broadcast may, so the broadcast does not wait for them. This
+     * service, still in the foreground until they are done, keeps Sky running meanwhile, and a
+     * delete left undone is tried again by the quarter-hourly check.
+     */
     class TurnOffReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val pending = goAsync()
-            InstantAlerts.setAsync(context.applicationContext, false) { pending.finish() }
+            InstantAlerts.setAsync(context.applicationContext, false)
         }
     }
 
