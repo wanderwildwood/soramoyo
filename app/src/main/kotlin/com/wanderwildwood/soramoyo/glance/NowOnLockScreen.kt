@@ -8,6 +8,8 @@ import com.wanderwildwood.soramoyo.R
 import com.wanderwildwood.soramoyo.almanac.Almanac
 import com.wanderwildwood.soramoyo.forecast.Change
 import com.wanderwildwood.soramoyo.forecast.Forecast
+import com.wanderwildwood.soramoyo.forecast.clock
+import com.wanderwildwood.soramoyo.forecast.instantOf
 import com.wanderwildwood.soramoyo.forecast.upcoming
 import com.wanderwildwood.soramoyo.location.LocationProvider
 import com.wanderwildwood.soramoyo.location.Places
@@ -128,7 +130,7 @@ internal object Weather {
         val metric = Units.chosen(context) ?: reading?.metric ?: Units.metricHere()
         val predicted = Forecast.fetch(here.lat, here.lon, metric)
         val now = reading?.temperature?.number ?: predicted.current?.temperature ?: return null
-        val today = predicted.days.firstOrNull { it.date == LocalDateTime.now(predicted.offset).toLocalDate() }
+        val today = predicted.days.firstOrNull { it.date == LocalDateTime.now(predicted.clock).toLocalDate() }
             ?: predicted.days.firstOrNull()
         val code = predicted.current?.code ?: today?.code
         val condition = code?.let { context.getString(conditionFor(it)) }
@@ -137,7 +139,7 @@ internal object Weather {
             today?.let { context.getString(R.string.lock_high_low, it.high, it.low) },
         ).joinToString(" · ")
         val lines = mutableListOf(GlanceProvider.Line(text = first.ifEmpty { " " }, lead = "${now.roundToInt()}°"))
-        val hours = upcoming(predicted.hours, predicted.offset)
+        val hours = upcoming(predicted.hours, predicted.clock)
         val change = Change.of(hours)
         // the same, in plain words, for ForTheWalk
         val sky = when (code) {
@@ -147,17 +149,17 @@ internal object Weather {
             in 71..77, 85, 86 -> "snow"
             else -> "clear"
         }
-        val soon = upcoming(predicted.hours, predicted.offset, count = SOON_HOURS)
-        val day = upcoming(predicted.hours, predicted.offset, count = 24)
-        val minutesTo = { at: LocalDateTime -> java.time.Duration.between(LocalDateTime.now(predicted.offset), at).toMinutes() }
+        val soon = upcoming(predicted.hours, predicted.clock, count = SOON_HOURS)
+        val day = upcoming(predicted.hours, predicted.clock, count = 24)
+        val minutesTo = { at: LocalDateTime -> java.time.Duration.between(Instant.now(), predicted.instantOf(at)).toMinutes() }
         cache(context).edit()
             .putString(SKY, sky)
             .putString(CHANGE, when (change) { is Change.From -> "starts"; is Change.Until -> "stops"; else -> "" })
             .putLong(CHANGE_IN, when (change) { is Change.From -> minutesTo(change.at); is Change.Until -> minutesTo(change.at); else -> -1L })
             .putBoolean(CHANGE_SNOW, (change as? Change.From)?.snow ?: false)
             .putLong(CHANGE_AT, when (change) {
-                is Change.From -> change.at.atZone(predicted.offset).toInstant().toEpochMilli()
-                is Change.Until -> change.at.atZone(predicted.offset).toInstant().toEpochMilli()
+                is Change.From -> predicted.instantOf(change.at).toEpochMilli()
+                is Change.Until -> predicted.instantOf(change.at).toEpochMilli()
                 else -> -1L
             })
             // the wind, the snow and the place, for ForTheWalk too
@@ -170,7 +172,7 @@ internal object Weather {
             .putFloat(SNOWFALL, day.sumOf { WalkFacts.centimetres(it.snow, predicted.inches) }.toFloat())
             .putString(PLACE_LAT, (Math.round(here.lat * 100) / 100.0).toString())
             .putString(PLACE_LON, (Math.round(here.lon * 100) / 100.0).toString())
-            .putString(PLACE_ZONE, (predicted.zone ?: predicted.offset).id)
+            .putString(PLACE_ZONE, predicted.clock.id)
             .apply()
         val clock = DateTimeFormatter.ofPattern(
             DateFormat.getBestDateTimePattern(Locale.getDefault(), if (DateFormat.is24HourFormat(context)) "Hm" else "hm"),

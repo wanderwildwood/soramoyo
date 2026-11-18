@@ -186,6 +186,17 @@ class ForecastTest {
         assertEquals(11.2, day.daylight!!, 1e-9)
     }
 
+    /** Fetched in Prague's summer time, an hour after the clocks go back is on winter time. */
+    @Test
+    fun anHourAfterTheClocksChangeIsOnTheNewTime() {
+        val fetched = Predicted(offset = java.time.ZoneOffset.ofHours(2), zone = java.time.ZoneId.of("Europe/Prague"))
+        assertEquals(Instant.parse("2026-10-25T04:00:00Z"), fetched.instantOf(LocalDateTime.of(2026, 10, 25, 5, 0)))
+        assertEquals(Instant.parse("2026-10-24T03:00:00Z"), fetched.instantOf(LocalDateTime.of(2026, 10, 24, 5, 0)))
+        // With no zone named, the offset is all there is.
+        val unnamed = fetched.copy(zone = null)
+        assertEquals(Instant.parse("2026-10-25T03:00:00Z"), unnamed.instantOf(LocalDateTime.of(2026, 10, 25, 5, 0)))
+    }
+
     @Test
     fun theFirstTurnIsTheOneTold() {
         // 88% at eight, after a dry night. Later hours go back and forth; only the first counts.

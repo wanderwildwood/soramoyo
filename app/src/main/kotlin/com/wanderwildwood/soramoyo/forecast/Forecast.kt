@@ -108,11 +108,17 @@ data class Predicted(
     val quarters: List<Quarter> = emptyList(),
 )
 
+/** The place's clock: its named zone, which knows when the clocks change, or else the offset at the fetch. */
+val Predicted.clock: ZoneId get() = zone ?: offset
+
+/** When an hour of this forecast, a time on the place's own clock, comes, across a change of the clocks too. */
+fun Predicted.instantOf(at: LocalDateTime): Instant = at.atZone(clock).toInstant()
+
 /**
  * The next [count] hours from [now], [HOURS] unless asked for more. A forecast is kept for half
  * an hour, so by the time it is looked at again its first hour may be over.
  */
-fun upcoming(hours: List<Hour>, offset: ZoneOffset, now: Instant = Instant.now(), count: Int = HOURS): List<Hour> {
+fun upcoming(hours: List<Hour>, offset: ZoneId, now: Instant = Instant.now(), count: Int = HOURS): List<Hour> {
     val thisHour = LocalDateTime.ofInstant(now, offset).truncatedTo(ChronoUnit.HOURS)
     return hours.filterNot { it.time.isBefore(thisHour) }.take(count)
 }
