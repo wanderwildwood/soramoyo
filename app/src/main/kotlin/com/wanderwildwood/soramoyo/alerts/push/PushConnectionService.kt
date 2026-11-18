@@ -130,9 +130,14 @@ class PushConnectionService : Service() {
         }
     }
 
-    fun unregisterChannel(channelId: String) {
+    /** Tells the server of every channel given up, now or while the connection was down. */
+    fun unregisterPending() {
         val ws = synchronized(lock) { socket.takeIf { open } } ?: return
-        ws.send(AutopushProtocol.Client.unregister(channelId))
+        val store = EmbeddedPushStore(this)
+        val pending = store.pendingUnregisters()
+        if (pending.isEmpty()) return
+        val sent = pending.filter { ws.send(AutopushProtocol.Client.unregister(it)) }.toSet()
+        store.forgetPendingUnregisters(sent)
     }
 
     /**
@@ -194,7 +199,9 @@ class PushConnectionService : Service() {
             // The server knows this phone by a new id, so every endpoint it gave is void.
             store.uaid = message.uaid
             store.forgetEndpoints()
+            store.forgetPendingUnregisters(store.pendingUnregisters())
         }
+        unregisterPending()
         registerPending()
     }
 

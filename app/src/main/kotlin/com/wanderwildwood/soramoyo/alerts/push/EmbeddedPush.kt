@@ -73,9 +73,12 @@ internal object EmbeddedPush {
     }
 
     fun onRegister(context: Context, token: String, vapid: String?) {
-        val channel = EmbeddedPushStore(context).channelFor(token, vapid) { old ->
-            // A new key for the same registration: the old channel goes over the live socket.
-            PushConnectionService.instance?.unregisterChannel(old.channelId)
+        val store = EmbeddedPushStore(context)
+        val channel = store.channelFor(token, vapid) { old ->
+            // A new key for the same registration: the old channel is unregistered over the live
+            // socket, or, while it is down, as soon as it is open again.
+            store.addPendingUnregister(old.channelId)
+            PushConnectionService.instance?.unregisterPending()
         }
         Log.i(TAG, "Registration request")
         if (channel.endpoint != null) {
@@ -87,8 +90,12 @@ internal object EmbeddedPush {
     }
 
     fun onUnregister(context: Context, token: String) {
-        val channel = EmbeddedPushStore(context).remove(token)
-        if (channel != null) PushConnectionService.instance?.unregisterChannel(channel.channelId)
+        val store = EmbeddedPushStore(context)
+        val channel = store.remove(token)
+        if (channel != null) {
+            store.addPendingUnregister(channel.channelId)
+            PushConnectionService.instance?.unregisterPending()
+        }
         sync(context)
     }
 

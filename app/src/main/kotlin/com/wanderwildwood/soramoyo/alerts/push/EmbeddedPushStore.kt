@@ -72,6 +72,20 @@ internal class EmbeddedPushStore(context: Context) {
         prefs.all.keys.filter { it.startsWith(PREFIX_ENDPOINT) }.forEach { remove(it) }
     }.apply()
 
+    /**
+     * Channels given up that the push server has not been told of yet: sent when the connection
+     * is next open, so a channel let go while it was down does not stay live on the server.
+     */
+    fun pendingUnregisters(): Set<String> = prefs.getStringSet(KEY_UNREGISTER, emptySet()).orEmpty()
+
+    fun addPendingUnregister(channelId: String) {
+        prefs.edit().putStringSet(KEY_UNREGISTER, pendingUnregisters() + channelId).commit()
+    }
+
+    fun forgetPendingUnregisters(channelIds: Set<String>) {
+        prefs.edit().putStringSet(KEY_UNREGISTER, pendingUnregisters() - channelIds).commit()
+    }
+
     fun remove(token: String): Channel? {
         val channel = channelForToken(token) ?: return null
         prefs.edit()
@@ -88,5 +102,6 @@ internal class EmbeddedPushStore(context: Context) {
         private const val PREFIX_CHANNEL = "channel."
         private const val PREFIX_VAPID = "vapid."
         private const val PREFIX_ENDPOINT = "endpoint."
+        private const val KEY_UNREGISTER = "unregister"
     }
 }
