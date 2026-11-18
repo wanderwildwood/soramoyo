@@ -165,9 +165,9 @@ you are), so the weather in its wood follows the real one. Sky answers only an a
 Wander's own release certificate, from what it has already fetched; nothing is fetched for
 Wander alone.
 
-With [Clock](https://github.com/wanderwildwood/tokei) installed and its setting for it switched
+With [Time](https://github.com/wanderwildwood/tokei) installed and its setting for it switched
 on, an alarm ringing shows the same first line: the temperature, the sky and the day's high and
-low. That line goes to Clock alone, and only when Clock asks.
+low. That line goes to Time alone, and only when Time asks.
 
 With no place set, if the phone's cached position is more than fifteen minutes old, a fresh
 one is asked for before either is fetched, rather than showing the weather for wherever the

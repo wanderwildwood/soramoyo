@@ -1,10 +1,10 @@
 # Sky — Privacy Policy
 
-Version 0.13.14. Last reviewed 17 November 2026.
+Version 0.13.14. Last reviewed 18 November 2026.
 
 ## The short version
 
-The developer collects nothing about you. There is no account, no sign-up, no analytics, no advertising and no crash reporting, and no server belonging to the developer that the app talks to. To show the weather, Sky has to say roughly where you are: your position, rounded to about a kilometer, or a town you chose, goes to Open-Meteo for the forecast and to RainViewer for the radar, and, for weather alerts in the United States, to the National Weather Service. If you have a weather station, it is read on your own network, or from Weather Underground if you choose that. Nothing else leaves the phone.
+The developer collects nothing about you. There is no account, no sign-up, no analytics, no advertising and no crash reporting, and no server belonging to the developer that the app talks to. To show the weather, Sky has to say roughly where you are: your position, rounded to about a kilometer, or a town you chose, goes to Open-Meteo for the forecast and to RainViewer for the radar, and, for weather alerts, to the National Weather Service in the United States or KDE's public alert server elsewhere. With Instant alerts on, a subscription for the area around it goes to KDE's alert server, and the phone holds one connection, which carries no position, to Mozilla's push server. If you have a weather station, it is read on your own network, or from Weather Underground if you choose that. Apart from the words of a place search, which go to Open-Meteo, nothing else leaves the phone.
 
 ## Where it comes from
 
@@ -46,7 +46,7 @@ Hosts contacted:
 - **air-quality-api.open-meteo.com** (Open-Meteo): air quality and pollen, with each forecast. Sent: the same rounded position.
 - **geocoding-api.open-meteo.com** (Open-Meteo): only when you search for a place in settings. Sent: the words you typed and the phone's language.
 - **api.rainviewer.com**, and the tile server its response names: the radar. Sent: the same rounded position, in the address of the map tile.
-- **api.weather.gov** (US National Weather Service): weather alerts, with each forecast and, while the alert notification is on, about every quarter hour in the background when the phone has a network, at a time Android picks to suit the battery. Sent: the same rounded position, with the app's name and the address of its source repository, which the Weather Service asks callers to give. It answers only for places in the United States; elsewhere Sky asks the next host.
+- **api.weather.gov** (US National Weather Service): weather alerts, with each forecast and, while the alert notification is on, about every quarter hour in the background when the phone has a network, at a time Android picks to suit the battery. Sent: the same rounded position, with the app's name and the address of its source repository, which the Weather Service asks callers to give. It answers only for places in the United States; elsewhere Sky asks the next host. When it cannot answer for a place that may be in the United States, Sky keeps what it had until the next check and asks no other host.
 - **alerts.kde.org** (KDE's public alert server, which gathers the warnings of national weather, civil-protection, earthquake and tsunami services): alerts for places outside the United States, at the same times. Sent: a box about a kilometer each side of the same rounded position, then the ids of the alerts it named, with the app's name and the address of its source repository. With Instant alerts on, see below. KDE's own [privacy notice](https://invent.kde.org/webapps/foss-public-alert-server/-/wikis/Privacy) covers the server.
 - **Instant alerts**, only while that setting is on (off at first):
   - **alerts.kde.org** keeps a subscription: a box about five kilometers each side of the same rounded position, the push address below, and the public keys that let it encrypt messages to this phone and nothing else. It sends a message when an alert is added or changed in that box; Sky then fetches the alerts as above. Sky renews the subscription monthly, makes a new one when the place moves out of the middle of the box, and deletes it when the setting is turned off. The server deletes one not renewed for a year.
@@ -58,10 +58,10 @@ The Almanac (the moon, moonrise and moonset, dawn, dusk and daylight) is worked 
 
 On the phone, Sky asks Home (`com.wanderwildwood.iori`), when it is installed, whether its dark mode switch is on, and follows it; it hands Home nothing. It also looks whether DuraSpeed, a battery saver some phones have, is installed, to show the reminder about Instant alerts only where it is needed.
 
-To three other apps of the author's, each answered by name and no other:
+To three other apps of the author's, each answered only when it carries that app's own release certificate:
 
 - **Glance** (`com.wanderwildwood.hitome`), the lock-screen app: the weather lines above are handed to Glance, to show on the lock screen, where anyone holding the phone can read them. When the lock screen is looked at and the last forecast is more than half an hour old, Sky fetches a new one from the same hosts, for your chosen place or the phone's rounded position. Settings, The weather on the lock screen, turns it off.
-- **Clock** (`com.wanderwildwood.tokei`), the alarm clock: with its weather line switched on in Clock's own settings, Clock can ask Sky for one short line of weather to show on its ringing screen. Sky fetches it the same way, for the same place, and hands it to Clock and nothing else.
+- **Time** (`com.wanderwildwood.tokei`), the alarm clock: with its weather line switched on in Time's own settings, Time can ask Sky for one short line of weather to show on its ringing screen. Sky fetches it the same way, for the same place, and hands it to Time and nothing else.
 - **Wander** (`com.wanderwildwood.sanpo`), the author's walking game: it can ask Sky what the sky is doing so the weather in its wood follows the real one. It is handed the sky (clear, fog, rain or snow, and whether rain or snow starts or stops in the next hours), the wind and gusts, the moon's phase and today's moonrise and moonset, the kind of the most significant US weather alert in force (none, heat, winter storm, smoke or other; never its text), whether heavy snow is falling or due, the snow over the next day, and the hemisphere (north, south or tropic; never where). It all comes from what Sky has already fetched, from the last forecast, and nothing is fetched for it alone. If the last forecast is older than half an hour, it is renewed for next time and Wander does without.
 
 No analytics, advertising or crash-reporting service is contacted.
