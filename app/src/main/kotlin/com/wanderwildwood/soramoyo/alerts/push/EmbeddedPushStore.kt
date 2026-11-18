@@ -44,17 +44,23 @@ internal class EmbeddedPushStore(context: Context) {
 
     /**
      * The channel for [token], made if there is none. A different VAPID key from the one
-     * it was registered with voids its endpoint, because the server binds the two.
+     * it was registered with gets a new channel id in place of the old one, because the server
+     * binds a channel to its key; [replaced] is told the old channel, to unregister it. The
+     * token keeps a channel the whole time, so the connection is never dropped for the change.
      */
-    fun channelFor(token: String, vapid: String?): Channel {
+    fun channelFor(token: String, vapid: String?, replaced: (Channel) -> Unit = {}): Channel {
         val existing = channelForToken(token)
         if (existing != null && existing.vapid == vapid) return existing
-        val channelId = existing?.channelId ?: UUID.randomUUID().toString()
+        val channelId = UUID.randomUUID().toString()
         prefs.edit().apply {
+            if (existing != null) {
+                remove(PREFIX_VAPID + existing.channelId)
+                remove(PREFIX_ENDPOINT + existing.channelId)
+            }
             putString(PREFIX_CHANNEL + token, channelId)
             if (vapid == null) remove(PREFIX_VAPID + channelId) else putString(PREFIX_VAPID + channelId, vapid)
-            remove(PREFIX_ENDPOINT + channelId)
         }.commit()
+        if (existing != null) replaced(existing)
         return channelForToken(token)!!
     }
 

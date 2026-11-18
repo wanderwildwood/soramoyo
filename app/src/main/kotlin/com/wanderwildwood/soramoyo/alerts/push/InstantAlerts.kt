@@ -248,9 +248,14 @@ object InstantAlerts {
             200 -> p.edit().putLong(RENEWED_AT, System.currentTimeMillis()).commit()
             // Forgotten by the server, or its key has changed: start again with a fresh key.
             404 -> subscribe(context, here)
+            // The server's key has changed. Registered again with the new key, without unregistering
+            // first: the connection stays up, so this works from the quarter-hourly check in the
+            // background, where Android would refuse to start the connection again. The new
+            // address comes back through [onEndpoint], which subscribes anew.
             401 -> {
-                p.edit().remove(VAPID).remove(ENDPOINT).commit()
-                UnifiedPushBridge.unregister(context, INSTANCE)
+                val vapid = runCatching { fetchVapid() }.getOrNull() ?: return
+                p.edit().putString(VAPID, vapid).remove(ENDPOINT).commit()
+                UnifiedPushBridge.register(context, INSTANCE, vapid)
             }
         }
     }

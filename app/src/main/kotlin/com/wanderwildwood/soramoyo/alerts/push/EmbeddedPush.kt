@@ -47,7 +47,8 @@ internal object EmbeddedPush {
     fun sync(context: Context) {
         val appContext = context.applicationContext
         if (shouldRun(appContext)) {
-            PushConnectionService.start(appContext)
+            // A running service needs no start, which Android may refuse from the background.
+            if (PushConnectionService.instance == null) PushConnectionService.start(appContext)
         } else {
             // Unregistering and registering again come in one breath: stopping at once would
             // restart the service, and redraw its notification, for nothing. Look again shortly.
@@ -72,7 +73,10 @@ internal object EmbeddedPush {
     }
 
     fun onRegister(context: Context, token: String, vapid: String?) {
-        val channel = EmbeddedPushStore(context).channelFor(token, vapid)
+        val channel = EmbeddedPushStore(context).channelFor(token, vapid) { old ->
+            // A new key for the same registration: the old channel goes over the live socket.
+            PushConnectionService.instance?.unregisterChannel(old.channelId)
+        }
         Log.i(TAG, "Registration request")
         if (channel.endpoint != null) {
             // Known already: answer at once, as the connector re-registers on every start.
