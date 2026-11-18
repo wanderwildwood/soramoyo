@@ -64,6 +64,9 @@ object InstantAlerts {
     private const val SUB_LON = "sub_lon"
     private const val RENEWED_AT = "renewed_at"
 
+    /** The push address and key the subscription was made for: another, and it is made again. */
+    private const val SUB_FOR = "sub_for"
+
     /** Subscriptions the server has not yet confirmed deleting; tried again on every [keep]. */
     private const val TO_DELETE = "to_delete"
 
@@ -122,8 +125,9 @@ object InstantAlerts {
         val here = here(context) ?: return@withLock
         val id = p.getString(SUBSCRIPTION, null)
         val moved = abs(p.getFloat(SUB_LAT, 999f) - here.lat) > MOVE || abs(p.getFloat(SUB_LON, 999f) - here.lon) > MOVE
+        val stale = p.getString(SUB_FOR, null) != subscribedFor(p.getString(ENDPOINT, null), p.getString(P256DH, null))
         when {
-            id == null || moved -> subscribe(context, here)
+            id == null || moved || stale -> subscribe(context, here)
             System.currentTimeMillis() - p.getLong(RENEWED_AT, 0L) > RENEW_MS -> renew(context, id, here)
         }
     }
@@ -139,7 +143,7 @@ object InstantAlerts {
         p.getString(SUBSCRIPTION, null)?.let { id -> deleteOrKeep(context, id) }
         UnifiedPushBridge.unregister(context, INSTANCE)
         p.edit().remove(ENDPOINT).remove(P256DH).remove(AUTH).remove(SUBSCRIPTION)
-            .remove(SUB_LAT).remove(SUB_LON).remove(RENEWED_AT).commit()
+            .remove(SUB_LAT).remove(SUB_LON).remove(RENEWED_AT).remove(SUB_FOR).commit()
         EmbeddedPush.sync(context)
     }
 
@@ -209,8 +213,9 @@ object InstantAlerts {
         val p256dh = p.getString(P256DH, null) ?: return
         val auth = p.getString(AUTH, null) ?: return
         val vapid = p.getString(VAPID, null) ?: return
-        p.getString(SUBSCRIPTION, null)?.let { old -> deleteOrKeep(context, old) }
-        p.edit().remove(SUBSCRIPTION).commit()
+        // The old subscription is let go only once the new one is made, so a failed attempt
+        // leaves the place with the one it had, and the next check tries again.
+        val old = p.getString(SUBSCRIPTION, null)
         val lat = round(here.lat)
         val lon = round(here.lon)
         val body = JSONObject()
@@ -227,12 +232,42 @@ object InstantAlerts {
         }
         if (answer.first != 200) {
             Log.w(TAG, "The alert server refused the subscription (${answer.first})")
+            when {
+                // Refused for the key: the server's has changed since it was fetched.
+                answer.first == 401 -> rekey(context, onlyIfChanged = true)
+                // Refused outright, perhaps for the one already there: that one is let go
+                // first, and the next check subscribes afresh.
+                answer.first in 400..499 && old != null -> {
+                    deleteOrKeep(context, old)
+                    p.edit().remove(SUBSCRIPTION).commit()
+                }
+            }
             return
         }
         val id = runCatching { JSONObject(answer.second).get("subscription_id").toString() }.getOrNull() ?: return
         p.edit().putString(SUBSCRIPTION, id).putFloat(SUB_LAT, lat.toFloat()).putFloat(SUB_LON, lon.toFloat())
+            .putString(SUB_FOR, subscribedFor(endpoint, p256dh))
             .putLong(RENEWED_AT, System.currentTimeMillis()).commit()
         Log.i(TAG, "Subscribed with the alert server")
+        if (old != null && old != id) deleteOrKeep(context, old)
+    }
+
+    private fun subscribedFor(endpoint: String?, p256dh: String?) = "$endpoint $p256dh"
+
+    /**
+     * The server's key has changed. Registered again with the new key, without unregistering
+     * first: the connection stays up, so this works from the quarter-hourly check in the
+     * background, where Android would refuse to start the connection again. The new address
+     * comes back through [onEndpoint], which subscribes anew. With [onlyIfChanged], a key that
+     * has not changed is left alone: the refusal was not the key's, and registering again would
+     * only bring it back.
+     */
+    private fun rekey(context: Context, onlyIfChanged: Boolean) {
+        val p = prefs(context)
+        val vapid = runCatching { fetchVapid() }.getOrNull() ?: return
+        if (onlyIfChanged && vapid == p.getString(VAPID, null)) return
+        p.edit().putString(VAPID, vapid).remove(ENDPOINT).commit()
+        UnifiedPushBridge.register(context, INSTANCE, vapid)
     }
 
     private fun renew(context: Context, id: String, here: LatLon) {
@@ -248,23 +283,21 @@ object InstantAlerts {
             200 -> p.edit().putLong(RENEWED_AT, System.currentTimeMillis()).commit()
             // Forgotten by the server, or its key has changed: start again with a fresh key.
             404 -> subscribe(context, here)
-            // The server's key has changed. Registered again with the new key, without unregistering
-            // first: the connection stays up, so this works from the quarter-hourly check in the
-            // background, where Android would refuse to start the connection again. The new
-            // address comes back through [onEndpoint], which subscribes anew.
-            401 -> {
-                val vapid = runCatching { fetchVapid() }.getOrNull() ?: return
-                p.edit().putString(VAPID, vapid).remove(ENDPOINT).commit()
-                UnifiedPushBridge.register(context, INSTANCE, vapid)
-            }
+            // The server's key has changed.
+            401 -> rekey(context, onlyIfChanged = false)
         }
     }
 
-    /** True once the server has let the subscription go (or never knew it). */
-    private fun delete(id: String): Boolean {
-        val code = call(Request.Builder().url(subscriptionUrl(id)).delete()).first
-        return code in 200..299 || code == 404
-    }
+    /**
+     * True once the server has let the subscription go (or never knew it), or has said it never
+     * will: any other refusal of the request itself is final. Only a busy or failing server, a
+     * timeout or a lost connection is worth trying again.
+     */
+    private fun delete(id: String): Boolean =
+        deleteSettled(call(Request.Builder().url(subscriptionUrl(id)).delete()).first)
+
+    internal fun deleteSettled(code: Int): Boolean =
+        code in 200..299 || (code in 400..499 && code != 408 && code != 429)
 
     /** Deletes [id] on the server, or keeps it to try again, so a failed delete is not forgotten. */
     private fun deleteOrKeep(context: Context, id: String) {
