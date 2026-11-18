@@ -81,10 +81,18 @@ internal object WalkFacts {
     /**
      * The sky, and whether rain or snow starts or stops and in how many minutes, counted from
      * [nowMs] to the change's time [atMs], not from when the forecast was fetched. A change
-     * already past is no longer one.
+     * already past is no longer one, and the sky is as it said: rain or snow ([snow]) once it
+     * has started, dry once it has stopped.
      */
-    fun changeNow(sky: String, change: String, atMs: Long, nowMs: Long): Triple<String, String, Long> {
-        if (atMs < nowMs) return Triple(sky, "", -1L)
+    fun changeNow(sky: String, change: String, atMs: Long, nowMs: Long, snow: Boolean = false): Triple<String, String, Long> {
+        if (atMs < nowMs) {
+            val after = when (change) {
+                "starts" -> if (snow) "snow" else "rain"
+                "stops" -> if (sky == "rain" || sky == "snow") "clear" else sky
+                else -> sky
+            }
+            return Triple(after, "", -1L)
+        }
         return Triple(sky, change, (atMs - nowMs) / 60_000L)
     }
 

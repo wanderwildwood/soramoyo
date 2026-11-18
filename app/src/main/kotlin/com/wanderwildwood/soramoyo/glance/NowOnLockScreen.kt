@@ -154,6 +154,7 @@ internal object Weather {
             .putString(SKY, sky)
             .putString(CHANGE, when (change) { is Change.From -> "starts"; is Change.Until -> "stops"; else -> "" })
             .putLong(CHANGE_IN, when (change) { is Change.From -> minutesTo(change.at); is Change.Until -> minutesTo(change.at); else -> -1L })
+            .putBoolean(CHANGE_SNOW, (change as? Change.From)?.snow ?: false)
             .putLong(CHANGE_AT, when (change) {
                 is Change.From -> change.at.atZone(predicted.offset).toInstant().toEpochMilli()
                 is Change.Until -> change.at.atZone(predicted.offset).toInstant().toEpochMilli()
@@ -197,7 +198,7 @@ internal object Weather {
         val at = c.getLong(CHANGE_AT, -1L)
         // A cache from before the change's time was kept: its minutes as they were.
         if (change.isEmpty() || at < 0) return Triple(sky, change, c.getLong(CHANGE_IN, -1L))
-        return WalkFacts.changeNow(sky, change, at, nowMs)
+        return WalkFacts.changeNow(sky, change, at, nowMs, snow = c.getBoolean(CHANGE_SNOW, false))
     }
 
     /** The rest of what [ForTheWalk] hands over, from the last fetch and the sky worked out now. */
@@ -237,6 +238,7 @@ internal object Weather {
     private const val CHANGE = "change"
     private const val CHANGE_IN = "change_in"
     private const val CHANGE_AT = "change_at"
+    private const val CHANGE_SNOW = "change_snow"
     private const val STATION_WAIT_MS = 5_000L
     private const val WIND = "wind"
     private const val GUST = "gust"

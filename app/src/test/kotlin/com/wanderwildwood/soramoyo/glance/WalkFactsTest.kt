@@ -14,7 +14,16 @@ class WalkFactsTest {
         assertEquals(Triple("clear", "starts", 30L), WalkFacts.changeNow("clear", "starts", at, at - 30 * 60_000L))
         assertEquals(Triple("rain", "stops", 0L), WalkFacts.changeNow("rain", "stops", at, at))
         // Past: no change is handed over any more.
-        assertEquals(Triple("rain", "", -1L), WalkFacts.changeNow("rain", "stops", at, at + 1))
+        assertEquals(Triple("clear", "", -1L), WalkFacts.changeNow("rain", "stops", at, at + 1))
+    }
+
+    @Test
+    fun aChangeAlreadyPastTurnsTheSky() {
+        val at = 10_000_000L
+        assertEquals(Triple("rain", "", -1L), WalkFacts.changeNow("clear", "starts", at, at + 1))
+        assertEquals(Triple("snow", "", -1L), WalkFacts.changeNow("clear", "starts", at, at + 1, snow = true))
+        assertEquals(Triple("clear", "", -1L), WalkFacts.changeNow("snow", "stops", at, at + 1))
+        assertEquals(Triple("fog", "", -1L), WalkFacts.changeNow("fog", "stops", at, at + 1))
     }
 
     @Test
