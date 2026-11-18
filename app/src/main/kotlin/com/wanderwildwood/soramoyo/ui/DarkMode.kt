@@ -297,14 +297,17 @@ object DarkMode {
     /**
      * Asks Home what its switch says. With no Home on the phone (no answer, or the provider is held
      * by an app that is not Home), Home's last word is forgotten: settings brought back from a
-     * backup made beside Home would otherwise keep the app dark on a phone without it.
+     * backup made beside Home would otherwise keep the app dark on a phone without it. A Home that
+     * is there and gives no answer, as while it is being updated, has not gone: its word stands.
      */
     private fun askHome() {
         val context = app ?: return
         asker.execute {
             runCatching {
-                val cursor = if (isHome(context)) context.contentResolver.query(HOME, null, null, null, null) else null
+                val home = isHome(context)
+                val cursor = if (home) context.contentResolver.query(HOME, null, null, null, null) else null
                 if (cursor == null) {
+                    if (home) return@runCatching
                     val p = prefs(context)
                     if (p.getBoolean(KEY_HOME, false)) {
                         p.edit().putBoolean(KEY_HOME, false).apply()
