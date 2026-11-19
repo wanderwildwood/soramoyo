@@ -373,8 +373,17 @@ private fun TodayColumn(
             state.reading ?: current?.takeIf { noStation }?.let { asReading(it, state.metric) }
         }
         val lines = ArrayList<ReadRow>()
-        rows?.let { lines += readingRows(it) }
-        state.air?.let { lines += airRows(it, state.metric) }
+        // The UV and the air quality share a line when there are both: two ways the sky is
+        // kind or not to be out under, read together.
+        val aqi = state.air?.let { aqiRow(it, state.metric) }
+        val uv = rows?.let { uvRow(it) }
+        rows?.let { lines += readingRows(it, uv = aqi == null) }
+        if (uv != null && aqi != null) {
+            lines += ReadRow(short = false) { PairLine(uv, aqi) }
+        } else {
+            aqi?.let { lines += it }
+        }
+        state.air?.let { lines += pollenRows(it) }
         val (sunrise, sunset) = today?.let { sunTimes(it, state) } ?: (null to null)
         if (sunrise != null && sunset != null) lines += sunRows(sunrise, sunset)
         pairedRows(lines) { row ->
@@ -511,25 +520,27 @@ private fun asReading(c: Current, metric: Boolean): StationReading {
 }
 
 /**
- * The air: its quality on the scale that goes with the units (the US index with imperial,
- * the European one with metric), and the two heaviest pollens where there are any.
+ * The air's quality on the scale that goes with the units (the US index with imperial, the
+ * European one with metric), or null where there is no figure.
  */
-private fun airRows(air: Air, metric: Boolean): List<ReadRow> {
-    val rows = ArrayList<ReadRow>()
+private fun aqiRow(air: Air, metric: Boolean): ReadRow? {
     val us = !metric || air.europeanAqi == null
-    val aqi = if (us) air.usAqi else air.europeanAqi
-    if (aqi != null) {
-        rows += ReadRow(short = false) { paired ->
-            val band = if (us) AirQuality.usBand(aqi) else AirQuality.europeanBand(aqi)
-            Reading(
-                label = stringResource(R.string.sky_air),
-                value = aqi.toString(),
-                unit = stringResource(if (us) R.string.sky_air_us else R.string.sky_air_eu),
-                note = stringResource(bandName(band, us)),
-                paired = paired,
-            )
-        }
+    val aqi = (if (us) air.usAqi else air.europeanAqi) ?: return null
+    return ReadRow(short = false) { paired ->
+        val band = if (us) AirQuality.usBand(aqi) else AirQuality.europeanBand(aqi)
+        Reading(
+            label = stringResource(R.string.sky_air),
+            value = aqi.toString(),
+            unit = stringResource(if (us) R.string.sky_air_us else R.string.sky_air_eu),
+            note = stringResource(bandName(band, us)),
+            paired = paired,
+        )
     }
+}
+
+/** The two heaviest pollens, where there are any. */
+private fun pollenRows(air: Air): List<ReadRow> {
+    val rows = ArrayList<ReadRow>()
     air.pollen.take(2).forEach { (kind, grains) ->
         rows += ReadRow(short = true) { paired ->
             Reading(
@@ -692,7 +703,7 @@ internal class ReadRow(val short: Boolean, val draw: @Composable (paired: Boolea
  * UV and the soil. The wind, humidity and pressure are in the head already. A station without a
  * soil probe has no soil row, rather than a dash beside one.
  */
-private fun readingRows(reading: StationReading): List<ReadRow> {
+private fun readingRows(reading: StationReading, uv: Boolean = true): List<ReadRow> {
     val rows = ArrayList<ReadRow>()
     reading.rainToday?.let { rain ->
         val rate = reading.rainRate
@@ -715,9 +726,14 @@ private fun readingRows(reading: StationReading): List<ReadRow> {
     reading.dewPoint?.let { dew ->
         rows += ReadRow(true) { Reading(stringResource(R.string.sky_dew_point), "${dew.number.roundToInt()}°", dew.unit, paired = it) }
     }
-    reading.uvIndex?.let { uv -> rows += ReadRow(true) { Reading(stringResource(R.string.sky_uv), uv.roundToInt().toString(), "", paired = it) } }
+    if (uv) uvRow(reading)?.let { rows += it }
     reading.soilMoisture?.let { rows += ReadRow(true) { p -> Reading(stringResource(R.string.sky_soil), it.toString(), "%", paired = p) } }
     return rows
+}
+
+/** The UV index as a short row, if the station reads it. */
+private fun uvRow(reading: StationReading): ReadRow? = reading.uvIndex?.let { uv ->
+    ReadRow(true) { Reading(stringResource(R.string.sky_uv), uv.roundToInt().toString(), "", paired = it) }
 }
 
 /** Sunrise and sunset as two short rows, the same on Today and on a day's page. */
@@ -733,12 +749,7 @@ internal fun pairedRows(rows: List<ReadRow>, item: (@Composable () -> Unit) -> U
         val first = rows[i]
         val second = rows.getOrNull(i + 1)
         if (first.short && second != null && second.short) {
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                    Box(Modifier.weight(1f)) { first.draw(true) }
-                    Box(Modifier.weight(1f)) { second.draw(true) }
-                }
-            }
+            item { PairLine(first, second) }
             i += 2
         } else {
             item { first.draw(false) }
@@ -1361,6 +1372,15 @@ private fun snowDepth(value: Double?, inches: Boolean): String? {
 
 /** Open-Meteo gives snow in centimetres beside millimetres of rain, and inches beside inches. */
 private fun snowUnit(inches: Boolean): String = if (inches) "in" else "cm"
+
+/** Two rows side by side, each in half of the line. */
+@Composable
+internal fun PairLine(first: ReadRow, second: ReadRow) {
+    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+        Box(Modifier.weight(1f)) { first.draw(true) }
+        Box(Modifier.weight(1f)) { second.draw(true) }
+    }
+}
 
 /**
  * A label, a number with its unit, and a note only where a label cannot carry it. [paired] sets
