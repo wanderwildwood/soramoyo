@@ -1252,7 +1252,9 @@ private fun LaterHours(hours: List<Hour>, days: List<Day>) {
             modifier = Modifier.padding(end = 92.dp),
         )
         Spacer(Modifier.height(6.dp))
-        Strip(hours, days = days)
+        // The first hour is left unwritten: the line above already gives it, and written from the
+        // strip's left edge "23:00" ran into the "01:00" two columns on.
+        Strip(hours, first = "", days = days)
     }
 }
 
