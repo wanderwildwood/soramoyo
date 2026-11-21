@@ -5,9 +5,6 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.clickable
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
@@ -86,7 +83,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /** The four tabs, in the order they sit. */
@@ -1133,10 +1129,10 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
         NextHours(hours, inches, raining, days, sayWhen)
         return
     }
-    // The twelve hours after these, a swipe across the strip away. The swipe jumps there, as
-    // the pages up and down do, rather than sliding the strip under the finger: on this panel
-    // a half-drawn page is only smear. The word under it jumps there too, for anyone who does
-    // not think to swipe.
+    // The twelve hours after these, a press of the word under them away. Only the word turns
+    // the strip, and it jumps rather than slides: on this panel a half-drawn page is only
+    // smear. A swipe across the strip once turned it too, but swipes up and down over it to
+    // scroll Today kept turning it by mistake, so it was taken out.
     val pager = rememberPagerState { 2 }
     val scope = rememberCoroutineScope()
     // Back in Sky, the next hours again rather than the later ones left showing.
@@ -1149,33 +1145,7 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
     // the line above as well.
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            // Only a swipe that goes clearly across turns it: sideways twice as far as up or
-            // down, and past twice the touch slop. One that moves up or down first is left to
-            // the page, so a slanted swipe to scroll Today no longer turns the strip.
-            .pointerInput(pager) {
-                val slop = viewConfiguration.touchSlop
-                awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    while (true) {
-                        val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
-                        if (!change.pressed) break
-                        val dx = change.position.x - down.position.x
-                        val dy = change.position.y - down.position.y
-                        if (abs(dy) > slop || (abs(dx) > slop && abs(dx) < 2 * abs(dy))) break
-                        if (abs(dx) > 2 * slop) {
-                            change.consume()
-                            scope.launch { pager.scrollToPage(if (dx < 0f) 1 else 0) }
-                            // The rest of this swipe is spent.
-                            do {
-                                val rest = awaitPointerEvent().changes.firstOrNull { it.id == down.id }
-                                rest?.consume()
-                            } while (rest != null && rest.pressed)
-                            break
-                        }
-                    }
-                }
-            },
+            .fillMaxWidth(),
     ) {
         Box(modifier = Modifier.fillMaxWidth().alpha(0f).clearAndSetSemantics {}) {
             NextHours(hours, inches, raining, days, sayWhen)
