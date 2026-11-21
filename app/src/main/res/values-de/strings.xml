@@ -280,8 +280,13 @@
     <string name="station_wu_key">API-Schlüssel</string>
     <string name="settings_place">Vorhersage und Radar für</string>
     <string name="settings_place_phone">Den Ort des Telefons</string>
+    <string name="settings_place_phone_found">Den Ort des Telefons: %1$s, gefunden %2$s</string>
+    <string name="settings_north">N</string>
+    <string name="settings_south">S</string>
+    <string name="settings_east">O</string>
+    <string name="settings_west">W</string>
     <string name="settings_units">Einheiten</string>
-    <string name="settings_units_automatic">Wie die Station liest, sonst das Land des Telefons</string>
+    <string name="settings_units_automatic">Wie die Station liest, sonst wie das Land der Vorhersage zählt</string>
     <string name="settings_units_metric">Metrisch: °C, km/h, mm, hPa</string>
     <string name="settings_units_imperial">Imperial: °F, mph, in, inHg</string>
     <string name="settings_place_why">Ein hier gewählter Ort wird statt der Position des Telefons verwendet, die es dann nie liest. Das lohnt sich auf einem Telefon mit nur einem GPS, das drinnen vielleicht gar nichts findet.</string>

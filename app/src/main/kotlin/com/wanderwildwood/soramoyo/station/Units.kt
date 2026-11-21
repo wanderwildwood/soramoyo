@@ -7,22 +7,48 @@ import java.util.Locale
  * Readings into the units they are shown in, for the sources that do not say.
  *
  * An Ecowitt gateway reports in whatever its owner set, and is shown that way. A Tempest
- * always sends metric and a Davis always sends imperial, so those follow the phone's country
- * instead — the same rule the forecast falls back on — and are written the way an Ecowitt
+ * always sends metric and a Davis always sends imperial, so those follow the country of the
+ * place the forecast is for — the same rule the forecast falls back on — and are written the way an Ecowitt
  * writes them, so the screen reads the same whichever station is behind it.
  *
  * Unless metric or imperial is chosen in settings, which then goes for everything: the
  * forecast, and the station too, an Ecowitt's readings converted from its gateway's units.
  */
 object Units {
-    /** The three countries that still count in Fahrenheit. */
-    fun metricHere(): Boolean = Locale.getDefault().country !in setOf("US", "LR", "MM")
+    /** False only in the three countries that still count in Fahrenheit. */
+    internal fun metricIn(country: String?): Boolean = country !in setOf("US", "LR", "MM")
 
-    /** What the settings say: follow the station (else the country), or always one or the other. */
+    /**
+     * The country of the place the forecast was last for, else the phone's own. A phone set to
+     * English (United States) in Sydney is common, and its owner reads Celsius.
+     */
+    fun metricHere(context: Context): Boolean = metricIn(
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_COUNTRY, null)
+            ?: Locale.getDefault().country,
+    )
+
+    /**
+     * Notes the country of the forecast's place, found from the time zone the forecast named
+     * (Australia/Sydney is in AU), and says whether it counts in metric; null when the zone
+     * names no country. Worked out on the phone: nothing more is sent anywhere.
+     */
+    fun notePlace(context: Context, zone: String?): Boolean? {
+        val country = zone?.let(::countryOf) ?: return null
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_COUNTRY, country).apply()
+        return metricIn(country)
+    }
+
+    /** The two-letter country of a time zone, or null for one such as UTC that has none. */
+    private fun countryOf(zone: String): String? =
+        runCatching { android.icu.util.TimeZone.getRegion(zone) }.getOrNull()
+            ?.takeIf { it.length == 2 && it.all(Char::isLetter) }
+
+    /** What the settings say: follow the station (else the place's country), or always one or the other. */
     enum class Choice { AUTOMATIC, METRIC, IMPERIAL }
 
     private const val PREFS = "sky"
     private const val KEY = "units"
+    private const val KEY_COUNTRY = "place_country"
 
     fun choice(context: Context): Choice =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null)

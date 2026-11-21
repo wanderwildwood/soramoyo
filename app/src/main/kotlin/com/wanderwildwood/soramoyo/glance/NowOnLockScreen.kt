@@ -127,7 +127,7 @@ internal object Weather {
             val pending = scope.async { runCatching { Stations.read(context, source) }.getOrNull() }
             withTimeoutOrNull(STATION_WAIT_MS) { pending.await() }
         }
-        val metric = Units.chosen(context) ?: reading?.metric ?: Units.metricHere()
+        val metric = Units.chosen(context) ?: reading?.metric ?: Units.metricHere(context)
         val predicted = Forecast.fetch(here.lat, here.lon, metric)
         val now = reading?.temperature?.number ?: predicted.current?.temperature ?: return null
         val today = predicted.days.firstOrNull { it.date == LocalDateTime.now(predicted.clock).toLocalDate() }

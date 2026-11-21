@@ -43,13 +43,14 @@ object LocationProvider {
         val cached = newestCached(context)
         // Remembered either way, for the weather asked for out of sight (lastFound): kept only
         // when a new fix was fetched, a phone whose cached fix was always fresh had none.
-        if (cached != null && ageMs(cached) < FRESH_MS) return rounded(cached).also { remember(context, it) }
+        if (cached != null && ageMs(cached) < FRESH_MS) return rounded(cached).also { remember(context, it, fixedAt(cached)) }
         // The network first, because it answers in seconds where it answers at all; but a
         // phone without Google's location service may list a network provider that never
         // answers, so it gets a short turn before the GPS gets a long one.
         val fresh = withTimeoutOrNull(NETWORK_WAIT_MS) { current(context, LocationManager.NETWORK_PROVIDER) }
             ?: withTimeoutOrNull(GPS_WAIT_MS) { current(context, LocationManager.GPS_PROVIDER) }
-        return (fresh ?: cached)?.let(::rounded)?.also { remember(context, it) }
+        val found = fresh ?: cached ?: return null
+        return rounded(found).also { remember(context, it, fixedAt(found)) }
     }
 
     /**
@@ -65,12 +66,23 @@ object LocationProvider {
         return LatLon(lat, lon)
     }
 
-    private fun remember(context: Context, at: LatLon) {
+    /**
+     * When the position [lastFound] gives was fixed, by the clock, or null if it was found
+     * before this was kept. Settings shows it, so a stale fix can be seen for what it is.
+     */
+    fun lastFoundAt(context: Context): Long? =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getLong(KEY_AT, 0L).takeIf { it > 0L }
+
+    private fun remember(context: Context, at: LatLon, fixedAtMs: Long) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putString(KEY_LAT, at.lat.toString())
             .putString(KEY_LON, at.lon.toString())
+            .putLong(KEY_AT, fixedAtMs)
             .apply()
     }
+
+    /** The wall-clock time of a fix, from its age rather than its own clock, which a GPS fix may have from the satellites. */
+    private fun fixedAt(location: Location): Long = System.currentTimeMillis() - ageMs(location)
 
     /** The newer of the two cached fixes. GPS first would prefer a day-old GPS fix to a minute-old network one. */
     private fun newestCached(context: Context): Location? {
@@ -118,6 +130,7 @@ object LocationProvider {
     private const val PREFS = "last_found"
     private const val KEY_LAT = "lat"
     private const val KEY_LON = "lon"
+    private const val KEY_AT = "at"
     private const val FRESH_MS = 15 * 60 * 1000L
     private const val NETWORK_WAIT_MS = 8_000L
     private const val GPS_WAIT_MS = 30_000L

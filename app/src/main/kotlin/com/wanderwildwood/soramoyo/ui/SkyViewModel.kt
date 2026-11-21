@@ -32,7 +32,6 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
-import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
 
 /** Why the station has nothing new to show. */
@@ -384,7 +383,9 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
             _state.update { it.copy(forecastTrouble = ForecastTrouble.NO_PERMISSION) }
             return
         }
-        val metric = Units.chosen(context) ?: _state.value.reading?.metric ?: localeIsMetric()
+        val chosen = Units.chosen(context)
+        val stationMetric = _state.value.reading?.metric
+        var metric = chosen ?: stationMetric ?: Units.metricHere(context)
         val now = SystemClock.elapsedRealtime()
         val fresh = forecastAtMs != 0L && now - forecastAtMs < FORECAST_EVERY_MS
         val sameUnits = forecastFor?.second == metric
@@ -434,7 +435,18 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             try {
-                val predicted = Forecast.fetch(here.lat, here.lon, metric)
+                var predicted = Forecast.fetch(here.lat, here.lon, metric)
+                // Left to itself, the units are the place's: its country is known only once the
+                // forecast names its time zone, so a first forecast for a new country can come
+                // in the wrong ones, and is asked for again in the right ones before it is shown.
+                if (chosen == null) {
+                    val placeMetric = Units.notePlace(context, predicted.zone?.id)
+                    if (stationMetric == null && placeMetric != null && placeMetric != metric) {
+                        metric = placeMetric
+                        asking = metric
+                        predicted = Forecast.fetch(here.lat, here.lon, metric)
+                    }
+                }
                 forecastAtMs = SystemClock.elapsedRealtime()
                 forecastFor = here to metric
                 _state.update {
@@ -466,8 +478,5 @@ class SkyViewModel(app: Application) : AndroidViewModel(app) {
 
         /** How long "Up to date" or the failure stays at the top of a list. */
 
-        /** The three countries that still count in Fahrenheit. */
-        private fun localeIsMetric(): Boolean =
-            Locale.getDefault().country !in setOf("US", "LR", "MM")
     }
 }

@@ -49,6 +49,11 @@ import com.mudita.mmd.components.top_app_bar.TopAppBarMMD
 import com.wanderwildwood.soramoyo.R
 import com.wanderwildwood.soramoyo.location.Place
 import com.wanderwildwood.soramoyo.location.Places
+import com.wanderwildwood.soramoyo.location.LatLon
+import com.wanderwildwood.soramoyo.location.LocationProvider
+import android.text.format.DateUtils
+import java.util.Locale
+import kotlin.math.abs
 import com.wanderwildwood.soramoyo.station.Source
 import com.wanderwildwood.soramoyo.station.Units
 import kotlinx.coroutines.launch
@@ -64,7 +69,7 @@ import androidx.compose.ui.semantics.selected
  * The things there are to set: which station, where the forecast and radar are for (and a
  * second place to switch to), the units, the lock screen and alert notifications.
  *
- * Units follow the station, else the phone's country, until told otherwise. They were left
+ * Units follow the station, else the country the forecast is for, until told otherwise. They were left
  * out at first, on the grounds that the gateway already knows how its owner counts; but a
  * phone set to one country and a person from another is common, and most have no gateway.
  */
@@ -115,7 +120,7 @@ fun SettingsScreen(
             item {
                 Setting(
                     title = stringResource(R.string.settings_place),
-                    value = place?.label ?: stringResource(R.string.settings_place_phone),
+                    value = place?.label ?: phonePosition(),
                     onClick = { placeOpen = true },
                 )
             }
@@ -368,6 +373,31 @@ private fun Setting(title: String, value: String, onClick: () -> Unit) {
         TextMMD(text = value, style = MaterialTheme.typography.labelSmall)
     }
 }
+
+/**
+ * Where the phone was last found and when, for the place row when no place is chosen: a fix
+ * days old, or none at all, is otherwise invisible until the weather is wrong. Read when
+ * Settings opens; the time is the phone's own clock style, with the date when it is not today.
+ */
+@Composable
+private fun phonePosition(): String {
+    val context = LocalContext.current
+    val at = LocationProvider.lastFound(context)
+    val time = LocationProvider.lastFoundAt(context)
+    if (at == null || time == null) return stringResource(R.string.settings_place_phone)
+    val position = position(
+        at,
+        stringResource(R.string.settings_north), stringResource(R.string.settings_south),
+        stringResource(R.string.settings_east), stringResource(R.string.settings_west),
+    )
+    val today = DateUtils.isToday(time)
+    val flags = DateUtils.FORMAT_SHOW_TIME or (if (today) 0 else DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_ABBREV_MONTH)
+    return stringResource(R.string.settings_place_phone_found, position, DateUtils.formatDateTime(context, time, flags))
+}
+
+/** A position as 33.87° S, 151.21° E: two places, as rounded when it was found, and the compass letters given. */
+internal fun position(at: LatLon, n: String, s: String, e: String, w: String): String =
+    String.format(Locale.US, "%.2f° %s, %.2f° %s", abs(at.lat), if (at.lat < 0) s else n, abs(at.lon), if (at.lon < 0) w else e)
 
 private fun unitsName(choice: Units.Choice): Int = when (choice) {
     Units.Choice.AUTOMATIC -> R.string.settings_units_automatic

@@ -5,6 +5,8 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.clickable
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
@@ -1129,9 +1131,10 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
         NextHours(hours, inches, raining, days, sayWhen)
         return
     }
-    // The twelve hours after these, a swipe across the strip away. The word under it jumps
-    // there too, without a slide, for anyone who does not think to swipe: on this panel a
-    // half-drawn page is only smear.
+    // The twelve hours after these, a swipe across the strip away. The swipe jumps there, as
+    // the pages up and down do, rather than sliding the strip under the finger: on this panel
+    // a half-drawn page is only smear. The word under it jumps there too, for anyone who does
+    // not think to swipe.
     val pager = rememberPagerState { 2 }
     val scope = rememberCoroutineScope()
     // Back in Sky, the next hours again rather than the later ones left showing.
@@ -1142,12 +1145,24 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
     // short of it, so the strip has no row of its own to take: the next twelve hours then fit
     // under the day on the first page. Its touch area is the full 48 dp, over the empty end of
     // the line above as well.
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .pointerInput(pager) {
+                var turned = false
+                detectHorizontalDragGestures(onDragStart = { turned = false }) { _, drag ->
+                    if (!turned && drag != 0f) {
+                        turned = true
+                        scope.launch { pager.scrollToPage(if (drag < 0f) 1 else 0) }
+                    }
+                }
+            },
+    ) {
         Box(modifier = Modifier.fillMaxWidth().alpha(0f).clearAndSetSemantics {}) {
             NextHours(hours, inches, raining, days, sayWhen)
             LaterHours(after, days)
         }
-        HorizontalPager(state = pager, verticalAlignment = Alignment.Top, modifier = Modifier.matchParentSize()) { page ->
+        HorizontalPager(state = pager, userScrollEnabled = false, verticalAlignment = Alignment.Top, modifier = Modifier.matchParentSize()) { page ->
             if (page == 0) NextHours(hours, inches, raining, days, sayWhen) else LaterHours(after, days)
         }
         Box(

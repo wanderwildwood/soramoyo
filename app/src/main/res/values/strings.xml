@@ -283,8 +283,15 @@
     <string name="station_wu_key">API key</string>
     <string name="settings_place">Forecast and radar for</string>
     <string name="settings_place_phone">Where the phone is</string>
+    <!-- %1$s is a position such as 33.87° S, 151.21° E; %2$s when it was found, a time or a date and time -->
+    <string name="settings_place_phone_found">Where the phone is: %1$s, found %2$s</string>
+    <!-- Compass letters after a latitude or longitude -->
+    <string name="settings_north">N</string>
+    <string name="settings_south">S</string>
+    <string name="settings_east">E</string>
+    <string name="settings_west">W</string>
     <string name="settings_units">Units</string>
-    <string name="settings_units_automatic">As the station reads, or else the phone\'s country</string>
+    <string name="settings_units_automatic">As the station reads, or else as the forecast\'s country counts</string>
     <string name="settings_units_metric">Metric: °C, km/h, mm, hPa</string>
     <string name="settings_units_imperial">Imperial: °F, mph, in, inHg</string>
     <string name="settings_place_why">A place chosen here is used instead of the phone\'s position, which it then never reads. Worth it on a phone with only a GPS, which indoors may not find itself at all.</string>

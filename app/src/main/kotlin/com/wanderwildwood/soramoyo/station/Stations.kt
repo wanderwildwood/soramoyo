@@ -22,11 +22,11 @@ import kotlin.math.roundToInt
 object Stations {
     /**
      * In the units chosen in settings. Left to itself an Ecowitt reading stays in its
-     * gateway's units, and the others follow the phone's country.
+     * gateway's units, and the others follow the forecast place's country.
      */
     suspend fun read(context: Context, source: Source): StationReading {
         val chosen = Units.chosen(context)
-        val metric = chosen ?: Units.metricHere()
+        val metric = chosen ?: Units.metricHere(context)
         return when (source) {
             is Source.Ecowitt -> StationClient.read(source.address).let { if (chosen == null) it else Units.convert(it, chosen) }
             is Source.Davis -> Davis.read(source.address, metric)
