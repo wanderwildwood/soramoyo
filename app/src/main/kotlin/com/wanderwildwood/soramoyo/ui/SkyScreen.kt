@@ -6,7 +6,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.clickable
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
@@ -85,6 +86,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /** The four tabs, in the order they sit. */
@@ -1148,12 +1150,29 @@ private fun Hours(hours: List<Hour>, after: List<Hour>, inches: Boolean, raining
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            // Only a swipe that goes clearly across turns it: sideways twice as far as up or
+            // down, and past twice the touch slop. One that moves up or down first is left to
+            // the page, so a slanted swipe to scroll Today no longer turns the strip.
             .pointerInput(pager) {
-                var turned = false
-                detectHorizontalDragGestures(onDragStart = { turned = false }) { _, drag ->
-                    if (!turned && drag != 0f) {
-                        turned = true
-                        scope.launch { pager.scrollToPage(if (drag < 0f) 1 else 0) }
+                val slop = viewConfiguration.touchSlop
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    while (true) {
+                        val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
+                        if (!change.pressed) break
+                        val dx = change.position.x - down.position.x
+                        val dy = change.position.y - down.position.y
+                        if (abs(dy) > slop || (abs(dx) > slop && abs(dx) < 2 * abs(dy))) break
+                        if (abs(dx) > 2 * slop) {
+                            change.consume()
+                            scope.launch { pager.scrollToPage(if (dx < 0f) 1 else 0) }
+                            // The rest of this swipe is spent.
+                            do {
+                                val rest = awaitPointerEvent().changes.firstOrNull { it.id == down.id }
+                                rest?.consume()
+                            } while (rest != null && rest.pressed)
+                            break
+                        }
                     }
                 }
             },
