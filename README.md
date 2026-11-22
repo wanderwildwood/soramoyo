@@ -216,6 +216,8 @@ For updates without doing this by hand, add this repository to
 
     https://github.com/wanderwildwood/soramoyo
 
+Questions, ideas, or just saying hello: the wander the dev Discord, <https://discord.gg/UMW8yJg7dQ>
+
 ## Privacy
 
 Privacy: what the app stores and what it sends is set out in [PRIVACY.md](PRIVACY.md).
