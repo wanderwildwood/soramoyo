@@ -3,6 +3,7 @@ package com.wanderwildwood.soramoyo.glance
 import com.wanderwildwood.soramoyo.glance.WalkFacts.InForce
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -94,5 +95,71 @@ class WalkFactsTest {
         assertEquals(0f, WalkFacts.moonPhase(0.0), 1e-6f)
         assertEquals(0.5f, WalkFacts.moonPhase(180.0), 1e-6f)
         assertEquals(0.75f, WalkFacts.moonPhase(270.0), 1e-6f)
+    }
+
+    private fun hoursFrom(start: String, zone: String, vararg hpa: Double?): List<Pair<java.time.Instant, Double?>> {
+        val first = java.time.LocalDateTime.parse(start).atZone(java.time.ZoneId.of(zone)).toInstant()
+        return hpa.mapIndexed { i, p -> first.plusSeconds(i * 3600L) to p }
+    }
+
+    @Test
+    fun pressureFallingIsPositive() {
+        val utc = java.time.ZoneId.of("UTC")
+        val h = hoursFrom("2026-11-23T06:00", "UTC", 1015.0, 1014.0, 1013.0, 1012.5, 1012.0)
+        // 09:30: this hour is 09:00 (1012.5), three back 06:00 (1015.0)
+        assertEquals(2.5f, WalkFacts.pressureFall(h, java.time.Instant.parse("2026-11-23T09:30:00Z"), utc)!!, 0.001f)
+    }
+
+    @Test
+    fun pressureRisingIsNegative() {
+        val utc = java.time.ZoneId.of("UTC")
+        val h = hoursFrom("2026-11-23T06:00", "UTC", 1010.0, 1011.0, 1012.0, 1013.2)
+        assertEquals(-3.2f, WalkFacts.pressureFall(h, java.time.Instant.parse("2026-11-23T09:00:00Z"), utc)!!, 0.001f)
+    }
+
+    @Test
+    fun pressureFallMissingHoursIsNull() {
+        val utc = java.time.ZoneId.of("UTC")
+        val now = java.time.Instant.parse("2026-11-23T09:10:00Z")
+        assertNull(WalkFacts.pressureFall(emptyList(), now, utc))
+        // the hour now unknown, then the hour three back unknown, then the hour three back not in the list
+        assertNull(WalkFacts.pressureFall(hoursFrom("2026-11-23T06:00", "UTC", 1015.0, 1014.0, 1013.0, null), now, utc))
+        assertNull(WalkFacts.pressureFall(hoursFrom("2026-11-23T06:00", "UTC", null, 1014.0, 1013.0, 1012.0), now, utc))
+        assertNull(WalkFacts.pressureFall(hoursFrom("2026-11-23T07:00", "UTC", 1014.0, 1013.0, 1012.0), now, utc))
+    }
+
+    @Test
+    fun pressureFallAcrossTheClocksGoingForwardIsStillThreeHours() {
+        // New York, 2026-03-08: 02:00 became 03:00, so local 00 01 03 04 05 are five real hours in a row.
+        val zone = "America/New_York"
+        val z = java.time.ZoneId.of(zone)
+        val h = hoursFrom("2026-03-08T00:00", zone, 1020.0, 1019.0, 1018.0, 1017.0, 1016.0)
+        val now = java.time.LocalDateTime.parse("2026-03-08T04:20").atZone(z).toInstant()
+        // 04:20: this hour is 04:00 EDT (1017); three real hours back is 00:00 EST (1020), not 01:00 on the wall clock
+        assertEquals(3.0f, WalkFacts.pressureFall(h, now, z)!!, 0.001f)
+        val next = java.time.LocalDateTime.parse("2026-03-08T05:20").atZone(z).toInstant()
+        // 05:20: 05:00 EDT (1016) back to 01:00 EST (1019)
+        assertEquals(3.0f, WalkFacts.pressureFall(h, next, z)!!, 0.001f)
+    }
+
+    @Test
+    fun pressureFallInAHalfHourZone() {
+        // India: the hours start on the half hour in UTC; "this hour" is the place's own.
+        val zone = "Asia/Kolkata"
+        val z = java.time.ZoneId.of(zone)
+        val h = hoursFrom("2026-11-23T00:00", zone, 1010.0, 1009.5, 1009.0, 1008.0)
+        val now = java.time.LocalDateTime.parse("2026-11-23T03:40").atZone(z).toInstant()
+        assertEquals(2.0f, WalkFacts.pressureFall(h, now, z)!!, 0.001f)
+    }
+
+    @Test
+    fun pressureKeptSurvivesTheCacheAndLeavesOutWhatIsUnknown() {
+        val now = java.time.Instant.parse("2026-11-23T09:10:00Z")
+        val h = hoursFrom("2026-11-23T00:00", "UTC", 1000.0, 1001.0, 1002.0, null, 1004.0, 1005.0, 1006.0, 1007.0, 1008.0, 1009.0, 1010.0)
+        val back = WalkFacts.pressureRead(WalkFacts.pressureKept(h, now))
+        // 03:00 (six back) to 10:00 (one ahead) are kept; the unknown 03:00 is not
+        assertEquals(listOf(1004.0, 1005.0, 1006.0, 1007.0, 1008.0, 1009.0, 1010.0), back.map { it.second })
+        assertEquals(emptyList<Any>(), WalkFacts.pressureRead(null))
+        assertEquals(emptyList<Any>(), WalkFacts.pressureRead("junk,1=,=2,3=x"))
     }
 }

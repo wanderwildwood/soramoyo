@@ -299,4 +299,24 @@ class ForecastTest {
         assertTrue(url.contains("forecast_minutely_15=16"))
         assertTrue(url.startsWith("https://api.open-meteo.com/v1/forecast?"))
     }
+
+    @Test
+    fun readsTheHourlyPressureAndAsksForIt() {
+        assertTrue(Forecast.urlFor(51.5, -0.13, metric = true).contains("pressure_msl"))
+        val json = """
+            {"utc_offset_seconds":3600,"timezone":"Europe/Prague","daily":{"time":[],"weather_code":[],"temperature_2m_max":[],"temperature_2m_min":[]},
+             "hourly":{"time":["2026-11-23T00:00","2026-11-23T01:00","2026-11-23T02:00"],"temperature_2m":[4.0,4.0,4.0],
+              "pressure_msl":[1012.4,null,1011.0]}}
+        """.trimIndent()
+        assertEquals(listOf(1012.4, null, 1011.0), Forecast.parse(json).hours.map { it.pressure })
+    }
+
+    @Test
+    fun hoursWithoutPressureStillParse() {
+        val json = """
+            {"utc_offset_seconds":0,"daily":{"time":[],"weather_code":[],"temperature_2m_max":[],"temperature_2m_min":[]},
+             "hourly":{"time":["2026-11-23T00:00"],"temperature_2m":[4.0]}}
+        """.trimIndent()
+        assertEquals(listOf<Double?>(null), Forecast.parse(json).hours.map { it.pressure })
+    }
 }

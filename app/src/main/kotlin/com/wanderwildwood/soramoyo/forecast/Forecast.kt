@@ -75,6 +75,8 @@ data class Hour(
     val rain: Double?,
     /** Snow in centimetres or inches, as the day's is. */
     val snow: Double? = null,
+    /** Mean sea-level pressure in hPa (the forecast gives hPa whatever units were asked for), null where it gave none. */
+    val pressure: Double? = null,
 )
 
 /**
@@ -194,7 +196,7 @@ object Forecast {
             )
             // Every hour of every day asked for: Today takes the next twelve, and each day's
             // own page takes its twenty-four.
-            .addQueryParameter("hourly", "weather_code,temperature_2m,precipitation_probability,precipitation,snowfall")
+            .addQueryParameter("hourly", "weather_code,temperature_2m,precipitation_probability,precipitation,snowfall,pressure_msl")
             // The next four hours in quarter-hours, for the line about rain in the next two; the
             // other two are for the forecast being a little old by the time it is looked at.
             .addQueryParameter("minutely_15", "precipitation")
@@ -328,6 +330,7 @@ object Forecast {
         val chances = hourly.optJSONArray("precipitation_probability")
         val amounts = hourly.optJSONArray("precipitation")
         val snows = hourly.optJSONArray("snowfall")
+        val pressures = hourly.optJSONArray("pressure_msl")
         return (0 until times.length()).mapNotNull { i ->
             if (temps.isNull(i)) return@mapNotNull null
             Hour(
@@ -337,6 +340,7 @@ object Forecast {
                 rainChance = chances?.takeUnless { it.isNull(i) }?.getInt(i),
                 rain = amounts?.takeUnless { it.isNull(i) }?.getDouble(i),
                 snow = snows?.takeUnless { it.isNull(i) }?.getDouble(i),
+                pressure = pressures?.takeUnless { it.isNull(i) }?.optDouble(i)?.takeIf { !it.isNaN() },
             )
         }
     }

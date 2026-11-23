@@ -97,4 +97,37 @@ internal object WalkFacts {
     }
 
     fun moonPhase(angle: Double): Float = (((angle % 360.0) + 360.0) % 360.0 / 360.0).toFloat()
+
+    /** The hours kept for the pressure's fall: this many back from now, which is enough to look three back. */
+    const val PRESSURE_KEEP_HOURS = 6L
+
+    /** How far back the fall looks, in hours. */
+    const val PRESSURE_SPAN_HOURS = 3L
+
+    /** Hours of pressure (hPa) as kept between fetches: "epoch seconds=hPa" pairs, comma apart; only the ones that are known. */
+    fun pressureKept(hours: List<Pair<java.time.Instant, Double?>>, now: java.time.Instant): String =
+        hours.filter { (at, hpa) ->
+            hpa != null && !at.isBefore(now.minusSeconds(PRESSURE_KEEP_HOURS * 3600)) && !at.isAfter(now.plusSeconds(3600))
+        }.joinToString(",") { (at, hpa) -> "${at.epochSecond}=$hpa" }
+
+    fun pressureRead(kept: String?): List<Pair<java.time.Instant, Double?>> =
+        kept.orEmpty().split(',').mapNotNull { pair ->
+            val (t, p) = pair.split('=').takeIf { it.size == 2 } ?: return@mapNotNull null
+            val at = t.toLongOrNull() ?: return@mapNotNull null
+            val hpa = p.toDoubleOrNull()?.takeIf { it.isFinite() } ?: return@mapNotNull null
+            java.time.Instant.ofEpochSecond(at) to hpa
+        }
+
+    /**
+     * How far the sea-level pressure has fallen over the three hours to the hour under way, in hPa: the pressure three
+     * hours back minus now's, so a fall is positive and a rise negative. Hours are taken as instants, so a change of the
+     * clocks inside the three does not make it two or four. Null if either hour is not known: not a fall of nothing.
+     */
+    fun pressureFall(hours: List<Pair<java.time.Instant, Double?>>, now: java.time.Instant, zone: java.time.ZoneId): Float? {
+        val thisHour = now.atZone(zone).truncatedTo(java.time.temporal.ChronoUnit.HOURS).toInstant()
+        val before = thisHour.minusSeconds(PRESSURE_SPAN_HOURS * 3600)
+        val then = hours.firstOrNull { it.first == before }?.second ?: return null
+        val nowP = hours.firstOrNull { it.first == thisHour }?.second ?: return null
+        return (Math.round((then - nowP) * 10) / 10.0).toFloat()
+    }
 }

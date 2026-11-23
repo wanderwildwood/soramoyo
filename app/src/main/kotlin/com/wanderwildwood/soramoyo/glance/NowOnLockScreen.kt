@@ -170,6 +170,8 @@ internal object Weather {
                 listOfNotNull(predicted.current?.code) + soon.map { it.code },
             ))
             .putFloat(SNOWFALL, day.sumOf { WalkFacts.centimetres(it.snow, predicted.inches) }.toFloat())
+            // the pressure by the hour, for the fall ForTheWalk works out when it is asked
+            .putString(PRESSURE, WalkFacts.pressureKept(predicted.hours.map { predicted.instantOf(it.time) to it.pressure }, Instant.now()))
             .putString(PLACE_LAT, (Math.round(here.lat * 100) / 100.0).toString())
             .putString(PLACE_LON, (Math.round(here.lon * 100) / 100.0).toString())
             .putString(PLACE_ZONE, predicted.clock.id)
@@ -213,6 +215,8 @@ internal object Weather {
         val heavy: Int,
         val snowfall: Float,
         val hemisphere: String?,
+        /** hPa fallen over the last three hours (a rise is negative); null where not known. */
+        val pressureFall: Float? = null,
     )
 
     fun walkMore(context: Context, now: Instant = Instant.now()): More {
@@ -233,6 +237,7 @@ internal object Weather {
             heavy = if (c.getBoolean(HEAVY, false)) 1 else 0,
             snowfall = c.getFloat(SNOWFALL, 0f),
             hemisphere = lat?.let(WalkFacts::hemisphere),
+            pressureFall = runCatching { WalkFacts.pressureFall(WalkFacts.pressureRead(c.getString(PRESSURE, null)), now, zone) }.getOrNull(),
         )
     }
 
@@ -246,6 +251,7 @@ internal object Weather {
     private const val GUST = "gust"
     private const val HEAVY = "heavy"
     private const val SNOWFALL = "snowfall"
+    private const val PRESSURE = "pressure"
     private const val PLACE_LAT = "place_lat"
     private const val PLACE_LON = "place_lon"
     private const val PLACE_ZONE = "place_zone"

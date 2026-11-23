@@ -13,7 +13,8 @@ import com.wanderwildwood.soramoyo.alerts.AlertNotices
  * the moon's phase now (0 new, 0.5 full) and today's moonrise and moonset (-1 for none), the kind of
  * the most significant Weather Service alert in force (none, heat, winter_storm, smoke or other; never
  * its text), whether heavy snow is falling or due within a few hours, the snow over the next day in
- * centimetres, and the hemisphere (north, south or tropic; never where).
+ * centimetres, the hemisphere (north, south or tropic; never where), and the fall of the sea-level pressure over the last
+ * three hours in hPa (positive falling, negative rising; empty where the forecast gave none).
  *
  * All of it comes from what Sky fetches anyway, for its lock-screen lines and its own alerts; nothing
  * is fetched for this alone. The alerts are only as new as the last look at them, by Sky's screen or
@@ -50,6 +51,7 @@ class ForTheWalk : ContentProvider() {
                         alert,
                         more.heavy, more.snowfall,
                         more.hemisphere,
+                        more.pressureFall,
                     ))
                 }
             }
@@ -71,15 +73,16 @@ class ForTheWalk : ContentProvider() {
         /** SHA-256 of the certificate Wander's releases are signed with, lower-case hex. */
         const val READER_CERT_SHA256 = "b008d5c158fee6e0358b969b976e03270670251b1f07b8f10e5affb6e59c74e8"
         /** The first three as they always were; the rest only ever added after them. */
-        private val COLUMNS = arrayOf(
+        internal val COLUMNS = arrayOf(
             "sky", "change", "minutes",
             "wind", "gust",
             "moon_phase", "moonrise", "moonset",
             "alert",
             "heavy", "snowfall",
             "hemisphere",
+            "pressure_fall",
         )
         private const val STALE_MS = 3 * 60 * 60 * 1000L
-        private val UNKNOWN = Weather.More(-1f, -1f, -1f, -1L, -1L, 0, 0f, null)
+        private val UNKNOWN = Weather.More(-1f, -1f, -1f, -1L, -1L, 0, 0f, null, null)
     }
 }
