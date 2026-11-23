@@ -103,6 +103,9 @@ fun SettingsScreen(
         },
     ) { contentPadding ->
         val glanceHere = LockScreen.glanceInstalled(LocalContext.current)
+        // Read and written here: nothing else on this screen depends on it.
+        val lockContext = LocalContext.current
+        var onLock by remember { mutableStateOf(LockScreen.on(lockContext)) }
         PagedColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -158,11 +161,9 @@ fun SettingsScreen(
                     SwitchMMD(checked = DarkMode.on, onCheckedChange = null)
                 }
             }
-            // Only with Glance on the phone: without it the switch would change nothing anyone can see.
-            if (glanceHere) item {
-                // Read and written here: nothing else on this screen depends on it.
+            // Only with Glance on the phone, or while the switch is still on so it can be turned off.
+            if (glanceHere || onLock) item {
                 val context = LocalContext.current
-                var onLock by remember { mutableStateOf(LockScreen.on(context)) }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
