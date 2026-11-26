@@ -13,8 +13,8 @@ the station and the forecast are added here.
 
 | | |
 |---|---|
-| ![Today: the day in words, the next two hours' rain, now and today](screenshots/1-today.png) | ![Almanac: the moon tonight, its rise and set, and the sun's dawn and dusk](screenshots/2-almanac.png) |
-| ![A month of moons, on the almanac's second page](screenshots/3-moons.png) | ![About: privacy, terms and licenses, a page at a time](screenshots/4-about.png) |
+| ![Today: now, the next hours, an alert on top](screenshots/1-today.png) | ![The forecast, day by day](screenshots/2-forecast.png) |
+| ![The radar](screenshots/3-radar.png) | ![An alert in full](screenshots/4-alert.png) |
 
 ## What it shows
 
