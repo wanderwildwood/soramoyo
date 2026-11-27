@@ -160,7 +160,7 @@ hour, and nothing runs on a timer. Settings → The weather on the lock screen t
 lines go to Glance alone.
 
 With Wander installed, its walking game can ask what the sky is doing (clear, fog, rain or
-snow, the wind, the moon, and the kind of the most serious US alert, never its text or where
+snow, the wind, the moon, how fast the pressure is falling, and the kind of the most serious US alert, never its text or where
 you are), so the weather in its wood follows the real one. Sky answers only an app that carries
 Wander's own release certificate, from what it has already fetched; nothing is fetched for
 Wander alone.
